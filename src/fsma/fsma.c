@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.4 2001/07/07 02:58:23 seth Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.5 2001/09/17 22:36:33 dupuy Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -31,7 +31,7 @@ static char *version = VERSION ;
 
 
 
-int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
+unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 #ifdef COALESCE
 int fsma_coalesce = TRUE;
 static fsma_h *coalesce = NULL;

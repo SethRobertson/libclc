@@ -1,3 +1,9 @@
+2001-09-17  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* include/fsma.h: avoid Linux gcc warnings about signed vs. unsigned
+
+	* include/fsma.c: avoid Linux gcc warnings about signed vs. unsigned
+
 2001-08-16  Seth Robertson  <seth@yeah.baka.org>
 
 	* include/dict.h (DICT_NUKE_CONTENTS): Generic macro to spin through

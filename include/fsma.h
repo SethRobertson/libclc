@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.3 2001/07/07 02:58:20 seth Exp $
+ * $Id: fsma.h,v 1.4 2001/09/17 22:36:33 dupuy Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -70,7 +70,7 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
 #define fsm_size( fsma )	(fsma)->slot_size
 
-extern int fsma_slots_per_chunk;
+extern unsigned int fsma_slots_per_chunk;
 
 #endif 	/* __FSMA_H */
 

@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.15 2004/05/04 14:37:25 brian Exp $
+ * $Id: fsma.h,v 1.16 2004/05/04 15:19:13 jtt Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -133,7 +133,7 @@ static __inline__ void *fsm_alloc(fsma_h fsma)
       (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;
 
       if ((fsma)->flags & FSM_ZERO_ALLOC)
-#if __GNUC__ >= 3 &&  __GNUC_MINOR__ >= 3
+#if (__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
 	__builtin_memset(_fsm_ret, 0, (fsma)->slot_size);
 #else
 	memset(_fsm_ret, 0, (fsma)->slot_size);

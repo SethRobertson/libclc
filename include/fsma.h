@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.14 2004/04/08 21:03:48 jtt Exp $
+ * $Id: fsma.h,v 1.15 2004/05/04 14:37:25 brian Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -121,19 +121,26 @@ static __inline__ void *fsm_alloc(fsma_h fsma)
   }
   else
   {
+
     if (!(fsma)->next_free)
     { /* No fast path available */
       _fsm_ret = _fsm_alloc(fsma, FSM_LOCKED);
     }
     else
     {
+
       _fsm_ret = (fsma)->next_free;
       (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;
 
       if ((fsma)->flags & FSM_ZERO_ALLOC)
+#if __GNUC__ >= 3 &&  __GNUC_MINOR__ >= 3
+	__builtin_memset(_fsm_ret, 0, (fsma)->slot_size);
+#else
 	memset(_fsm_ret, 0, (fsma)->slot_size);
-    }
+#endif
 
+
+    }
     if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))
     {
       /* Complain, somehow--locking failed */

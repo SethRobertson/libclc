@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.20 2003/06/07 23:51:15 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.21 2003/07/16 07:47:38 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -485,7 +485,11 @@ void *_fsm_alloc(register fsma_h fp, register u_int flags)
  */
 void _fsm_free(fsma_h fp, void *object)
 {
-  fsm_free(fp, object);
+  // This should most likely never happen, but it does.  Grr.
+  if (fp->flags & FSM_FREE_USEFUN)
+    abort();
+  else
+    fsm_free(fp, object);
 }
 
 

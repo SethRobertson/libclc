@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.4 2002/12/10 21:24:04 jtt Exp $
+# $Id: Makefile,v 1.5 2005/02/05 02:29:57 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -14,9 +14,11 @@
 #
 # libbk Makefile
 #
-BK_LARGE_LIB=../libpqueue.a
+BK_LARGE_LIB=../libpqueue$(LIBEXT)
 BK_LARGE_LIBSRC=pq.c hpq.c
 BK_MAN=pq.3
+
+LT_LDLIBS=-lfsma
 
 GROUPTOP=../..
 GROUPSUBDIR=src/pq

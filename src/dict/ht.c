@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.9 2002/02/22 07:21:56 dupuy Exp $" ;
+static const char RCSid[] = "$Id: ht.c,v 1.10 2002/07/18 22:52:46 dupuy Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>

@@ -4,8 +4,8 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: pq.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
-static char version[] = VERSION ;
+static const char RCSid[] = "$Id: pq.c,v 1.2 2002/07/18 22:52:49 dupuy Exp $";
+static const char version[] = VERSION;
 
 int pq_errno ;
 

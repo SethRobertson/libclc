@@ -4,8 +4,8 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.8 2002/05/10 22:19:28 jtt Exp $" ;
-static char *version = VERSION ;
+static const char RCSid[] = "$Id: fsma.c,v 1.9 2002/07/18 22:52:47 dupuy Exp $";
+static const char version[] = VERSION;
 
 #include <stdlib.h>
 #include <unistd.h>

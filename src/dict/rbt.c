@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: rbt.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
+static const char RCSid[] = "$Id: rbt.c,v 1.3 2002/07/18 22:52:46 dupuy Exp $";
 
 #include "bstimpl.h"
 #include "clchack.h"

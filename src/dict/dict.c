@@ -4,8 +4,8 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dict.c,v 1.4 2002/03/22 11:39:50 dupuy Exp $" ;
-static char version[] = VERSION ;
+static const char RCSid[] = "$Id: dict.c,v 1.5 2002/07/18 22:52:46 dupuy Exp $";
+static const char version[] = VERSION;
 
 #include <unistd.h>
 #include <string.h>

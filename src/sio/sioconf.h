@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: sioconf.h,v 1.1 2001/05/26 22:04:50 seth Exp $
+ * $Id: sioconf.h,v 1.2 2003/06/17 05:10:54 seth Exp $
  */
 
 /*
@@ -93,18 +93,18 @@
 
 
 /*
- * Finalization function. 
+ * Finalization function.
  *
  * The purpose of this function is to do work after your program has
  * called exit(3). In the case of SIO, this means flushing the SIO
  * output buffers.
  *
  * If your system does not support atexit or onexit but has some other
- * way of installing a finalization function, you define the flag 
- * HAS_FINALIZER. Then you must define the macros 
+ * way of installing a finalization function, you define the flag
+ * HAS_FINALIZER. Then you must define the macros
  *			SIO_FINALIZE and SIO_DEFINE_FIN
  *
- * SIO_FINALIZE attempts to install a finalization function and returns TRUE 
+ * SIO_FINALIZE attempts to install a finalization function and returns TRUE
  * if successful, FALSE if unsuccessful.
  * SIO_DEFINE_FIN defines the finalization function (the reason for this macro
  * s that different systems pass different number/type of arguments to the
@@ -136,7 +136,7 @@
 
 /*
  * HAS_MEMOPS should be defined if your OS supports the mem* functions
- * (memcpy etc). If not, then you can define HAS_BCOPY if your OS supports 
+ * (memcpy etc). If not, then you can define HAS_BCOPY if your OS supports
  * bcopy.
  */
 #if defined( HAS_MEMOPS ) && defined( HAS_BCOPY )
@@ -145,7 +145,7 @@
 
 
 /*
- * Support for the isatty(3) function. This function identifies if a 
+ * Support for the isatty(3) function. This function identifies if a
  * desciptor refers to a terminal.
  *
  * Case 1: isatty(3) is in the C library

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: xlog.c,v 1.2 2002/07/18 22:52:53 dupuy Exp $";
+static const char RCSid[] = "$Id: xlog.c,v 1.3 2003/06/17 05:10:56 seth Exp $";
 static const char version[] = VERSION;
 
 #include <stdarg.h>
@@ -66,7 +66,7 @@ xlog_h xlog_create( xlog_e type, char *id, int flags, ... )
 
 	if ( ( xp = NEW( xlog_s ) ) == NULL )
 		return( NULL ) ;
-	
+
 	if ( id == NULL || ( xp->xl_id = __xlog_new_string( id ) ) == NULL )
 	{
 		FREE( xp ) ;
@@ -74,7 +74,7 @@ xlog_h xlog_create( xlog_e type, char *id, int flags, ... )
 	}
 
 	xops = xlog_ops_lookup( type ) ;
-	
+
 	if ( xops != NULL )
 	{
 		va_start( ap , flags ) ;
@@ -212,11 +212,11 @@ int xlog_control( xlog_h xlog, xlog_cmd_e cmd, ... )
 			xlog_link( xp, va_arg( ap, xlog_s * ) ) ;
 			xp->xl_callback_arg = va_arg( ap, void * ) ;
 			break ;
-		
+	
 		case XLOG_CALLBACK:
 			xp->xl_callback = va_arg( ap, voidfunc ) ;
 			break ;
-			
+		
 		case XLOG_GETFLAG:
 		case XLOG_SETFLAG:
 			xlog_flags( xp, cmd, ap ) ;
@@ -256,7 +256,7 @@ int xlog_parms( xlog_e type, ... )
 		case XLOG_FILELOG:
 			status = (*__xlog_filelog_ops.parms)( ap ) ;
 			break ;
-		
+	
 		default:
 			status = XLOG_ENOERROR ;
 	}

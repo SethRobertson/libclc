@@ -2,7 +2,7 @@
 The following is a state table showing how the state of a timer changes
 when various operations are applied to it.  The state is represented as
 a triple: the first member shows the state of the "ticking" part of the
-timer, the second member shows if the timer is blocked  and the third 
+timer, the second member shows if the timer is blocked  and the third
 member shows the state of the action associated with the timer.
 
 The "ticking" state can be:
@@ -21,7 +21,7 @@ The action state can be:
                   is running)
 
 
-The operations that affect timers fall into 2 groups. In the first group 
+The operations that affect timers fall into 2 groups. In the first group
 are the operations available by the library interface:
 
    timer_start

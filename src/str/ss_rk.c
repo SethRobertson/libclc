@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: ss_rk.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: ss_rk.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 #include "ss_impl.h"
 #include "clchack.h"
@@ -36,7 +36,7 @@ PRIVATE int rk_setup(register header_s *hp)
 	 */
 	for ( i = 0 ; i < SS_PATLEN( hp ) ; i++ )
 		patval = ( RADIX_MULT( patval ) + UCHAR( SS_PATTERN( hp )[i] ) ) % PRIME ;
-	
+
 	for ( i = 0 ; i < SS_PATLEN( hp )-1 ; i++ )
 		digit_1 = RADIX_MULT( digit_1 ) % PRIME ;
 
@@ -97,7 +97,7 @@ PRIVATE char *rk_match(register header_s *hp, char *str, int len)
 		/*
 		 * The formula we evaluate is:
 		 *
-		 *	strval = ( RADIX_MULT( ( strval - UCHAR( str[i] )*digit_1 ) ) + 
+		 *	strval = ( RADIX_MULT( ( strval - UCHAR( str[i] )*digit_1 ) ) +
 		 *						UCHAR( str[i+patlen] ) ) % PRIME ;
 		 *
 		 * We have to make sure that the subtraction does not produce

@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __ENV_H
 
 /*
- * $Id: env.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: env.h,v 1.2 2003/06/17 05:10:50 seth Exp $
  */
 
 struct __env

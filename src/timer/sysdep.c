@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -191,7 +191,7 @@ ostimer_s *__ostimer_init(timer_s *tp, enum timer_types type)
    tqp = &otp->ost_timerq ;
 	if ( tqp->tq_handle )
 		return( otp ) ;
-	
+
    tqp->tq_handle = pq_create( time_compare,
 				tp->t_flags & TIMER_RETURN_ERROR ? PQ_RETURN_ERROR : PQ_NOFLAGS,
 										&tqp->tq_errno ) ;

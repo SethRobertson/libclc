@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.4 2001/06/18 21:59:44 seth Exp $
+# $Id: Makefile,v 1.5 2003/06/17 05:10:51 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -12,7 +12,7 @@
 #
 # --Copyright LIBBK--
 #
-# libbk group Makefile 
+# libbk group Makefile
 #
 BK_SUBDIR=fsma dict pq
 

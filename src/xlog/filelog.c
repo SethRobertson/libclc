@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: filelog.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: filelog.c,v 1.2 2003/06/17 05:10:56 seth Exp $" ;
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -38,7 +38,7 @@ PRIVATE int filelog_write(xlog_s *xp, char *buf, int len, int flags, va_list ap)
 PRIVATE int filelog_parms(va_list ap) ;
 PRIVATE int limit_checks(xlog_s *xp) ;
 
-struct xlog_ops __xlog_filelog_ops = 
+struct xlog_ops __xlog_filelog_ops =
 	{
 		filelog_init,
 		filelog_fini,
@@ -69,7 +69,7 @@ PRIVATE int filelog_init(xlog_s *xp, va_list ap)
 		FREE( flp ) ;
 		return( XLOG_EOPEN ) ;
 	}
-	
+
 	FILELOG_DISABLE_SIZE_CONTROL( flp ) ;
 	(void) Sbuftype( fd, SIO_LINEBUF ) ;
 	flp->fl_fd = fd ;
@@ -160,7 +160,7 @@ PRIVATE int limit_checks(xlog_s *xp)
 
 	if ( flp->fl_size <= flp->fl_hard_limit )
 		return( XLOG_ENOERROR ) ;
-	
+
 	if ( xp->xl_use != NULL )
 		xlog_write( (xlog_h) xp->xl_use, buf,
 			strx_nprint( buf, sizeof( buf ),
@@ -222,7 +222,7 @@ PRIVATE int filelog_write(xlog_s *xp, char *buf, int len, int flags, va_list ap)
 		char *ep ;
 
 		/*
-		 * XXX:	The reason for the repetition of "msglen += cc ;" is that in 
+		 * XXX:	The reason for the repetition of "msglen += cc ;" is that in
 		 *			the future we may want to check cc for SIO_ERR
 		 */
 		ep = __xlog_explain_errno( errno_buf, &size ) ;
@@ -249,10 +249,10 @@ PRIVATE int filelog_write(xlog_s *xp, char *buf, int len, int flags, va_list ap)
 		return( XLOG_ENOERROR ) ;
 
 	flp->fl_size += msglen ;
-	if ( flp->fl_size <= flp->fl_soft_limit || 
+	if ( flp->fl_size <= flp->fl_soft_limit ||
 					( status = limit_checks( xp ) ) == XLOG_ENOERROR )
 		return( XLOG_ENOERROR ) ;
-	
+
 	flp->fl_state = FL_SIZE ;
 	return( status ) ;
 }

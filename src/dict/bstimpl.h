@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: bstimpl.h,v 1.4 2003/04/09 19:51:56 seth Exp $
+ * $Id: bstimpl.h,v 1.5 2003/06/17 05:10:51 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -103,7 +103,7 @@ struct tree_iterator
  * of boundary conditions.
  *
  * The only unusual thing in this implementation is the 'anchor' field
- * which is used as the actual root of the tree. The user-visible root of 
+ * which is used as the actual root of the tree. The user-visible root of
  * the tree is always the *left* child of the anchor. The TREE_EMPTY macro
  * below tests this condition.
  */

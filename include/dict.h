@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.13 2003/06/13 20:36:39 dupuy Exp $
+ * $Id: dict.h,v 1.14 2003/06/17 05:10:50 seth Exp $
  */
 
 
@@ -66,7 +66,7 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
 
 /*
  * Delete all of the elements in a CLC dict datastructure (of type "prefix").
- * For use only by DICT_NUKE_CONTENTS and DICT_NUKE. 
+ * For use only by DICT_NUKE_CONTENTS and DICT_NUKE.
  *
  * THREADS: REENTRANT (assuming different dictionaries)
  *

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: strs.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: strs.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@ static char RCSid[] = "$Id: strs.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
 #include "clchack.h"
 
 /*
- * NOTE: The brute force method (with the __strs_bfops) must be always 
+ * NOTE: The brute force method (with the __strs_bfops) must be always
  * 		available so that we can switch to it if another method fails.
  */
 extern struct ss_ops __strs_bfops ;
@@ -200,7 +200,7 @@ strs_h strs_setup( int flags, char *pattern, ... )
 	hp = HP( malloc( sizeof( *hp ) ) ) ;
 	if ( hp == NULL )
 		return( NULL_HANDLE ) ;
-	
+
 	if ( flags & STRS_PATLEN )
 	{
 		va_start( ap, pattern ) ;

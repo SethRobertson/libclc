@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: pset.c,v 1.2 2002/07/18 22:52:50 dupuy Exp $";
+static const char RCSid[] = "$Id: pset.c,v 1.3 2003/06/17 05:10:53 seth Exp $";
 static const char version[] = VERSION;
 
 #include "pset.h"
@@ -34,7 +34,7 @@ pset_h pset_create(unsigned int alloc_start, unsigned int alloc_step)
 	pset = (pset_h) malloc( sizeof( struct __pset ) ) ;
 	if ( pset == NULL )
 		return( NULL ) ;
-	
+
 	start = ( alloc_start == 0 ) ? ALLOC_START : alloc_start ;
 	pset->ptrs = (POINTER *) malloc( start * sizeof( POINTER ) ) ;
 	if ( pset->ptrs == NULL )
@@ -90,7 +90,7 @@ void pset_delete(register pset_h pset, register __pset_pointer ptr)
 
 	if ( u == 0 )
 		return ;
-	
+
 	do
 	{
 		u-- ;

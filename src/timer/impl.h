@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define IMPL_H
 
 /*
- * $Id: impl.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: impl.h,v 1.2 2003/06/17 05:10:55 seth Exp $
  */
 
 #include <sys/time.h>
@@ -18,7 +18,7 @@
 #include "pq.h"
 #include "timer.h"
 
-enum timer_state { INACTIVE, TICKING, DESTROYED } ;  
+enum timer_state { INACTIVE, TICKING, DESTROYED } ; 
 enum action_state { IDLE, PENDING, SCHEDULED, INVOKED } ;
 
 

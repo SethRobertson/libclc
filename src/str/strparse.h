@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: strparse.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: strparse.h,v 1.2 2003/06/17 05:10:55 seth Exp $
  */
 
 struct str_handle

@@ -1,8 +1,8 @@
 .\"(c) Copyright 1992, 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: strparse.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.\" $Id: strparse.3,v 1.2 2003/06/17 05:10:55 seth Exp $
 .TH STRPARSE 3X "30 September 1992"
 .SH NAME
 str_parse, str_endparse, str_component, str_separator, str_nextpos
@@ -84,7 +84,7 @@ is
 .SM NULL
 the error codes will be placed in \fIstr_errno\fR.
 This is useful only if \fBSTR_RETURN_ERROR\fR is used in \fIflags\fR.
-It is possible that \fIstr\fP is 
+It is possible that \fIstr\fP is
 .SM NULL.
 In this case, a subsequent
 .B str_setstr()
@@ -133,14 +133,14 @@ returns a pointer to the next substring or
 if something goes wrong and \fIflags\fR & \fBSTR_RETURN_ERROR\fR is true.
 .LP
 .B str_setstr()
-returns 
+returns
 .SB STR_OK
 on success or
 .SB STR_ERR
 on failure.
 .LP
 .B str_separator()
-returns 
+returns
 .SB STR_OK
 on success or
 .SB STR_ERR

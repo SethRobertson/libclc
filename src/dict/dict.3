@@ -1,8 +1,8 @@
 .\"(c) Copyright 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: dict.3,v 1.4 2003/05/07 19:39:59 dupuy Exp $
+.\" $Id: dict.3,v 1.5 2003/06/17 05:10:51 seth Exp $
 .TH DICT 3X "23 April 1993"
 .SH NAME
 dictionary management functions
@@ -110,7 +110,7 @@ When a library instance is created, the caller
 can select between ordered and unordered objects depending on the requirements
 of the application.
 A request for ordering will be rejected if the library does not support it,
-but a request for lack of ordering is usually treated as a hint, and it may 
+but a request for lack of ordering is usually treated as a hint, and it may
 not be rejected.
 .LP
 .B <lib>_create
@@ -142,7 +142,7 @@ It will be called with 2 arguments, the first of type
 and the second of type
 .I dict_obj,
 and it should return an integer less-than/equal-to/greater-than 0
-if the specified key (first argument) is less-than/equal-to/greater-than 
+if the specified key (first argument) is less-than/equal-to/greater-than
 the key of the object (second argument). Specifying this function is
 optional, but you should note that use of
 .B <lib>_search()
@@ -191,9 +191,9 @@ and
 .B <lib>_insert_uniq()
 are used for object insertions, with the latter requiring that the
 new object be unique (in terms of its key).
-If the 
-.I objectp 
-argument of 
+If the
+.I objectp
+argument of
 .B <lib>_insert_uniq()
 is not
 .SM NULL
@@ -210,7 +210,7 @@ deletes an object from a library instance.
 .B <lib>_search()
 locates objects with a key equal to the specified key.
 .LP
-The action of the 
+The action of the
 .B <lib>_minimum(),
 .B <lib>_maximum(),
 .B <lib>_successor(),
@@ -231,7 +231,7 @@ or
 .B "<lib>_maximum(),"
 and iterating with
 .B "<lib>_successor()"
-or 
+or
 .B "<lib>_predecessor()"
 respectively,
 all objects stored in the library instance will be enumerated.
@@ -243,7 +243,7 @@ The specified object must exist in the library instance
 (non-existence is considered a programmer error).
 .LP
 .B <lib>_predecessor()
-returns the object that is the predecessor of the specified  
+returns the object that is the predecessor of the specified 
 .I object.
 The specified object must exist in the library instance
 (non-existence is considered a programmer error).
@@ -255,17 +255,17 @@ for an iteration, returning the iteration context, which must be passed to
 .B "<lib>_nextobj()".
 Assuming a library that orders objects according to non-decreasing key value,
 if
-.I direction 
+.I direction
 is
 .I DICT_FROM_START
 then the objects will be iterated according to non-decreasing key value,
-while if 
-.I direction 
+while if
+.I direction
 is
 .I DICT_FROM_END
 then the objects will be iterated according to non-increasing key value.
 If the library does not provide any ordering, then the
-.I direction 
+.I direction
 argument is ignored.
 .LP
 .B "<lib>_nextobj()"
@@ -316,7 +316,7 @@ if it succeeds, or
 if it fails.
 .LP
 .B <lib>_insert_uniq()
-returns 
+returns
 .B DICT_OK
 if it succeeds, or
 .B DICT_ERR
@@ -352,8 +352,8 @@ returns an object, or
 if the specified object has no successor (predecessor),
 or when the specified object does not exist.
 In order to discriminate between these two cases, in the former case
-the error variable 
-(\fIdict_errno\fP or the one specified when the 
+the error variable
+(\fIdict_errno\fP or the one specified when the
 specific library instance was created)
 will be set to
 .SB DICT_ENOERROR,
@@ -386,9 +386,9 @@ Object is
 .IP DICT_EEXISTS
 Object with equal key exists.
 .IP "DICT_EBADOBJECT *"
-The object used in a 
+The object used in a
 .I "<lib>_successor"
-or 
+or
 .I "<lib>_predecessor"
 operation does not exist.
 .IP "DICT_ENOHVFUNC"

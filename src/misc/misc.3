@@ -1,8 +1,8 @@
 .\"(c) Copyright 1992 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: misc.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.\" $Id: misc.3,v 1.2 2003/06/17 05:10:52 seth Exp $
 .TH MISC 3X "25 January 1992"
 .SH NAME
 make_string, make_pathname, argv_copy_and_clear, basename, dirname - miscellaneous functions
@@ -58,10 +58,10 @@ them with
 .SM SPACEs.
 .LP
 .B dirname()
-returns in a malloced string containing all but the last of 
+returns in a malloced string containing all but the last of
 component of \fIpath\fR. There are 2 special cases:
 first when the
-\fIpath\fR is "/", \fBdirname()\fR will return "/", 
+\fIpath\fR is "/", \fBdirname()\fR will return "/",
 and second, when the \fIpath\fR does not contain any '/',
 \fBdirname()\fR will return ".".
 .LP

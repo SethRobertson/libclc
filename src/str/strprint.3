@@ -1,8 +1,8 @@
 .\"(c) Copyright 1992, 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: strprint.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.\" $Id: strprint.3,v 1.2 2003/06/17 05:10:55 seth Exp $
 .TH STRPRINT 3X "30 September 1992"
 .SH NAME
 str_sprint, tr_sprintv, str_nprint, str_nprintv, str_print, str_printv, strx_sprint, strx_sprintv, strx_nprint, strx_nprintv, strx_print, strx_printv -- formatted conversion to string
@@ -106,7 +106,7 @@ All functions will append a
 .SM NUL
 at the end of
 .I buf
-(the \fIstrx_*\fR functions will not do this if it would cause 
+(the \fIstrx_*\fR functions will not do this if it would cause
 a buffer overrun).
 .LP
 .B str_print(),
@@ -116,7 +116,7 @@ and
 .B strx_printv()
 will put in
 .I "*countp"
-the number of characters placed in 
+the number of characters placed in
 .I buf
 excluding the ending
 .SM NUL
@@ -145,7 +145,7 @@ return
 .B strx_nprint(),
 and
 .B strx_nprintv()
-return the number of characters placed in 
+return the number of characters placed in
 .I buf
 excluding the ending
 .SM NUL.

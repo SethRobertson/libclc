@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __TIMER_H
 
 /*
- * $Id: timer.h,v 1.1 2001/05/26 22:04:52 seth Exp $
+ * $Id: timer.h,v 1.2 2003/06/17 05:10:50 seth Exp $
  */
 
 #include <sys/time.h>
@@ -64,7 +64,7 @@ struct timer_action
 
 typedef void *timer_h ;
 
-timer_h clc_timer_create		__ARGS( ( 
+timer_h clc_timer_create		__ARGS( (
 											enum timer_types type,
 											int flags,
 											int *errnop
@@ -75,7 +75,7 @@ int clc_timer_start 			__ARGS( (
 											timer_h handle,
 											struct itimerval *itvp,
 											enum timer_timetypes time_type,
-											struct timer_action *ap 
+											struct timer_action *ap
 										) ) ;
 void clc_timer_stop 			__ARGS( ( timer_h handle ) ) ;
 

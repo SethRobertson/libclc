@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.16 2003/06/13 20:36:39 dupuy Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.17 2003/06/17 05:10:51 seth Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -42,7 +42,7 @@ PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
   dheader_s 		*dhp 	= DHP( hp ) ;
   register tnode_s	*null	= NIL( hp ) ;
   register int 		v ;
-	
+
   while ( np != null )
   {
     v = (*dhp->oo_comp)( object, OBJ( np ) ) ;
@@ -56,7 +56,7 @@ PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 	 * for equal (non-unique) must check both right and left
 	 * recurse on right, iterate on left
 	 */
-	tnode_s *rp = find_object_in_tree( hp, RIGHT( np ), object ); 
+	tnode_s *rp = find_object_in_tree( hp, RIGHT( np ), object );
 
 	if ( rp != null )
 	  return ( rp );
@@ -80,7 +80,7 @@ PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
 {
   register tnode_s	*np	= ROOT( hp ) ;
-	
+
   return( find_object_in_tree( hp, np, object ) ) ;
 }
 
@@ -139,7 +139,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
     COLOR( ANCHOR( hp ) ) = BLACK ;
     COLOR( NIL( hp ) ) = BLACK ;
   }
-	
+
   /*
    * Initialize dictionary header, hints
    */
@@ -241,7 +241,7 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
    * Furthermore, 'v' will hold the comparison value between the
    * object stored at this node and the new 'object'.
    *
-   * v must be initialized to -1 so that when we insert a node into an 
+   * v must be initialized to -1 so that when we insert a node into an
    * empty tree that node will be the *left* child of the anchor node
    */
   v = -1 ;
@@ -288,7 +288,7 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
 
   if ( dhp->flags & DICT_BALANCED_TREE )
     __dict_rbt_insfix( hp, newnode ) ;
-	
+
   if ( objectp != NULL )
     *objectp = object ;
 
@@ -396,7 +396,7 @@ int bst_delete(dict_h handle, dict_obj object)
     delnp = HINT_GET( hp, last_predecessor ) ;
   else if ( HINT_MATCH( hp, last_successor, object ) )
     delnp = HINT_GET( hp, last_successor ) ;
-  else 
+  else
 #endif /* FAST_ACTIONS */
     if ( HINT_MATCH( hp, last_search, object ) )
       delnp = HINT_GET( hp, last_search ) ;
@@ -411,7 +411,7 @@ int bst_delete(dict_h handle, dict_obj object)
       }
     }
 
-#ifdef SAFE_ITERATE	
+#ifdef SAFE_ITERATE
 #ifdef BK_USING_PTHREADS
   for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
   {
@@ -762,7 +762,7 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
   }
   return( previous ) ;
 }
-	
+
 
 
 /*
@@ -1088,7 +1088,7 @@ void bst_traverse( handle, order, action )
   case BST_PREORDER:
     preorder( hp, ROOT( hp ), action ) ;
     break ;
-		
+	
   case BST_POSTORDER:
     postorder( hp, ROOT( hp ), action ) ;
     break ;

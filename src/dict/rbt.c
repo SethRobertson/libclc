@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: rbt.c,v 1.4 2003/04/01 04:40:57 seth Exp $";
+static const char RCSid[] = "$Id: rbt.c,v 1.5 2003/06/17 05:10:51 seth Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -41,7 +41,7 @@ PRIVATE void right_rotate(header_s *hp, tnode_s *x)
 		LEFT( px ) = y ;
 	else
 		RIGHT( px ) = y ;
-	
+
 	/*
 	 * Now fix the tree below 'y'. We need to:
 	 *		a. Fix the parent of 'x'
@@ -88,7 +88,7 @@ PRIVATE void left_rotate(header_s *hp, tnode_s *x)
 		LEFT( px ) = y ;
 	else
 		RIGHT( px ) = y ;
-	
+
 	/*
 	 * Now fix the tree below 'y'. We need to:
 	 *    a. Fix the parent of 'x'

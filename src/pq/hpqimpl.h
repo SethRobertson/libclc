@@ -1,11 +1,11 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 /*
- * $Id: hpqimpl.h,v 1.3 2001/07/07 13:41:16 seth Exp $
+ * $Id: hpqimpl.h,v 1.4 2003/06/17 05:10:53 seth Exp $
  */
 
 #include "hpq.h"

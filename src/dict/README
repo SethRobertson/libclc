@@ -36,12 +36,12 @@ Testing the code
 I have included 3 sample programs that test this library:
 	dlltest	: 	tests the double linked list implementation
 	htest		:	tests the hash tables implementation
-	bsttest 	: 	tests the binary search tree implementation (note: this 
-					program requires that the library be compiled with the 
+	bsttest 	: 	tests the binary search tree implementation (note: this
+					program requires that the library be compiled with the
 					BST_DEBUG preprocessor flag; check the Makefile for more
 					details)
 
-In order to do the test, follow these steps (we will assume that the hash 
+In order to do the test, follow these steps (we will assume that the hash
 table implementation is to be tested):
 
 	1. Make the program:
@@ -74,7 +74,7 @@ has 1000 nodes, and it is artificially created to make sure that it is skewed
 is at depth 1000.
 By invoking the program as:
 	bstcomp b 20000
-the same 1000-node tree will be balanced, and the time to make the 20000 
-searches for the same node will be a fraction of the time when the tree 
+the same 1000-node tree will be balanced, and the time to make the 20000
+searches for the same node will be a fraction of the time when the tree
 was not balanced.
 

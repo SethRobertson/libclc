@@ -1,11 +1,11 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 /*
- * $Id: sio.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: sio.h,v 1.2 2003/06/17 05:10:50 seth Exp $
  */
 
 #ifndef __SIO_H
@@ -17,9 +17,9 @@
 /*
  * Naming conventions:
  *		1) SIO functions and macros have names starting with a capital S
- *		2) SIO constants meant to be used by user programs have 
+ *		2) SIO constants meant to be used by user programs have
  *			names starting with SIO_
- *		3) Internal functions, struct identifiers, enum identifiers 
+ *		3) Internal functions, struct identifiers, enum identifiers
  *			etc. have names starting with __sio
  *		4) Internal constants and macros have names starting with __SIO
  */
@@ -56,7 +56,7 @@ struct __sio_input_descriptor
 {
 	/*
 	 * buf:		points to the buffer area.
-	 *				When doing memory mapping, it is equal to the unit 
+	 *				When doing memory mapping, it is equal to the unit
 	 *				from which we are reading. When doing buffered I/O
 	 *				it points to the primary buffer.
 	 */
@@ -194,7 +194,7 @@ extern int errno ;
 
 
 /*
- * The Sgetchar/Sputchar macros depend on the fact that the fields 
+ * The Sgetchar/Sputchar macros depend on the fact that the fields
  * 				nextb, buf_end, end
  * are 0 if a stream descriptor is not being used or has not yet been
  * initialized.

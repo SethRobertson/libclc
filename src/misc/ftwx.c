@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: ftwx.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: ftwx.c,v 1.2 2003/06/17 05:10:52 seth Exp $" ;
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -179,7 +179,7 @@ PRIVATE int ftwx_traverse(char *path, int depth)
 			retval = -1 ;
 			break ;
 		}
-		
+	
 		retval = ftwx_traverse( filename, depth ) ;
 		free( filename ) ;
 

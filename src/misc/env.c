@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: env.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: env.c,v 1.2 2003/06/17 05:10:52 seth Exp $" ;
 
 #include <stdlib.h>
 #include <memory.h>
@@ -77,7 +77,7 @@ env_h env_create(env_h init_env)
 		max_vars = INITIAL_VARS ;
 	else
 		max_vars = init_env->n_vars + 5 ;
-	
+
 	ep = alloc_env( max_vars ) ;
 	if ( ep == NULL )
 	{
@@ -174,7 +174,7 @@ PRIVATE int grow(env_s *ep)
 	new_vars = (char **) realloc( (char *)ep->vars, new_size ) ;
 	if ( new_vars == NULL )
 		return( ENV_ERR ) ;
-	
+
 	ep->vars = new_vars ;
 	ep->max_vars = new_max_vars ;
 	return( ENV_OK ) ;
@@ -192,7 +192,7 @@ PRIVATE int addstring(env_s *ep, char *var_string, int len)
 	p = make_string( 1, var_string ) ;
 	if ( p == NULL )
 		return( ENV_ERR ) ;
-		
+	
 	pp = lookup( ep, var_string, len ) ;
 	if ( pp == NULL )
 	{
@@ -236,7 +236,7 @@ int env_addstr(env_h env, char *var_string)
 		env_errno = ENV_EBADSTRING ;
 		return( ENV_ERR ) ;
 	}
-	
+
 	return( addstring( env, var_string, p-var_string ) ) ;
 }
 
@@ -250,7 +250,7 @@ int env_remvar(env_h env, char *var)
 		env_errno = ENV_EBADVAR ;
 		return( ENV_ERR ) ;
 	}
-	
+
 	free( *pp ) ;
 	*pp = env->vars[ --env->n_vars ] ;
 	return( ENV_OK ) ;

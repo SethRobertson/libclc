@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: buftest.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
+static char RCSid[] = "$Id: buftest.c,v 1.2 2003/06/17 05:10:54 seth Exp $" ;
 
 #include "sio.h"
 #include "clchack.h"

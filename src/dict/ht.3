@@ -1,8 +1,8 @@
 .\"(c) Copyright 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: ht.3,v 1.4 2003/05/07 19:39:59 dupuy Exp $
+.\" $Id: ht.3,v 1.5 2003/06/17 05:10:51 seth Exp $
 .TH HT 3X "23 April 1993"
 .SH NAME
 ht_create, ht_destroy, ht_insert, ht_insert_uniq, ht_delete, ht_search, ht_minimum, ht_maximum, ht_successor, ht_predecessor, ht_iterate, ht_nextobj, ht_error_reason - hash table management functions
@@ -80,7 +80,7 @@ dict_h handle ;
 dict_iter iter ;
 .SH DESCRIPTION
 This library supports dictionary functions using hash tables.
-A hash table is an array of linked lists which contain objects with the 
+A hash table is an array of linked lists which contain objects with the
 same hash value.
 .LP
 .B ht_create()
@@ -123,8 +123,8 @@ typedef ht_val (*ht_func)() ;
 The
 .I ht_table_entries
 field determines the number of entries in the hash table.
-The hash function used is a modulo function, so 
-in order to make sure that a proper number is used, the 
+The hash function used is a modulo function, so
+in order to make sure that a proper number is used, the
 .I ht_table_entries
 is treated as a hint about the order of the number of entries of the table.
 If it is
@@ -137,7 +137,7 @@ field determines the number of objects in each bucket. If it is
 .B 0
 a default number will be used. Otherwise, it is treated as a hint
 for the number of entries in each bucket.
-The fields 
+The fields
 .I ht_table_entries
 and
 .I ht_bucket_entries
@@ -150,7 +150,7 @@ A hash table does not order the objects stored in it; therefore the
 argument in the
 .B "ht_iterate()"
 call is ignored.
-Furthermore, the 
+Furthermore, the
 .B ht_minimum(),
 .B ht_maxumim(),
 .B ht_successor(),

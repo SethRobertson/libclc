@@ -1,8 +1,8 @@
 .\"(c) Copyright 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: timemacros.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.\" $Id: timemacros.3,v 1.2 2003/06/17 05:10:55 seth Exp $
 .TH TIMEMACROS 3X "20 April 1993"
 .SH NAME
 TV_ADD, TV_SUB, TV_LT, TV_LE, TV_GT. TV_GE, TV_EQ, TV_NE, TV_ISZERO, TV_ZERO, TVP_ADD, TVP_SUB, TVP_LT, TVP_LE, TVP_GT, TVP_GE, TVP_EQ, TVP_NE, TVP_ISZERO, TVP_ZERO - macros for manipulating timeval structures
@@ -80,7 +80,7 @@ performs the subtraction
 .I "tv1-tv2"
 and places the result in
 .I tv_res.
-The result is "normalized" if the number of microseconds in 
+The result is "normalized" if the number of microseconds in
 .I tv_res
 becomes negative.
 .LP
@@ -97,7 +97,7 @@ to zero seconds and zero microseconds.
 and
 .B "TV_NE()"
 return
-.SM TRUE 
+.SM TRUE
 if
 .I tv1
 is

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bsttest.c,v 1.6 2003/04/01 04:40:56 seth Exp $" ;
+static const char RCSid[] = "$Id: bsttest.c,v 1.7 2003/06/17 05:10:51 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -78,12 +78,12 @@ int main( int argc, char *argv[] )
 #endif /* BST_DEBUG */
 
 	printf( "Successor test\n" ) ;
-	for ( ip=(int *)bst_minimum( bh ) ; ip ; ip=(int *)bst_successor( bh, ip ) ) 
+	for ( ip=(int *)bst_minimum( bh ) ; ip ; ip=(int *)bst_successor( bh, ip ) )
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
 
 	printf( "Predecessor test\n" ) ;
-	for ( ip=(int *)bst_maximum( bh ) ;ip; ip=(int *)bst_predecessor( bh, ip ) ) 
+	for ( ip=(int *)bst_maximum( bh ) ;ip; ip=(int *)bst_predecessor( bh, ip ) )
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
 
@@ -100,12 +100,12 @@ int main( int argc, char *argv[] )
 		}
 
 	printf( "Successor test 2\n" ) ;
-	for ( ip=(int *)bst_minimum( bh ) ; ip ; ip=(int *)bst_successor( bh, ip ) ) 
+	for ( ip=(int *)bst_minimum( bh ) ; ip ; ip=(int *)bst_successor( bh, ip ) )
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
 
 	printf( "Predecessor test 2\n" ) ;
-	for ( ip=(int *)bst_maximum( bh ) ;ip; ip=(int *)bst_predecessor( bh, ip ) ) 
+	for ( ip=(int *)bst_maximum( bh ) ;ip; ip=(int *)bst_predecessor( bh, ip ) )
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
 

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: siosup.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
+static char RCSid[] = "$Id: siosup.c,v 1.2 2003/06/17 05:10:54 seth Exp $" ;
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -122,13 +122,13 @@ static mapd_s *mmap_descriptors = static_mapd_array ;
 
 /*
  * try_memory_mapping attempts to setup the specified descriptor
- * for memory mapping. 
+ * for memory mapping.
  * It returns FAILURE if it fails and SUCCESS if it is successful.
  * If HAS_MMAP is not defined, the function is defined to be FAILURE.
  *
  * Sets fields:
  *		memory_mapped:			 TRUE or FALSE
- *		
+ *	
  * Also sets the following fields if memory_mapped is TRUE:
  *    file_offset, file_size, buffer_size
  *
@@ -178,7 +178,7 @@ PRIVATE status_e try_memory_mapping(int fd, register __sio_id_t *idp, struct sta
 				map_unit_size = page_size ;
 		}
 	}
-	
+
 	MDP(fd)->file_offset = 0 ;
 	MDP(fd)->file_size = stp->st_size ;
 	idp->buffer_size = map_unit_size ;
@@ -288,7 +288,7 @@ status_e __sio_switch(register __sio_id_t *idp, int fd)
  *			first_unit.*, second_unit.*
  *			file_offset
  *
- * Returns: 
+ * Returns:
  *			number of bytes mapped in first_unit
  *    or
  *			0 to indicate that mmap failed.
@@ -364,7 +364,7 @@ PRIVATE status_e map_unit(register mapd_s *mdp, int fd, register struct map_unit
 		if ( SIO_MMAP( mup->addr, bytes_to_map,
 			       fd, mdp->file_offset ) == (caddr_t)(-1) )
 			return( FAILURE ) ;			/* XXX: need to do more ? */
-		
+	
 		mup->valid_bytes = bytes_to_map ;
 		ASSERT( mup->valid_bytes <= mup->mapped_bytes ) ;
 		mdp->file_offset += bytes_to_map ;
@@ -596,7 +596,7 @@ int __sio_init(register __sio_descriptor_t *dp, int fd, enum __sio_stream stream
  * Return value:
  *		Number of bytes written
  *		SIO_ERR, if write(2) fails and no data were written
- */ 
+ */
 int __sio_writef(register __sio_od_t *odp, int fd)
 {
 	register int b_in_buffer ;
@@ -617,7 +617,7 @@ int __sio_writef(register __sio_od_t *odp, int fd)
 
 	if ( b_in_buffer == 0 )
 		return( 0 ) ;
-	
+
 	for ( ;; )
 	{
 		register int cc ;
@@ -795,7 +795,7 @@ int __sio_extend_buffer(register __sio_id_t *idp, int fd, register int b_left)
  * __sio_more tries to read more data from the given file descriptor iff
  * there is free space in the buffer.
  * __sio_more is used only by Srdline and only AFTER __sio_extend_buffer
- * has been called. This implies that 
+ * has been called. This implies that
  *		a) this is not a memory mapped file
  *		b) __sio_readf has been called (so we don't need to check for tied fd's
  *
@@ -815,7 +815,7 @@ int __sio_more(register __sio_id_t *idp, int fd)
 
 	if ( b_left <= 0 )
 		return( 0 ) ;
-	
+
 	for ( ;; )
 	{
 		cc = read( fd, idp->end, b_left ) ;
@@ -875,7 +875,7 @@ int Sdone(int fd)
 					idp->nextb = idp->end = NULL ;
 			}
 			break ;
-		
+	
 		case __SIO_OUTPUT_STREAM:
 			{
 				register __sio_od_t *odp = ODP( dp ) ;
@@ -886,7 +886,7 @@ int Sdone(int fd)
 				odp->nextb = odp->buf_end = NULL ;
 			}
 			break ;
-		
+	
 		default:
 			terminate( "SIO Sdone: bad stream type\n" ) ;
 	}
@@ -982,7 +982,7 @@ int Smorefds(void)
 		return( SIO_ERR ) ;
 	mmap_descriptors = (mapd_s *) p ;
 #endif	/* HAS_MMAP */
-	
+
 	old_size = n_descriptors * sizeof( __sio_descriptor_t ) ;
 	new_size = n_fds * sizeof( __sio_descriptor_t ) ;
 	is_static =  ( __sio_descriptors == static_descriptor_array ) ;
@@ -1047,7 +1047,7 @@ int __sio_get_events( fd, buf, size )
 
 	if ( evp->codes == NULL )
 		return( 0 ) ;
-	
+
 	diff = evp->next - evp->start ;
 	if ( diff == 0 )
 		return( 0 ) ;

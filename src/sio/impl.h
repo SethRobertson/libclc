@@ -1,11 +1,11 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 /*
- * $Id: impl.h,v 1.1 2001/05/26 22:04:50 seth Exp $
+ * $Id: impl.h,v 1.2 2003/06/17 05:10:54 seth Exp $
  */
 
 #ifndef SIO_BUFFER_SIZE
@@ -147,18 +147,18 @@ extern int errno ;
  * IO_SETUP initializes a descriptor if it is not already initialized.
  * It checks if the stream is of the right type (input or output).
  * CONTROL_SETUP checks if the descriptor is initialized and if the
- * stream is of the right type (input or output). 
+ * stream is of the right type (input or output).
  *
  * 	fd: file descriptor
  * 	dp: descriptor pointer
  * 	op: operation
- * 	ev: error value (if __sio_init fails; __sio_init should set errno) 
+ * 	ev: error value (if __sio_init fails; __sio_init should set errno)
  *
  * IO_SETUP will call __sio_init if the descriptor is not initialized.
  * Possible errors:
  *		1. Using CONTROL_SETUP on an uninitialized descriptor.
  *		2. The operation is not appropriate for the descriptor (e.g.
- *			a read operation on an descriptor used for writing). 
+ *			a read operation on an descriptor used for writing).
  * Both errors set errno to EBADF.
  */
 #define CONTROL_SETUP( dp, type, ev )														\

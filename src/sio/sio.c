@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: sio.c,v 1.2 2002/07/18 22:52:51 dupuy Exp $";
+static const char RCSid[] = "$Id: sio.c,v 1.3 2003/06/17 05:10:54 seth Exp $";
 static const char sio_version[] = VERSION;
 
 #include <unistd.h>
@@ -66,7 +66,7 @@ int Swrite(int fd, register char *addr, register int nbytes)
 	b_written = __sio_writef( odp, fd ) ;
 	if ( b_written != b_in_buffer )
 		return( (b_written >= nbytes) ? nbytes : b_written ) ;
-	
+
 	total_b_transferred = b_transferred ;
 	addr += b_transferred ;
 	nbytes -= b_transferred ;
@@ -116,7 +116,7 @@ int Sputc(int fd, char c)
 #ifdef EVENTS
 	EVENT( fd, EV_SPUTC ) ;
 #endif
-	
+
 	IO_SETUP( fd, dp, __SIO_OUTPUT_STREAM, SIO_ERR ) ;
 	ASSERT( odp->start <= odp->nextb && odp->nextb <= odp->buf_end ) ;
 
@@ -176,7 +176,7 @@ int Sread(int fd, char *addr, int nbytes)
 	idp->nextb += b_transferred ;
 	if ( b_transferred == nbytes )
 		return( b_transferred ) ;
-	
+
 	nbytes -= b_transferred ;
 	total_b_transferred = b_transferred ;
 	addr += b_transferred ;
@@ -190,11 +190,11 @@ int Sread(int fd, char *addr, int nbytes)
 				if ( total_b_transferred == 0 )
 					return( SIO_ERR ) ;
 				/* FALL THROUGH */
-			
+		
 			case 0:
 				return( total_b_transferred ) ;
 		}
-			
+		
 		b_transferred = MIN( b_read, nbytes ) ;
 		sio_memcopy( idp->nextb, addr, b_transferred ) ;
 		addr += b_transferred ;
@@ -237,7 +237,7 @@ char *Srdline(int fd)
 	/*
 	 * Look for a '\n'. If the search fails, extend the buffer
 	 * and search again (the extension is performed by copying the
-	 * bytes that were searched to the auxiliary buffer and reading 
+	 * bytes that were searched to the auxiliary buffer and reading
 	 * new input in the main buffer).
 	 * If the new input still does not contain a '\n' and there is
 	 * more space in the main buffer (this can happen with network
@@ -385,7 +385,7 @@ char *Sfetch(int fd, long int *lenp)
  */
 int Sundo(int fd, int type)
 {
-	register __sio_descriptor_t *dp = &__sio_descriptors[ fd ] ; 
+	register __sio_descriptor_t *dp = &__sio_descriptors[ fd ] ;
 	register __sio_id_t *idp = IDP( dp ) ;
 	int retval = 0 ;
 
@@ -414,13 +414,13 @@ int Sundo(int fd, int type)
 			}
 			ASSERT( idp->start <= idp->nextb && idp->nextb <= idp->end ) ;
 			break ;
-		
+	
 		case SIO_UNDO_CHAR:
 			if ( idp->nextb > idp->start )
 				idp->nextb-- ;
 			ASSERT( idp->start <= idp->nextb && idp->nextb <= idp->end ) ;
 			break ;
-		
+	
 		default:
 			retval = SIO_ERR ;
 			break ;
@@ -599,7 +599,7 @@ int Suntie(int fd)
 #endif
 
 	CONTROL_SETUP( dp, __SIO_INPUT_STREAM, SIO_ERR ) ;
-	
+
 	if ( IDP( dp )->tied_fd != SIO_NO_TIED_FD )
 	{
 		IDP( dp )->tied_fd = SIO_NO_TIED_FD ;

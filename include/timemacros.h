@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __TIMEMACROS_H
 
 /*
- * $Id: timemacros.h,v 1.1 2001/05/26 22:04:52 seth Exp $
+ * $Id: timemacros.h,v 1.2 2003/06/17 05:10:50 seth Exp $
  */
 
 #include <sys/types.h>

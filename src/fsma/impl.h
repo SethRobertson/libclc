@@ -1,11 +1,11 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 /*
- * $Id: impl.h,v 1.2 2001/07/07 02:58:23 seth Exp $
+ * $Id: impl.h,v 1.3 2003/06/17 05:10:52 seth Exp $
  */
 
 #ifndef NULL

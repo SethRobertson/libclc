@@ -19,7 +19,7 @@ A. String matching functions. A variety of algorithms are available
 
 B. String printing functions (similar to sprintf). These functions offer
 	2 significant advantages over sprintf:
-		1) they include functions that will *not* overrun the string buffer 
+		1) they include functions that will *not* overrun the string buffer
 			provided
 		2) they include functions returning "char *" as well as functions
 			returning "int" so that one can pick the most appropriate one.

@@ -1,8 +1,8 @@
 .\"(c) Copyright 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: timer.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.\" $Id: timer.3,v 1.2 2003/06/17 05:10:55 seth Exp $
 .TH TIMER 3X "20 April 1993"
 .SH NAME
 timer_create, timer_destroy, timer_start, timer_stop, timer_block, timer_unblock, timer_expirations, timer_block_type, timer_unblock_type - timer management functions
@@ -72,7 +72,7 @@ when the timer expires or it will be increased for every expiration
 of the timer (it is up to the user to clear the variable after inspecting
 its value).
 If a function is used, then it is possible that while that function is running,
-more timers may expire and their functions be called 
+more timers may expire and their functions be called
 (i.e. timer interrupts are not blocked while the function is running).
 The timer-action association can change through the lifetime of the timer.
 The timer types supported by this library depend on the operating system.
@@ -89,7 +89,7 @@ timers of this type are wall-clock timers
 timers of this type are running only when the process is running
 .TP
 .SB TIMER_PROF
-timers of this type are running only when the process is running 
+timers of this type are running only when the process is running
 or the system is doing work on behalf of the process.
 .LP
 Possible values for \fIflags\fP are formed by ORing any of the following
@@ -106,7 +106,7 @@ to specify no flags at all.
 The argument
 .I errnop
 is a pointer to a variable where error values will be placed
-(the default, in case 
+(the default, in case
 .I errnop
 is
 .SM NULL,
@@ -114,7 +114,7 @@ is \fItimer_errno\fP).
 .\" *********************** timer_destroy *****************************
 .LP
 .B timer_destroy()
-destroys the timer specified by \fIhandle\fP. 
+destroys the timer specified by \fIhandle\fP.
 If the timer is active, it is deactivated first.
 .\" *********************** timer_start *****************************
 .LP
@@ -128,10 +128,10 @@ and
 .I time_type
 can be either
 .B TIMER_ABSOLUTE
-or 
+or
 .B TIMER_RELATIVE.
 Timers of the former
-type expire at the time 
+type expire at the time
 specified by
 .I "itvp->it_value"
 (if that time is before the
@@ -231,14 +231,14 @@ the associated action will be executed immediately.
 .\" *********************** timer_expirations *****************************
 .LP
 .B timer_expirations()
-should be used by the user-specified function to find out 
+should be used by the user-specified function to find out
 the number of times the timer expired until the function was called.
 Multiple expirations are possible for a timer that expires periodically.
 .\" *********************** timer_block_type *****************************
 .LP
 .B timer_block_type()
 blocks all timers of the specified \fItype\fP.
-This also includes any timers started 
+This also includes any timers started
 .I after
 this function is invoked.
 .\" *********************** timer_unblock_type *****************************
@@ -262,14 +262,14 @@ has expired by using the
 .B timer_expirations()
 operation.
 .LP
-It is guaranteed that the function associated with a specific timer will 
+It is guaranteed that the function associated with a specific timer will
 not be called recursively if that timer expires multiple times.
 .LP
 The order of execution of timer-associated functions for
 timers that expire at the same time is undefined.
 .SH "RETURN VALUES"
 .LP
-Values for 
+Values for
 .I timer_errno
 will be stored in the user-specified variable if one was provided.
 .LP
@@ -279,7 +279,7 @@ returns a timer handle if successful or
 if it fails.
 .LP
 .B timer_start()
-returns 
+returns
 .B TIMER_OK
 if successful or
 .B TIMER_ERR

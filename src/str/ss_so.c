@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: ss_so.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: ss_so.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 #include <stdlib.h>
 
@@ -36,14 +36,14 @@ PRIVATE int so_setup(header_s *hp)
 
 	if ( patlen > WIDE_INT_SIZE )
 		return( SS_ERR ) ;
-	
+
 	maskbuf = (wide_int *) malloc( ALPHABET_SIZE * sizeof( wide_int ) ) ;
 	if ( maskbuf == (wide_int *)NULL )
 		return( SS_ERR ) ;
-	
+
 	offset = WIDE_INT_SIZE - patlen ;
 	offset_mask = ( (~0) << offset ) ;
-	
+
 	/*
 	 * The bits of each word that won't be used must be set to 0
 	 */
@@ -78,7 +78,7 @@ PRIVATE char *so_match(register header_s *hp, char *str, int len)
 	 *			return( &p[ -SS_PATLEN( hp ) + 1 ] ) ;
 	 *	}
 	 *
-	 * For efficiency reasons, the algorithm is used only after the first 
+	 * For efficiency reasons, the algorithm is used only after the first
 	 * character of the pattern is matched against a character of the string.
 	 */
 

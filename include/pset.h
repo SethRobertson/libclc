@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __PSET_H
 
 /*
- * $Id: pset.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: pset.h,v 1.2 2003/06/17 05:10:50 seth Exp $
  */
 
 typedef void *__pset_pointer ;
@@ -76,7 +76,7 @@ void pset_apply 				__ARGS( ( pset_h, void (*func)(), void *arg ) ) ;
 
 /*
  * PSET iterators
- * 
+ *
  * Note that the iterators do NOT use any knowledge about the internals
  * of pset's.
  */

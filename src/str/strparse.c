@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: strparse.c,v 1.2 2002/07/18 22:52:52 dupuy Exp $";
+static const char RCSid[] = "$Id: strparse.c,v 1.3 2003/06/17 05:10:55 seth Exp $";
 static const char version[] = VERSION;
 
 #include "str.h"
@@ -76,11 +76,11 @@ void str_endparse(str_h handle)
 int str_setstr(str_h handle, char *newstr)
 {
 	register struct str_handle *hp = (struct str_handle *) handle ;
-	
+
 	if ( newstr == NULL )
 		HANDLE_ERROR( hp->flags, STR_ERR, hp->errnop, STR_ENULLSTRING,
 								"STR str_setstr: NULL string\n" ) ;
-	
+
 	hp->string = newstr ;
 	hp->pos = newstr ;
 	hp->no_more = FALSE ;

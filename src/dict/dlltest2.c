@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dlltest2.c,v 1.5 2003/04/01 04:40:57 seth Exp $" ;
+static const char RCSid[] = "$Id: dlltest2.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
 
 struct foo
 {

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: htest.c,v 1.5 2003/04/01 04:40:57 seth Exp $" ;
+static const char RCSid[] = "$Id: htest.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -73,7 +73,7 @@ int main(void)
 			exit( 1 ) ;
 		}
 	}
-		
+	
 	printf( "Search/delete test\n" ) ;
 	i = 7 ;
 	ip = INTP( ht_search( lh, &i ) ) ;
@@ -85,17 +85,17 @@ int main(void)
 			printf( "Delete failed\n" ) ;
 			exit( 0 ) ;
 		}
-	
+
 	for ( i = 0 ; i < N ; i++ )
 		if (( ip = INTP( ht_search( lh, &nums[ i ] ) ) ))
 			printf( "%d found\n", nums[ i ] ) ;
 		else
 			printf( "%d not found\n", nums[ i ] ) ;
-		
+	
 	iter = ht_iterate( lh , DICT_FROM_START ) ;
 	while (( ip = INTP( ht_nextobj( lh, iter ) ) ))
 		printf( "Object = %d\n", *ip ) ;
-	
+
 	for ( ip = INTP(ht_minimum( lh )) ; ip ; ip = INTP(ht_successor( lh, ip )) )
 		printf( "Object = %d\n", *ip ) ;
 

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: timer.c,v 1.2 2002/07/18 22:52:53 dupuy Exp $";
+static const char RCSid[] = "$Id: timer.c,v 1.3 2003/06/17 05:10:55 seth Exp $";
 static const char version[] = VERSION;
 
 #include <unistd.h>
@@ -33,14 +33,14 @@ timer_h clc_timer_create(enum timer_types type, int flags, int *errnop)
 	if ( type != TIMER_REAL && type != TIMER_VIRTUAL && type != TIMER_PROF )
 			HANDLE_ERROR( flags, TIMER_H_NULL, errp, TIMER_EBADTYPE,
 							"TIMER timer_create: bad timer type\n" ) ;
-			
+		
 	tp = TIMER_ALLOC() ;
 	if ( tp == NULL )
 	{
 		*errp = TIMER_ENOMEM ;
 		return( TIMER_H_NULL ) ;
 	}
-	
+
 	tp->t_state = INACTIVE ;
 	tp->t_act = IDLE ;
 	tp->t_blocked = FALSE ;
@@ -70,7 +70,7 @@ void clc_timer_destroy(timer_h handle)
 		__ostimer_remove( tp->t_ostimer, tp ) ;
 		tp->t_state = DESTROYED ;
 	}
-	
+
 	if ( tp->t_act == IDLE || tp->t_act == PENDING )
 		TIMER_FREE( tp ) ;
 
@@ -136,7 +136,7 @@ void clc_timer_stop(timer_h handle)
 		tp->t_act = IDLE ;
 
 	tp->t_blocked = FALSE ;
-	
+
 	__ostimer_unblockall() ;
 }
 
@@ -171,7 +171,7 @@ void clc_timer_unblock(timer_h handle)
 			(void) __timer_invoke( tp ) ;
 		}
 	}
-	
+
 	__ostimer_unblockall() ;
 }
 
@@ -186,7 +186,7 @@ unsigned clc_timer_expirations(timer_h handle)
 /*
  * Invoke the action of the specified timer
  * All timer interrupts should be blocked when this function is invoked
- * Returns TRUE if 
+ * Returns TRUE if
  */
 enum timer_state __timer_invoke(register timer_s *tp)
 {
@@ -218,7 +218,7 @@ enum timer_state __timer_invoke(register timer_s *tp)
 				{
 					int unblock_all_intrs = ! ( flags & TIMER_BLOCK_ALL ) ;
 					int unblock_all_but_same_intr = ! ( flags & TIMER_BLOCK_SAME ) ;
-					
+				
 					if ( unblock_all_intrs )
 						__ostimer_unblockall() ;
 					else if ( unblock_all_but_same_intr )

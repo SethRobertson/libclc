@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.5 2002/07/13 04:40:54 jtt Exp $
+# $Id: Makefile,v 1.6 2003/06/17 05:10:50 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -12,7 +12,7 @@
 #
 # --Copyright LIBBK--
 #
-# libbk group Makefile 
+# libbk group Makefile
 #
 BK_INCLUDE_DIRS=include
 BK_SUBDIR=src

@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: misc.c,v 1.2 2002/07/18 22:52:48 dupuy Exp $";
+static const char RCSid[] = "$Id: misc.c,v 1.3 2003/06/17 05:10:52 seth Exp $";
 static const char misc_version[] = VERSION;
 
 #include <stdarg.h>

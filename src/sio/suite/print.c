@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: print.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
+static char RCSid[] = "$Id: print.c,v 1.2 2003/06/17 05:10:54 seth Exp $" ;
 
 #include <stdio.h>
 #include <math.h>
@@ -106,7 +106,7 @@ void integer_test( fmt, flag )
 #define f_float_test()			fp_test( "%f\n", F_FLOAT )
 #define g_float_test()			fp_test( "%g\n", G_FLOAT )
 #define e_float_test()			fp_test( "%e\n", E_FLOAT )
-#define cap_e_float_test()		fp_test( "%E\n", CAP_E_FLOAT )			
+#define cap_e_float_test()		fp_test( "%E\n", CAP_E_FLOAT )		
 #define cap_g_float_test()		fp_test( "%G\n", CAP_G_FLOAT )
 
 void fp_test( fmt, flag )
@@ -119,7 +119,7 @@ void fp_test( fmt, flag )
 
 	CHECK( flag ) ;
 	fmt = format( fmt ) ;
-	
+
 	for ( d = f_begin, step = f_step ; d < f_end ; d += step, step += step )
 	{
 
@@ -154,7 +154,7 @@ void char_test()
 
 void string_test()
 {
-	static char *list[] = 
+	static char *list[] =
 	{
 		"foobar",
 		"hello",
@@ -207,7 +207,7 @@ void pointer_test()
 }
 
 
-/* 
+/*
  * bound_test is only available on SunOS 4.x
  */
 #if defined( sun )
@@ -293,19 +293,19 @@ int get_options( argc, argv )
 			case 'd':
 				flags[ DECIMAL ] = YES ;
 				break ;
-			
+		
 			case 'x':
 				flags[ HEX ] = YES ;
 				break ;
-			
+		
 			case 'X':
 				flags[ CAP_HEX ] = YES ;
 				break ;
-			
+		
 			case 'o':
 				flags[ OCTAL ] = YES ;
 				break ;
-			
+		
 			case 'u':
 				flags[ UNSIGNED ] = YES ;
 				break ;
@@ -313,19 +313,19 @@ int get_options( argc, argv )
 			case 'f':
 				flags[ F_FLOAT ] = YES ;
 				break ;
-			
+		
 			case 'g':
 				flags[ G_FLOAT ] = YES ;
 				break ;
-			
+		
 			case 'e':
 				flags[ E_FLOAT ] = YES ;
 				break ;
-			
+		
 			case 'E':
 				flags[ CAP_E_FLOAT ] = YES ;
 				break ;
-			
+		
 			case 'G':
 				flags[ CAP_G_FLOAT ] = YES ;
 				break ;
@@ -333,31 +333,31 @@ int get_options( argc, argv )
 			case 'c':
 				flags[ CHAR ] = YES ;
 				break ;
-			
+		
 			case 's':
 				flags[ STRING ] = YES ;
 				break ;
-			
+		
 			case 'p':
 				flags[ POINTER ] = YES ;
 				break ;
-			
+		
 			case 'b':		/* this is for checking bounds in fp formats */
 				flags[ BOUND ] = YES ;
 				break ;
-				
+			
 			case 'P':	/* precision, must be followed by a number, e.g. -P10 */
 				precision = &argv[ arg_index ][ 2 ] ;
 				break ;
-			
+		
 			case 'W':	/* width, must be followed by a number, e.g. -w10 */
 				width = &argv[ arg_index ][ 2 ] ;
 				break ;
-			
+		
 			case 'F':	/* flags, whatever is after the F */
 				print_flags = &argv[ arg_index ][ 2 ] ;
 				break ;
-			
+		
 			/*
 			 * Options recognized in this case:	-Vf, -Vi
 			 * Usage: -V[if] start end step
@@ -378,7 +378,7 @@ int get_options( argc, argv )
 						f_end   = atof( argv[ arg_index+2 ] ) ;
 						f_step  = atof( argv[ arg_index+3 ] ) ;
 						break ;
-					
+				
 					case 'i':
 						i_begin = atoi( argv[ arg_index+1 ] ) ;
 						i_end   = atoi( argv[ arg_index+2 ] ) ;

@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.8 2003/06/13 20:36:39 dupuy Exp $
+ * $Id: ht.h,v 1.9 2003/06/17 05:10:50 seth Exp $
  */
 
 #include "dict.h"

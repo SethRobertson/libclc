@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: slog.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: slog.c,v 1.2 2003/06/17 05:10:56 seth Exp $" ;
 
 #include <stdarg.h>
 
@@ -69,7 +69,7 @@ struct xlog_ops __xlog_syslog_ops =
 /*
  * Notice that the following functions will never be invoked since
  * the xlog_* functions will not call them. However, we need to define
- * them so that we don't have any unresolved references; and we define 
+ * them so that we don't have any unresolved references; and we define
  * them without any arguments.
  */
 PRIVATE void syslog()
@@ -103,7 +103,7 @@ PRIVATE int syslog_init(xlog_s *xp, va_list ap)
 	sp = NEW( struct syslog ) ;
 	if ( sp == NULL )
 		return( XLOG_ENOMEM ) ;
-	
+
 	sp->sl_facility = va_arg( ap, int ) ;
 	sp->sl_default_level = va_arg( ap, int ) ;
 	if ( slp->slp_n_xlogs++ == 0 )
@@ -133,7 +133,7 @@ PRIVATE int syslog_control(xlog_s *xp, xlog_cmd_e cmd, va_list ap)
 		case XLOG_FACILITY:
 			SYSLOG( xp )->sl_facility = va_arg( ap, int ) ;
 			break ;
-		
+	
 		case XLOG_PREEXEC:
 			closelog() ;
 			break ;
@@ -142,7 +142,7 @@ PRIVATE int syslog_control(xlog_s *xp, xlog_cmd_e cmd, va_list ap)
 			if ( parms.slp_n_xlogs )
 				openlog( parms.slp_ident, parms.slp_logopts, parms.slp_facility ) ;
 			break ;
-		
+	
 		case XLOG_GETFD:
 			return( XLOG_EBADOP ) ;
 		default:
@@ -187,7 +187,7 @@ PRIVATE int syslog_write(xlog_s *xp, char *buf, int len, int flags, va_list ap)
 		char *ep ;
 		char errno_buf[ 100 ] ;
 		unsigned size = sizeof( errno_buf ) ;
-		
+	
 		ep = __xlog_explain_errno( errno_buf, &size ) ;
 		syslog( syslog_arg, "%.*s%.*s%.*s%.*s",
 				prefix_len, prefix,

@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Make.include,v 1.6 2003/04/30 23:19:59 jtt Exp $
+# $Id: Make.include,v 1.7 2003/06/17 05:10:50 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -12,7 +12,7 @@
 #
 # --Copyright LIBBK--
 #
-# libbk group Makefile 
+# libbk group Makefile
 #
 GROUP_INCS=-I$(BK_TRUEGROUPTOP)/include
 GROUP_DEFINES=-DPROTOTYPES -D__FTWX_NO_FTW -DHAVE_DIRENT_H -DHAS_MMAP -DHAS_MEMOPS -DHAS_ISATTY -DVERSION=\"BAKA_CLC_2.1+PTHREAD\" -DCOALESCE -DNO_SIO

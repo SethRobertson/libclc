@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: impl.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: impl.h,v 1.2 2003/06/17 05:10:56 seth Exp $
  */
 
 #include <stdlib.h>
@@ -44,8 +44,8 @@
 
 /*
  * xlog linking:
- * 	When xlog1 is linked to xlog2 (i.e. errors on xlog1 are reported to 
- *		xlog2) we use the xl_clients field on xlog2 and the xl_other_users 
+ * 	When xlog1 is linked to xlog2 (i.e. errors on xlog1 are reported to
+ *		xlog2) we use the xl_clients field on xlog2 and the xl_other_users
  *		field on xlog1
  */
 struct xlog

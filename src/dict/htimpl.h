@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: htimpl.h,v 1.10 2003/06/03 21:52:01 seth Exp $
+ * $Id: htimpl.h,v 1.11 2003/06/17 05:10:51 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -32,7 +32,7 @@
  *   |             |
  *   |_____________|
  *
- * This definition provides for the chain operations. 
+ * This definition provides for the chain operations.
  */
 struct bucket
 {

@@ -1,8 +1,8 @@
 .\"(c) Copyright 1993 by Panagiotis Tsirigotis
-.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms
 .\"and conditions for redistribution.
 .\"
-.\" $Id: pq.3,v 1.2 2001/07/07 02:58:24 seth Exp $
+.\" $Id: pq.3,v 1.3 2003/06/17 05:10:53 seth Exp $
 .TH PQ 3PT "22 December 1991"
 .SH NAME
 pq_create, pq_destroy, pq_head, pq_extract_head, pq_insert, pq_delete, pq_error_reason - functions that manage priority queues
@@ -57,7 +57,7 @@ This library handles priority queues that contain objects. Objects are
 of type
 .I pq_obj
 which is a pointer type.
-The object at the head of a priority queue is the 
+The object at the head of a priority queue is the
 .I best
 object. The
 user defines the ordering by providing a function that compares objects
@@ -66,8 +66,8 @@ when the priority queue is created.
 .B pq_create()
 creates a priority queue and returns a handle to be used for operations
 on that queue. \fIfunc\fR is a pointer to a function that takes 2 objects
-as arguments and returns 1 if the first object is 
-.I "better" 
+as arguments and returns 1 if the first object is
+.I "better"
 than the second and 0 otherwise. The only possible value for the
 \fIflags\fR argument is \fBPQ_NOCOALESCE\fR which, if used, will cause
 the memory allocator to NOT attempt to combine multiple memory
@@ -104,7 +104,7 @@ In the following, values for \fIpq_errno\fR will be stored in the
 user-specified variable if one was provided.
 .LP
 .B pq_create()
-returns a priority queue handle if successful, or 
+returns a priority queue handle if successful, or
 .SM NULL
 if it fails.
 Possible \fIpq_errno\fR values:

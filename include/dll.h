@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __DLL_H
 
 /*
- * $Id: dll.h,v 1.4 2001/11/05 19:31:45 seth Exp $
+ * $Id: dll.h,v 1.5 2003/06/17 05:10:50 seth Exp $
  */
 
 #include "dict.h"

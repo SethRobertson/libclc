@@ -1,17 +1,17 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: events.h,v 1.1 2001/05/26 22:04:50 seth Exp $
+ * $Id: events.h,v 1.2 2003/06/17 05:10:54 seth Exp $
  */
 
 /*
  * Event codes
- * 
+ *
  * We use a 2 letter code so that events that accumulate in a buffer
  * can be displayed as a string
  * We follow the convention that the first event letter is a capitalized
@@ -39,7 +39,7 @@
 #define EV_SGETC						ENCODE( 'G', 'e' )
 #define EV_SPUTC						ENCODE( 'P', 'u' )
 #define EV_SREAD						ENCODE( 'R', 'e' )
-#define EV_SWRITE						ENCODE( 'W', 'r' ) 
+#define EV_SWRITE						ENCODE( 'W', 'r' )
 #define EV_SRDLINE					ENCODE( 'R', 'd' )
 #define EV_SFETCH						ENCODE( 'F', 'e' )
 #define EV_SUNDO						ENCODE( 'U', 'n' )

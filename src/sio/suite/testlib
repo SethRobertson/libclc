@@ -1,12 +1,12 @@
 #!/bin/sh
 
 # (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
-# All rights reserved.  The file named COPYRIGHT specifies the terms 
+# All rights reserved.  The file named COPYRIGHT specifies the terms
 # and conditions for redistribution.
 
 
 #
-# $Id: testlib,v 1.1 2001/05/26 22:04:50 seth Exp $
+# $Id: testlib,v 1.2 2003/06/17 05:10:54 seth Exp $
 #
 
 #
@@ -17,14 +17,14 @@
 #		tester. On Suns, it uses /bin/sh. On DECstations, it uses
 #		/usr/bin/ksh
 #		The decision is made by checking $ARCH
-#		
+#	
 
 case "$ARCH" in
 	"")
 		echo "ARCH not defined. Please define it."
 		exit 1
 		;;
-	
+
 	sun4|sun3)
 		TESTSHELL=/bin/sh
 		LDFLAGS="-Bstatic -lm"
@@ -34,7 +34,7 @@ case "$ARCH" in
 		TESTSHELL=/usr/bin/ksh
 		LDFLAGS=
 		;;
-	
+
 	#
 	# The following case was provided by Stephen House.
 	# It applies to HP-UX 8.0 (and later, probably).

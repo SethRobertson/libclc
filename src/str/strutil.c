@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: strutil.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: strutil.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 
 #include <ctype.h>
@@ -38,7 +38,7 @@ char *str_find(register char *str, register char *sstr)
 
 		if ( strc != ssfc )
 			continue ;
-		
+	
 		/*
 		 * We don't need to make the end of str a special case since
 		 * the comparison of *sp against *ssp is guaranteed to fail
@@ -83,7 +83,7 @@ char *str_casefind(register char *str, char *sstr)
 			strc = LOWER_CASE( strc ) ;
 		if ( strc != ssfc )
 			continue ;
-		
+	
 		for ( sp = str, ssp = sstr ;; sp++, ssp++ )
 		{
 			register int sc = *sp ;				/* string char */

@@ -32,7 +32,7 @@ endif
 include $(TOPDIR)/Make.include
 VPATH += .:../../$(TOPDIR)/$(CURDIR)
 
-$(LIBS): $(OBJ) 
+$(LIBS): $(OBJ)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
 

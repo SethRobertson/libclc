@@ -1,11 +1,11 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
-static char RCSid[] = "$Id: sprint.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
+static char RCSid[] = "$Id: sprint.c,v 1.2 2003/06/17 05:10:54 seth Exp $" ;
 
 #include <ctype.h>
 
@@ -196,7 +196,7 @@ PRIVATE char *conv_fp(register char format, register double num, boolean_e add_d
 		*is_negative = FALSE ;
 		return( buf ) ;
 	}
-	
+
 	if ( format == 'f' )
 		if ( decimal_point <= 0 )
 		{
@@ -225,8 +225,8 @@ PRIVATE char *conv_fp(register char format, register double num, boolean_e add_d
 	/*
 	 * copy the rest of p, the NUL is NOT copied
 	 */
-	while ( *p ) *s++ = *p++ ;			
-	
+	while ( *p ) *s++ = *p++ ;		
+
 	if ( format != 'f' )
 	{
 		char temp[ EXPONENT_LENGTH ] ;				/* for exponent conversion */
@@ -240,7 +240,7 @@ PRIVATE char *conv_fp(register char format, register double num, boolean_e add_d
 			p = conv_10( (wide_int)decimal_point, FALSE, &exponent_is_negative,
 												&temp[ EXPONENT_LENGTH ], &t_len ) ;
 			*s++ = exponent_is_negative ? '-' : '+' ;
-			
+		
 			/*
 			 * Make sure the exponent has at least 2 digits
 			 */
@@ -319,7 +319,7 @@ PRIVATE char *conv_10(register wide_int num, register bool_int is_unsigned, regi
 		*is_negative = ( num < 0 ) ;
 
 		/*
-		 * On a 2's complement machine, negating the most negative integer 
+		 * On a 2's complement machine, negating the most negative integer
 		 * results in a number that cannot be represented as a signed integer.
 		 * Here is what we do to obtain the number's magnitude:
 		 *		a. add 1 to the number
@@ -338,7 +338,7 @@ PRIVATE char *conv_10(register wide_int num, register bool_int is_unsigned, regi
 	}
 
 	/*
-	 * We use a do-while loop so that we write at least 1 digit 
+	 * We use a do-while loop so that we write at least 1 digit
 	 */
 	do
 	{
@@ -348,7 +348,7 @@ PRIVATE char *conv_10(register wide_int num, register bool_int is_unsigned, regi
 		magnitude = new_magnitude ;
 	}
 	while ( magnitude ) ;
-	
+
 	*len = buf_end - p ;
 	return( p ) ;
 }
@@ -464,7 +464,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 				}
 				else
 					adjust_width = NO ;
-				
+			
 				/*
 				 * Check if a precision was specified
 				 *
@@ -541,14 +541,14 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 							prefix_char = ' ' ;
 					}
 					break ;
-				
+			
 
 				case 'o':
 					if ( is_long )
-						ui_num = va_arg( ap, u_wide_int ) ; 
+						ui_num = va_arg( ap, u_wide_int ) ;
 					else
 						ui_num = (u_wide_int) va_arg( ap, unsigned int ) ;
-					s = conv_p2( ui_num, 3, *fmt, 
+					s = conv_p2( ui_num, 3, *fmt,
 												&num_buf[ NUM_BUF_SIZE ], &s_len ) ;
 					FIX_PRECISION( adjust_precision, precision, s, s_len ) ;
 					if ( alternate_form && *s != '0' )
@@ -557,7 +557,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 						s_len++ ;
 					}
 					break ;
-				
+			
 
 				case 'x':
 				case 'X':
@@ -575,7 +575,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 						s_len += 2 ;
 					}
 					break ;
-				
+			
 
 				case 's':
 					s = va_arg( ap, char * ) ;
@@ -592,7 +592,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 					}
 					pad_char = ' ' ;
 					break ;
-				
+			
 
 				case 'f':
 				case 'e':
@@ -658,18 +658,18 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 					break ;
 
 				/*
-				 * Always extract the argument as a "char *" pointer. We 
-				 * should be using "void *" but there are still machines 
+				 * Always extract the argument as a "char *" pointer. We
+				 * should be using "void *" but there are still machines
 				 * that don't understand it.
 				 * If the pointer size is equal to the size of an unsigned
-				 * integer we convert the pointer to a hex number, otherwise 
+				 * integer we convert the pointer to a hex number, otherwise
 				 * we print "%p" to indicate that we don't handle "%p".
 				 */
 				case 'p':
 					ui_num = (u_wide_int) va_arg( ap, char * ) ;
 
 					if ( sizeof( char * ) <= sizeof( u_wide_int ) )
-						s = conv_p2( ui_num, 4, 'x', 
+						s = conv_p2( ui_num, 4, 'x',
 												&num_buf[ NUM_BUF_SIZE ], &s_len ) ;
 					else
 					{
@@ -678,7 +678,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 					}
 					pad_char = ' ' ;
 					break ;
-					
+				
 
 				case NUL:
 					/*
@@ -726,7 +726,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 			}
 
 			/*
-			 * Print the string s. 
+			 * Print the string s.
 			 */
 			for ( i = s_len ; i != 0 ; i-- )
 			{

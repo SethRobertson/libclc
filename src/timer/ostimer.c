@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: ostimer.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: ostimer.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -51,7 +51,7 @@ PRIVATE void report( char *fmt, ... )
 #endif   /* DEBUG_REPORT_ERRORS */
 }
 
- 
+
 /*
  * Initialize the fields of struct timer that are used by the ostimer code
  */
@@ -82,14 +82,14 @@ int __ostimer_newtimer(timer_s *tp, enum timer_types type)
  *		5. Timer C expires.
  *		6. Function of timer C invoked and returns with a jmp_buf.
  *
- * If we longjmp to the jmp_buf returned by the function of timer C the 
- * function of timer B will never be called and the function of timer A 
+ * If we longjmp to the jmp_buf returned by the function of timer C the
+ * function of timer B will never be called and the function of timer A
  * will never finish.
  * What we do instead is have ostimer_interrupt check the call_level
  * and if greater than 1, then just save the jmp_buf returned by the
  * function of timer C (only if there is no other ret_env) and simply return.
  *
- * Notice that there can be only one ret_env (since there is only 1 control 
+ * Notice that there can be only one ret_env (since there is only 1 control
  * flow).
  *
  * XXX:  this complexity stems from the fact that we allow interrupts while
@@ -114,7 +114,7 @@ static jmp_buf ret_env ;
  * If the array overflows, we arrange for another timer interrupt as
  * soon as possible to service remaining timers. The reason we don't
  * allocate the array using malloc is that malloc is not guaranteed
- * to be reentrant and tracking timing-related dynamic memory allocation 
+ * to be reentrant and tracking timing-related dynamic memory allocation
  * problems is guaranteed to be a nightmare.
  *
  * Notice that *all* timer interrupts are blocked during step 1.
@@ -129,9 +129,9 @@ void __ostimer_interrupt(register ostimer_s *otp)
 
 	if ( timer_pq_head( otp->ost_timerq.tq_handle ) == TIMER_NULL )
 		return ;
-	
+
 	call_level++ ;
-	
+
 	(*otp->ost_get_current_time)( &current_time ) ;
 
 	/*
@@ -144,7 +144,7 @@ void __ostimer_interrupt(register ostimer_s *otp)
 		if ( tp == TIMER_NULL || TV_GT( tp->t_expiration, current_time ) ||
 																	n_expired == MAX_EXPIRED )
 			break ;
-		
+	
 		tp = timer_pq_extract_head( otp->ost_timerq.tq_handle ) ;
 		if ( tp->t_state == TICKING )
 		{
@@ -195,14 +195,14 @@ void __ostimer_interrupt(register ostimer_s *otp)
 		struct itimerval itv ;
 
 		TV_ZERO( itv.it_interval ) ;
-		/* 
+		/*
 		 * Check if we had too many expired timers
 		 */
 		if ( TV_LE( tp->t_expiration, current_time ) )
 		{
 			itv.it_value.tv_sec = 0 ;
 			itv.it_value.tv_usec = 1 ;		/* schedule an interrupt ASAP */
-			/* XXX:	this trick will result in another call to 
+			/* XXX:	this trick will result in another call to
 			 *			ostimer_interrupt. So why don't we just call it
 			 *			recursively, instead of taking another timer interrupt ?
 			 */
@@ -278,7 +278,7 @@ int __ostimer_add(ostimer_s *otp, register timer_s *tp, struct itimerval *itvp, 
 	int					expired ;
 
 	/*
-	 * While this function (__ostimer_add) is running, this will be our 
+	 * While this function (__ostimer_add) is running, this will be our
 	 * notion of the current time.
 	 * In reality, there may be some time skew as this function
 	 * is running, possibly because of swapping.
@@ -297,7 +297,7 @@ int __ostimer_add(ostimer_s *otp, register timer_s *tp, struct itimerval *itvp, 
 	 * Note that we always calculate t_expiration in case the user has
 	 * specified an it_interval.
     */
-	
+
 	if ( time_type == TIMER_RELATIVE )
 	{
 		/*
@@ -324,7 +324,7 @@ int __ostimer_add(ostimer_s *otp, register timer_s *tp, struct itimerval *itvp, 
 			invoke_protocol( tp ) ;
 			return( TIMER_OK ) ;
 		}
-		
+	
 		/*
 		 * Keep expiring the timer until it exceeds the current time
 		 */
@@ -401,7 +401,7 @@ void __ostimer_remove(ostimer_s *otp, timer_s *tp)
 			(*otp->ost_get_current_time)( &current_time ) ;
 
 			/*
-			 * If the head_timer is less than or equal to the current time, 
+			 * If the head_timer is less than or equal to the current time,
 			 * the interrupt must be pending, so we leave the OS timer running.
 			 * Otherwise, we restart the OS timer.
 			 */

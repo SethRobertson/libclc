@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dlltest.c,v 1.5 2003/04/01 04:40:57 seth Exp $" ;
+static const char RCSid[] = "$Id: dlltest.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
 
 
 #ifndef NULL
@@ -73,14 +73,14 @@ int main(void)
 			exit( 1 ) ;
 		}
 	}
-		
+	
 	printf( "Successor test\n" ) ;
-	for ( ip=INTP(dll_minimum( lh )) ; ip ; ip=INTP(dll_successor( lh, ip )) ) 
+	for ( ip=INTP(dll_minimum( lh )) ; ip ; ip=INTP(dll_successor( lh, ip )) )
 		printf( "%d\n", *ip ) ;
 	printf( "Predecessor test\n" ) ;
-	for ( ip=INTP(dll_maximum( lh )) ; ip ; ip=INTP(dll_predecessor( lh, ip )) ) 
+	for ( ip=INTP(dll_maximum( lh )) ; ip ; ip=INTP(dll_predecessor( lh, ip )) )
 		printf( "%d\n", *ip ) ;
-	
+
 	printf( "Search/delete test\n" ) ;
 	i = 7 ;
 	ip = INTP( dll_search( lh, &i ) ) ;
@@ -94,10 +94,10 @@ int main(void)
 		}
 
 	printf( "Successor test 2\n" ) ;
-	for ( ip=INTP(dll_minimum( lh )) ; ip ; ip=INTP(dll_successor( lh, ip )) ) 
+	for ( ip=INTP(dll_minimum( lh )) ; ip ; ip=INTP(dll_successor( lh, ip )) )
 		printf( "%d\n", *ip ) ;
 	printf( "Predecessor test 2\n" ) ;
-	for ( ip=INTP(dll_maximum( lh )) ; ip ; ip=INTP(dll_predecessor( lh, ip )) ) 
+	for ( ip=INTP(dll_maximum( lh )) ; ip ; ip=INTP(dll_predecessor( lh, ip )) )
 		printf( "%d\n", *ip ) ;
 
 	printf( "Iteration test\n" ) ;
@@ -107,6 +107,6 @@ int main(void)
 			(void) dll_delete( lh, ip ) ;
 		else
 			printf( "%d\n", *ip ) ;
-		
+	
 	exit( 0 ) ;
 }

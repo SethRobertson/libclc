@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -32,7 +32,7 @@ PRIVATE int bmh_setup(header_s *hp)
 
 	for ( i = 0 ; i < ALPHABET_SIZE ; i++ )
 		shift[ i ] = patlen ;
-	
+
 	for ( i = 0 ; i < limit ; i++ )
 		shift[ (unsigned char) pattern[ i ] ] = limit - i ;
 

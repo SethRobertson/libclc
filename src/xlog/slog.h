@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: slog.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: slog.h,v 1.2 2003/06/17 05:10:56 seth Exp $
  */
 
 

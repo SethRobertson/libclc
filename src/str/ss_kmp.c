@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: ss_kmp.c,v 1.1 2001/05/26 22:04:51 seth Exp $" ;
+static char RCSid[] = "$Id: ss_kmp.c,v 1.2 2003/06/17 05:10:55 seth Exp $" ;
 
 #include <stdlib.h>
 
@@ -66,7 +66,7 @@ PRIVATE int kmp_setup(register header_s *hp)
 	next = (next_int *) malloc( (unsigned)SS_PATLEN( hp )*sizeof( next_int ) ) ;
 	if ( next == (next_int *)0 )
 		return( SS_ERR ) ;
-	
+
 	KMP_HEADER( hp )->next = next ;
 
 	compute_next( hp ) ;

@@ -1,12 +1,12 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
 
 /*
- * $Id: dllimpl.h,v 1.3 2003/04/09 19:51:56 seth Exp $
+ * $Id: dllimpl.h,v 1.4 2003/06/17 05:10:51 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -52,7 +52,7 @@ typedef struct list_node node_s ;
  * ABOUT HINTS:
  * 	a. We keep hints to avoid linear searches of the linked list.
  * 	b. A hint is either correct or non-existent.
- * 	c. To avoid bad hints, dll_delete sets the DATA field of a 
+ * 	c. To avoid bad hints, dll_delete sets the DATA field of a
  *			list_node to NULL.
  * 	d. We do not allow insertions of NULL.
  *	e. An operation that uses/consults a hint always clears it or resets it.

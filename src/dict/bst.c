@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.7 2001/11/05 19:31:45 seth Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.8 2002/02/22 07:21:56 dupuy Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -187,7 +187,7 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
   register int 		v ;
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, "tree_insert", DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
   /*
    * On exit from this loop, 'px' will point to a leaf node
@@ -288,7 +288,7 @@ int bst_delete(dict_h handle, dict_obj object)
 #endif /* FAST_ACTIONS */
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, "bst_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
 #ifdef FAST_ACTIONS
   if ( tip->next && tip->next != ANCHOR(hp) && tip->next != NIL(hp) &&
@@ -513,13 +513,12 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   register tnode_s	*x ;
   register tnode_s	*successor ;
-  char			*id = "bst_successor" ;
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   if ( TREE_EMPTY( hp ) )
-    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 
   if ( HINT_MATCH( hp, last_successor, object ) )
     x = HINT_GET( hp, last_successor ) ;
@@ -527,7 +526,7 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
   {
     x = find_object( hp, object ) ;
     if ( x == NIL( hp ) )
-      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
   }
 
   successor = next_node( hp, x ) ;
@@ -581,13 +580,12 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   tnode_s		*predecessor ;
   register tnode_s	*x ;
-  char			*id = "bst_predecessor" ;
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   if ( TREE_EMPTY( hp ) )
-    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 
   if ( HINT_MATCH( hp, last_predecessor, object ) )
     x = HINT_GET( hp, last_predecessor ) ;
@@ -595,7 +593,7 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
   {
     x = find_object( hp, object ) ;
     if ( x == NIL( hp ) )
-      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
   }
 
   predecessor = previous_node( hp, x ) ;

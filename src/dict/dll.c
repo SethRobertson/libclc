@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dll.c,v 1.5 2001/11/05 19:31:45 seth Exp $" ;
+static char RCSid[] = "$Id: dll.c,v 1.6 2002/02/22 07:21:56 dupuy Exp $" ;
 
 #include <stdlib.h>
 #include "dllimpl.h"
@@ -102,10 +102,9 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
   register node_s	*np = NULL ;
   node_s		*newnode ;
   node_s		*before, *after ;
-  char			*id = "dll_do_insert" ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
   if (!unordered_list || must_be_uniq)
   {
@@ -154,7 +153,7 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
 
   newnode = (node_s *) fsm_alloc( hp->alloc ) ;
   if ( newnode == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENOMEM, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENOMEM, DICT_ERR ) ;
 
   if (flags & DLL_POSTPEND)
   {
@@ -200,7 +199,7 @@ int dll_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
   dheader_s	*dhp	= DHP( hp ) ;
 
   if ( dhp->oo_comp == NULL_FUNC )
-    HANDLE_ERROR( dhp, "dll_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENOOOCOMP, DICT_ERR ) ;
   return( dll_do_insert( hp, TRUE, object, objectp, DLL_PREPEND ) ) ;
 }
 
@@ -222,7 +221,7 @@ int dll_append_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
   dheader_s	*dhp	= DHP( hp ) ;
 
   if ( dhp->oo_comp == NULL_FUNC )
-    HANDLE_ERROR( dhp, "dll_append_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENOOOCOMP, DICT_ERR ) ;
   return( dll_do_insert( hp, TRUE, object, objectp, DLL_POSTPEND ) ) ;
 }
 
@@ -239,7 +238,7 @@ int dll_delete(dict_h handle, register dict_obj object)
 
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, "dll_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
 #ifdef SAFE_ITERATE	
   if (dip->next && (OBJ(dip->next) == object) )
@@ -358,10 +357,9 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   register node_s	*np ;
   node_s		*successor ;
-  char			*id = "dll_successor" ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   if ( OBJ( hp->hint.last_successor ) == object )
     successor = NEXT( hp->hint.last_successor ) ;
@@ -372,7 +370,7 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
       if ( OBJ( np ) == object )
 	break ;
     if ( np == hp->head )
-      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
     successor = NEXT( np ) ;
   }
   hp->hint.last_successor = successor ;
@@ -394,10 +392,9 @@ dict_obj dll_predecessor(dict_h handle, register dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   node_s		*predecessor ;
   register node_s	*np ;
-  char			*id = "dll_predecessor" ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   if ( OBJ( hp->hint.last_predecessor ) == object )
     predecessor = PREV( hp->hint.last_predecessor ) ;
@@ -408,7 +405,7 @@ dict_obj dll_predecessor(dict_h handle, register dict_obj object)
       if ( OBJ( np ) == object )
 	break ;
     if ( np == hp->head )
-      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
     predecessor = PREV( np ) ;
   }
   hp->hint.last_predecessor = predecessor ;

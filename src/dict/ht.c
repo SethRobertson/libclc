@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.8 2002/01/09 06:26:38 dupuy Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.9 2002/02/22 07:21:56 dupuy Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -287,7 +287,7 @@ PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
 
   bp = (bucket_s *) fsm_alloc( hp->alloc ) ;
   if ( bp == NULL )
-    HANDLE_ERROR( dhp, "te_expand", DICT_ENOMEM, NULL ) ;
+    HANDLE_ERROR( dhp, DICT_ENOMEM, NULL ) ;
 
   if ( !( hp->alloc->flags & FSM_ZERO_ALLOC ) )
     *BUCKET_OBJECTS( bp ) = NULL; /* zero out single entry */
@@ -341,7 +341,7 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   dict_obj		*object_slot ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, "ht_do_insert", DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 	
   tep = HASH_OBJECT( hp, object ) ;
 
@@ -396,7 +396,7 @@ int ht_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
   dheader_s	*dhp = DHP( hp ) ;
 
   if ( dhp->oo_comp == NULL_FUNC )
-    HANDLE_ERROR( dhp, "ht_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENOOOCOMP, DICT_ERR ) ;
   return( ht_do_insert( hp, TRUE, object, objectp ) ) ;
 }
 
@@ -410,7 +410,7 @@ int ht_delete(dict_h handle, dict_obj object)
   bucket_s		*bp ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, "ht_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
   tep = HASH_OBJECT( hp, object ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) )
@@ -499,16 +499,15 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   bucket_s		*bp		= NULL ;
   int			bucket_index ;
   unsigned int		i ;
-  char			*id = "ht_successor" ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   tep = HASH_OBJECT( hp, object ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) ||
        ( bp = bc_search( tep->head_bucket,
 			 bucket_entries, object, &bucket_index ) ) == NULL )
-    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 
   ERRNO( dhp ) = DICT_ENOERROR ;
 
@@ -540,15 +539,14 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   dict_obj		*found ;
   int			bucket_index ;
   int			i ;
-  char			*id = "ht_predecessor" ;
 
   if ( object == NULL )
-    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
   tep = HASH_OBJECT( hp, object ) ;
   stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
   if ( stop == NULL )
-    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 	
   ERRNO( dhp ) = DICT_ENOERROR ;
 

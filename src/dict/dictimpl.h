@@ -9,7 +9,7 @@
 #define __DICTIMPL_H
 
 /*
- * $Id: dictimpl.h,v 1.3 2001/07/07 13:41:15 seth Exp $
+ * $Id: dictimpl.h,v 1.4 2002/02/22 07:21:56 dupuy Exp $
  */
 
 #include "dict.h"
@@ -52,7 +52,7 @@ typedef int bool_int ;
 #define BAD_ORDER( flags )				( ( flags & ORDER_FLAGS ) == ORDER_FLAGS )
 
 
-#define HANDLE_ERROR( dhp, id, errval, retval )		\
+#define HANDLE_ERROR( dhp, errval, retval )		\
 	do {						\
 	  ERRNO( dhp ) = errval ;			\
 	  return( retval ) ;				\

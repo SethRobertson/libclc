@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.11 2002/08/30 03:23:11 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.12 2002/11/11 22:54:00 jtt Exp $";
 static const char version[] = VERSION;
 
 #include <stdlib.h>
@@ -39,8 +39,9 @@ static fsma_h *coalesce = NULL;
 static int coalesce_size = 0;
 #endif /* COALESCE */
 
+#ifndef FSMA_USE_MALLOC
 PRIVATE void init_free_list  ( unsigned, unsigned, void * )  ;
-
+#endif /* FSMA_USE_MALLOC */
 
 
 /*

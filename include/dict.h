@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.8 2002/03/22 11:39:50 dupuy Exp $
+ * $Id: dict.h,v 1.9 2002/11/11 22:53:59 jtt Exp $
  */
 
 /*
@@ -22,6 +22,7 @@
  */
 #define DICT_NOFLAGS				0x0
 #define DICT_NOCOALESCE				0x1
+#define DICT_THREAD_NOCOALESCE			DICT_NOCOALESCE	// For easier modification later
 #define DICT_UNIQUE_KEYS			0x2
 #define DICT_UNORDERED				0x4
 #define DICT_ORDERED				0x8

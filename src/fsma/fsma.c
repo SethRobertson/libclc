@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.18 2003/04/24 18:30:24 jtt Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.19 2003/06/06 03:34:51 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -406,12 +406,12 @@ void fsm_destroy(register fsma_h fp)
  *
  * THREADS: THREAD_REENTRANT
  */
-void *_fsm_alloc(register fsma_h fp)
+void *_fsm_alloc(register fsma_h fp, register u_int flags)
 {
   register POINTER object = NULL;
 
 #ifdef BK_USING_PTHREADS
-  if ((fp->flags & FSM_THREADED) && (pthread_mutex_lock(&fp->lock) != 0))
+  if (!(flags & FSM_LOCKED) && (fp->flags & FSM_THREADED) && (pthread_mutex_lock(&fp->lock) != 0))
   {
     /* Complain, somehow--locking failed */
     return(NULL);
@@ -465,7 +465,7 @@ void *_fsm_alloc(register fsma_h fp)
  done:
 
 #ifdef BK_USING_PTHREADS
-  if ((fp->flags & FSM_THREADED) && (pthread_mutex_unlock(&fp->lock) != 0))
+  if (!(flags & FSM_LOCKED) && (fp->flags & FSM_THREADED) && (pthread_mutex_unlock(&fp->lock) != 0))
   {
     /* Complain, somehow--locking failed */
     return(NULL);

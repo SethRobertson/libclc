@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.9 2003/04/16 21:25:52 jtt Exp $
+ * $Id: fsma.h,v 1.10 2003/06/06 03:34:51 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -64,41 +64,42 @@ extern void fsm_threaded_makeready(int preference);
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
 void	fsm_destroy	( fsma_h handle )  ;
-void	*_fsm_alloc	( fsma_h handle )  ;
+void	*_fsm_alloc	( fsma_h handle, u_int flags )  ;
+#define FSM_LOCKED	1
 void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
 #ifdef BK_USING_PTHREADS
 #ifdef __GNUC__
-#define fsm_alloc( fsma )											\
-    ({														\
-       void *_fsm_ret = NULL;											\
-														\
-       if (!(fsma)->next_free)											\
-       { /* No fast path available */										\
-	 _fsm_ret = _fsm_alloc(fsma);										\
-       }													\
-       else													\
-       {													\
-	 if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_lock(&(fsma)->lock) != 0))			\
-	 {													\
-	   /* Complain, somehow--locking failed */								\
-	   _fsm_ret = NULL;											\
-	 }													\
-	 else													\
-	 {													\
-	   _fsm_ret = (fsma)->next_free;									\
-	   (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;						\
-														\
-	   if ((fsma)->flags & FSM_ZERO_ALLOC)									\
-	     memset(_fsm_ret, 0, (fsma)->slot_size);								\
-														\
-	   if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))			\
-	   {													\
-	     /* Complain, somehow--locking failed */								\
-	   }													\
-	 }													\
-       }													\
-       _fsm_ret;												\
+#define fsm_alloc( fsma )									\
+    ({												\
+       void *_fsm_ret = NULL;									\
+												\
+       if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_lock(&(fsma)->lock) != 0))		\
+       {											\
+	 /* Complain, somehow--locking failed */						\
+	 _fsm_ret = NULL;									\
+       }											\
+       else											\
+       {											\
+	 if (!(fsma)->next_free)								\
+	 { /* No fast path available */								\
+	   _fsm_ret = _fsm_alloc(fsma, FSM_LOCKED);						\
+	 }											\
+	 else											\
+	 {											\
+	   _fsm_ret = (fsma)->next_free;							\
+	   (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;				\
+												\
+	   if ((fsma)->flags & FSM_ZERO_ALLOC)							\
+	     memset(_fsm_ret, 0, (fsma)->slot_size);						\
+	 }											\
+												\
+	 if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))	\
+	 {											\
+	   /* Complain, somehow--locking failed */						\
+	 }											\
+       }											\
+       _fsm_ret;										\
     })
 
 #else /* GNUC */
@@ -106,7 +107,7 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 #define fsm_alloc( fsma )									\
      (												\
       (!(fsma)->next_free || (fsma)->flags & (FSM_ZERO_ALLOC|FSM_THREADED))			\
-      ? _fsm_alloc( fsma )									\
+      ? _fsm_alloc( fsma, 0 )									\
       : ((fsma)->temp = (fsma)->next_free,							\
 	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp)	\
       )

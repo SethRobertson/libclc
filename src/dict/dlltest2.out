@@ -1,0 +1,37 @@
+---- ordered test ---
+07  10 insert
+06  10 append
+12  10 append
+10 100 insert
+02 100 insert
+01 100 insert
+00 100 insert
+03 100 append
+04 100 append
+05 100 append
+11 100 append
+09 200 insert
+08 200 insert
+13 200 append
+------
+---- unordered test ---
+10 100 insert
+09 200 insert
+08 200 insert
+07  10 insert
+02 100 insert
+01 100 insert
+00 100 insert
+03 100 append
+04 100 append
+05 100 append
+06  10 append
+11 100 append
+12  10 append
+13 200 append
+------
+---- unordered unique test ---
+08 200 insert
+00 100 insert
+06  10 append
+------

@@ -1,0 +1,98 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: bst.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.TH BST 3X "23 April 1993"
+.SH NAME
+bst_create, bst_destroy, bst_insert, bst_insert_uniq, bst_delete, bst_search, bst_minimum, bst_maximum, bst_successor, bst_predecessor, bst_iterate, bst_nextobj - binary search tree management functions
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "bst.h"
+.LP
+.ft B
+dict_h bst_create( oo_compare, ko_compare, flags, errnop )
+int (*oo_compare)( dict_obj, dict_obj ) ;
+int (*ko_compare)( dict_key, dict_obj ) ;
+int flags ;
+int *errnop ;
+.LP
+.ft B
+void bst_destroy( handle )
+dict_h handle ;
+.LP
+.ft B
+int bst_insert( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+int bst_insert_uniq( handle, object, objectp )
+dict_h handle ;
+dict_obj object ;
+dict_obj *objectp ;
+.LP
+.ft B
+int bst_delete( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj bst_search( handle, key )
+dict_h handle ;
+dict_key key ;
+.LP
+.ft B
+dict_obj bst_minimum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj bst_maximum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj bst_successor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj bst_predecessor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+void bst_iterate( handle, direction )
+dict_h handle ;
+enum dict_direction direction ;
+.LP
+.ft B
+dict_obj bst_nextobj( handle )
+dict_h handle ;
+.SH DESCRIPTION
+.LP
+This library supports dictionary functions using binary search trees.
+It follows the standard library interface which is described in
+.I "dict(3)."
+The flags supported by
+.B bst_create()
+include:
+.RS
+.TP
+.SB DICT_RETURN_ERROR
+.TP
+.SB DICT_UNIQUE_KEYS
+.TP
+.SB DICT_ORDERED
+.TP
+.SB DICT_BALANCED_TREE
+the tree will be kept balanced (the implementation uses red-black trees
+to enforce this property).
+.RE
+.SH "SEE ALSO"
+dict(3)
+.SH "RETURN VALUES"
+Check 
+.I "dict(3)"
+for function return values and error codes.

@@ -1,0 +1,169 @@
+.\"(c) Copyright 1992, 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: strs.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.TH STRS 3X "12 June 1993"
+.SH NAME
+strs_setup, strs_match, strs_done, strs_search - string matching functions
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "str.h"
+.LP
+.ft B
+strs_h strs_setup( flags, pattern [, patlen] )
+int flags ;
+char *pattern ;
+.LP
+.ft B
+char *strs_match( handle, str, len )
+strs_h handle ;
+char *str ;
+int len ;
+.LP
+.ft B
+void strs_done( handle )
+strs_h handle ;
+.LP
+.ft B
+char *strs_search( flags, str, len, pattern [, patlen] )
+int flags ;
+char *str ;
+int len ;
+char *pattern ;
+.SH DESCRIPTION
+.LP
+These functions perform string matching. They have been designed with
+the assumption that one needs to find a certain pattern in a set of
+strings. It is also possible to use them to find if a pattern occurs
+in a specific string.
+.LP
+.B strs_setup()
+is used to specify the pattern to look for. It returns a
+.I handle
+which is used in subsequent string matching operations against
+the specified
+.I pattern.
+The
+.I flags
+argument has two parts: a search method and generic flags.
+The available search methods include the following algorithms:
+.RS
+.TP 15
+.SB STRS_BF
+brute force algorithm (also called naive in the literature). 
+.TP
+.SB STRS_RK
+Rabin-Karp algorithm (probabilistic).
+.TP
+.SB STRS_KMP
+Knuth-Morris-Pratt algorithm.
+.TP
+.SB STRS_SBM
+Simple Boyer-Moore (uses only the last occurrence heuristic).
+.TP
+.SB STRS_BMH
+This is the Boyer-Moore algorithm using the last occurrence heuristic
+as modified by Horspool (this is faster than the simple Boyer-Moore).
+.TP
+.SB STRS_SO
+Shift-Or algorithm (this algorithm works only for patterns whose length
+does not exceed the number of bits in a word).
+.RE
+.LP
+The default algorithm is the brute force method.
+In practice, the fastest algorithm is the
+Boyer-Moore-Horspool one.
+.LP
+The flags that can be specified include:
+.RS
+.TP 15
+.SB STRS_NOMALLOC
+do not allocate space for the pattern. This can be specified if
+the pattern space will be available during the matching phase
+(i.e. do not use this flag if the pattern space was malloc'ed and
+you free it before doing any matching).
+.TP
+.SB STRS_IGNCASE
+perform case-insensitive string matching
+(the default is case-sensitive matching).
+.TP
+.SB STRS_NOSWITCH
+disallows switching to another search method; a switch to the brute
+force algorithm happens if the length of the pattern is less than 4
+or if the initialization of the specified search algorithm fails (for
+example, when using the shift-or algorithm with a very long pattern).
+When this flag is used, no switch happens.
+.TP
+.SB STRS_PATLEN
+is used to explicitly specify the length of the pattern
+(with the
+.I patlen
+argument); normally the pattern is assumed to be NUL-terminated.
+.RE
+.LP
+.B strs_match()
+tries to match the string specified by
+.I str
+against the pattern identified by
+.I handle.
+Since the length of the string is given by the
+.I len
+argument the string does not need to be NUL-terminated.
+.B strs_done()
+should be invoked after all matching against the pattern identified by
+.I handle
+is done.
+.LP
+.B strs_search()
+is equivalent to:
+.LP
+.PD .1v
+.nf
+.RS
+h = strs_setup( flags, pattern ) ;
+p = strs_match( h, str, len ) ;
+strs_done( h ) ;
+return( p ) ;
+.RE
+.PD
+.SH "RETURN VALUES"
+.LP
+.B strs_setup()
+returns a search handle on success or
+.SM NULL
+on failure.
+.LP
+.B strs_match()
+and
+.B strs_search()
+return a pointer to the first occurrence of the pattern in the string or
+.SM NULL
+if the pattern does not occur in the string.
+.SH "SEE ALSO"
+Donald E. Knuth, James H. Morris, Vaughan R. Pratt.
+Fast pattern matching in strings.
+SIAM Journal on Computing, 6(2):323-350, 1977.
+.LP
+Richard M. Karp, Michael O. Rabin.
+Efficient randomized pattern-matching algorithms.
+Technical Report TR-31-81,
+Aiken Computation Laboratory, Harvard University, 1981.
+.LP
+Robert S. Boyer, J. Strother Moore.
+A fast string-searching algorithm.
+Communications of the ACM, 20(10):762-772, 1977.
+.LP
+N. Horspool.
+Practical fast searching in strings.
+Software - Practice and Experience, 10:501-506, 1980.
+.LP
+R. Baeza-Yates, G.H. Gonnet.
+A new approach to text searching.
+Proceedings of 12th SIGIR, June 1989.
+.LP
+Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest.
+Introduction to Algorithms.
+McGraw-Hill 1990.

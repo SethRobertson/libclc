@@ -1,0 +1,80 @@
+---------------------------------------------------------------------------
+Note: All files will appear properly indented if you set your tabstop to 3.
+---------------------------------------------------------------------------
+
+This library includes support for the following types of data structures:
+
+	double linked lists
+	hash tables
+	binary search trees (balanced trees are also supported)
+
+The data structures are designed to support dictionary operations.
+Dictionary operations are the operations of insertion, location and
+deletion of objects from a set.  The data structures also include
+operations for the location of the maximum/minimum element of a set and
+operations for set enumeration.
+
+The code should work on any system with a reasonable C compiler.
+I have compiled it on SunOS 4.1 and Ultrix 4.2 using the bundled C
+compiler of those systems.  It also compiles with no warnings using gcc 2.1
+
+In order to use this library in your programs, you will need to add
+the following linker options to the cc command line:
+	-ldict -lfsma
+The former identifies the library with all the dictionary operations,
+called "dict", and the latter identifies a support library, called "fsma",
+which is used by the "dict" library. The distribution includes both
+libraries, and the installation procedure makes sure that both libraries
+are compiled and installed.
+
+Please send all comments/bug-reports to panos@cs.colorado.edu.
+
+----------------------------------------------------------------------
+
+Testing the code
+
+I have included 3 sample programs that test this library:
+	dlltest	: 	tests the double linked list implementation
+	htest		:	tests the hash tables implementation
+	bsttest 	: 	tests the binary search tree implementation (note: this 
+					program requires that the library be compiled with the 
+					BST_DEBUG preprocessor flag; check the Makefile for more
+					details)
+
+In order to do the test, follow these steps (we will assume that the hash 
+table implementation is to be tested):
+
+	1. Make the program:
+			make LIBDIR=../../lib INCLUDEDIR=../../include htest
+		This assumes that you have not modified the values of LIBDIR and
+		INCLUDEDIR in the top level Makefile.
+	2. Run the program:
+			htest > HTEST.OUTPUT
+	3. Compare the output with the standard output which is part of the
+		distribution (this is the file "htest.out", and there are similar
+		files for the rest of the test programs).
+			cmp HTEST.OUTPUT htest.out
+		These two files should be the same.
+
+For the binary search tree implementation, the test program, "bsttest",
+can be invoked in 2 ways: without arguments, and with a single argument "b".
+The latter form will make the tree be balanced; however, the
+output of the program should be the same as when the tree is not
+balanced, so you can use the same output file to do the comparison.
+
+To illustrate the advantage of the balanced search tree implementation,
+you can run the program "bstcomp" (which you can compile by typing
+"make bstcomp"). This program will create a binary tree and then
+try to find an element in it.
+For example,
+	bstcomp 20000
+will do 20000 searches for an element in a binary search tree. The tree
+has 1000 nodes, and it is artificially created to make sure that it is skewed
+(i.e. the maximum depth is 1000). The search is made for the node which
+is at depth 1000.
+By invoking the program as:
+	bstcomp b 20000
+the same 1000-node tree will be balanced, and the time to make the 20000 
+searches for the same node will be a fraction of the time when the tree 
+was not balanced.
+

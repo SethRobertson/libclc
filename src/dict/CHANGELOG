@@ -1,0 +1,20 @@
+
+1.2.0: First release
+	This was never advertised but was obtainable via anonymous FTP.
+
+1.2.1: submitted to comp.sources.unix
+	The only change was that the README file became part of the archive.
+	There were no changes to the source code.
+
+1.2.2:
+	No source code changes.
+	The test programs are now included in the distribution.
+	An EXAMPLE section has been included in the dict.3 man page
+
+1.2.3:
+	Specifying a ko_comp function is now optional. If such a function
+	is not specified, use of <lib>_search will cause a segmentation
+	violation.
+
+1.2.4:
+	Bug fix: tree_header fields 'anchor' and 'nil' changed to type btnode_s

@@ -1,0 +1,120 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: timemacros.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.TH TIMEMACROS 3X "20 April 1993"
+.SH NAME
+TV_ADD, TV_SUB, TV_LT, TV_LE, TV_GT. TV_GE, TV_EQ, TV_NE, TV_ISZERO, TV_ZERO, TVP_ADD, TVP_SUB, TVP_LT, TVP_LE, TVP_GT, TVP_GE, TVP_EQ, TVP_NE, TVP_ISZERO, TVP_ZERO - macros for manipulating timeval structures
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "timemacros.h"
+.LP
+.ft B
+void TV_ADD( tv_res, tv1, tv2 )
+struct timeval tv_res, tv1, tv2 ;
+.LP
+.ft B
+void TV_SUB( tv_res, tv1, tv2 )
+struct timeval tv_res, tv1, tv2 ;
+.LP
+.ft B
+void TV_ZERO( tv )
+struct timeval tv ;
+.LP
+.ft B
+int TV_LT( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_LE( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_GT( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_GE( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_EQ( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_NE( tv1, tv2 )
+struct timeval tv1, tv2 ;
+.LP
+.ft B
+int TV_ISZERO( tv )
+struct timeval tv ;
+.SH DESCRIPTION
+There are 2 groups of macros: the
+.I "TV_*"
+macros expect arguments that are
+.I "struct timeval's"
+while the
+.I "TVP_*"
+macros expect arguments that are pointers to
+.I "struct timeval."
+In the following only the
+.I "TV_*"
+macros will be described.
+.LP
+.B "TV_ADD()"
+adds
+.I tv1
+and
+.I tv2
+and puts the result in
+.I tv_res.
+The result is "normalized" if the number of microseconds in
+.I tv_res
+exceeds 1 million.
+.LP
+.B "TV_SUB()"
+performs the subtraction
+.I "tv1-tv2"
+and places the result in
+.I tv_res.
+The result is "normalized" if the number of microseconds in 
+.I tv_res
+becomes negative.
+.LP
+.B "TV_ZERO()"
+sets
+.I tv
+to zero seconds and zero microseconds.
+.LP
+.B "TV_LT(),"
+.B "TV_LE(),"
+.B "TV_GT(),"
+.B "TV_GE(),"
+.B "TV_EQ(),"
+and
+.B "TV_NE()"
+return
+.SM TRUE 
+if
+.I tv1
+is
+less than,
+less than or equal,
+greater than,
+greater than or equal,
+equal,
+or
+not equal
+to
+.I tv2,
+respectively.
+.LP
+.B "TV_ISZERO()"
+returns
+.SM TRUE
+if
+.I tv
+is equal to zero.

@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# (c) Copyright 1992, 1993 by Panagiotis Tsirigotis
+# All rights reserved.  The file named COPYRIGHT specifies the terms 
+# and conditions for redistribution.
+
+
+#
+# $Id: testlib,v 1.1 2001/05/26 22:04:50 seth Exp $
+#
+
+#
+# Purpose:
+#		Invoke the tester script. This is necessary because the tester
+#		script requires functions and /bin/sh does not support functions
+#		on all OS's. This script decides what shell to use to execute
+#		tester. On Suns, it uses /bin/sh. On DECstations, it uses
+#		/usr/bin/ksh
+#		The decision is made by checking $ARCH
+#		
+
+case "$ARCH" in
+	"")
+		echo "ARCH not defined. Please define it."
+		exit 1
+		;;
+	
+	sun4|sun3)
+		TESTSHELL=/bin/sh
+		LDFLAGS="-Bstatic -lm"
+		;;
+
+	dec-mips)
+		TESTSHELL=/usr/bin/ksh
+		LDFLAGS=
+		;;
+	
+	#
+	# The following case was provided by Stephen House.
+	# It applies to HP-UX 8.0 (and later, probably).
+	#
+	# The addition of MORE_DEFS was by me (Panos Tsirigotis)
+	#
+	hp)
+		TESTSHELL=/bin/ksh
+		LDFLAGS=
+		MORE_DEFS="-DRANDOM=lrand48"
+		;;
+
+	*) echo "Unknown architecture: $ARCH"
+		exit 2
+		;;
+esac
+
+export LDFLAGS
+export TESTSHELL
+if test "$MORE_DEFS" ; then export MORE_DEFS ; fi
+$TESTSHELL tester $*
+

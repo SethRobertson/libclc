@@ -1,0 +1,125 @@
+
+The following is a state table showing how the state of a timer changes
+when various operations are applied to it.  The state is represented as
+a triple: the first member shows the state of the "ticking" part of the
+timer, the second member shows if the timer is blocked  and the third 
+member shows the state of the action associated with the timer.
+
+The "ticking" state can be:
+   INACTIVE    :  the timer is not ticking
+   TICKING     :  the timer is ticking
+   DESTROYED   :  the timer has been destroyed
+
+The "blocked" state can be TRUE or FALSE.
+
+The action state can be:
+   IDLE        :  this is the original state (quiescent)
+	SCHEDULED:		the action is scheduled to be invoked
+   PENDING     :  the timer has expired but the action is pending because the
+						the timer is blocked.
+   INVOKED     :  the action has been invoked (i.e. the user-specified function
+                  is running)
+
+
+The operations that affect timers fall into 2 groups. In the first group 
+are the operations available by the library interface:
+
+   timer_start
+   timer_stop
+   timer_block
+   timer_unblock
+   timer_destroy
+
+In the second group are internal operations:
+
+   INVOKE      :  invoke the function associated with the timer
+   RETURN      :  the function associated with the timer returns
+   INTERRUPT   :  the timer expired
+
+The initial timer state is (INACTIVE,NONE).
+
+
+
+
+
+
+
+
+
+
+STATES      | start     | stop      | block     | unblock   | destroy   | INVOKE    | RETURN    | INTERRUPT
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+UNBLOCKED   |  T,U,ID   |     X     |     X     |     X     | destroy   |     X     |     X     |    X
+IDLE        |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+UNBLOCKED   |    E      |  I,U,ID   |  I,B,P    |     X     | destroy   |     X     |     X     |    X
+PENDING     |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+UNBLOCKED   |    E      |  I,U,IN   |  I,B,S    |     X     |  D,U,IN   |  I,U,IN   |     X     |    X
+SCHEDULED   |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+UNBLOCKED   |  T,U,IN   |     X     |     X     |     X     |  D,U,IN   |     X     |  I,U,ID   |    X
+INVOKED     |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,ID   |     X     |  I,U,S    | destroy   |     X     |     X     |    X
+PENDING     |           |           |           |+ INVOKE(1)|           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+INACTIVE    |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,IN   |     X     |  I,U,S    |  D,U,IN   |  I,B,P    |     X     |    X
+SCHEDULED   |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+UNBLOCKED   |     E     |  I,U,ID   |  T,B,ID   |     X     | destroy   |     X     |     X     |  I|T,U,S (2)
+IDLE        |           |           |           |           |           |           |           |+ INVOKE
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+UNBLOCKED   |     E     |  I,U,IN   |  T,B,S    |     X     |  D,U,IN   |  T,U,IN   |     X     |  T,U,S (3)
+SCHEDULED   |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+UNBLOCKED   |     E     |  I,U,IN   |  T,B,IN   |     X     |  D,U,IN   |     X     |  T,U,ID   |  T,U,S (3)
+INVOKED     |           |           |           |           |           |           |           |+ INVOKE (1)
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,ID   |     X     |  T,U,ID   | destroy   |     X     |     X     |  I|T,B,P (2)
+IDLE        |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,ID   |     X     |  T,U,S    | destroy   |     X     |     X     |    X
+PENDING     |           |           |           |+ INVOKE(1)|           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,IN   |     X     |  T,U,S    |  D,U,IN   |  T,B,P    |  T,B,P    |    X
+SCHEDULED   |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+TICKING     |           |           |           |           |           |           |           |
+BLOCKED     |     E     |  I,U,IN   |     X     |  T,U,IN   |  D,U,IN   |     X     |  T,B,ID   |  T,B,S
+INVOKED     |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+DESTROYED   |           |           |           |           |           |           |           |
+UNBLOCKED   |     E     |     X     |     X     |     X     |     X     |     X     | destroy   |    X
+INVOKED     |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+            |           |           |           |           |           |           |           |
+            |           |           |           |           |           |           |           |
+            |           |           |           |           |           |           |           |
+------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|------------------
+
+X stands for NO-OP.
+
+Notes:
+
+1. The INVOKE operation immediately follows.
+2. Whether the ticking state changes to INACTIVE depends on whether the timer expires periodically (if it does,
+   the ticking state does not change).
+3. There is no change of the ticking state since we know that the timer expires periodically.
+
+
+Some states may seem impossible. For example, (TICKING, BLOCKED, INVOKED) can only happen if the user function
+issues a timer_block operation. This makes sense, if the timer expires periodically.
+

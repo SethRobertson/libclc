@@ -1,0 +1,453 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: dict.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.TH DICT 3X "23 April 1993"
+.SH NAME
+dictionary management functions
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "dict.h"
+#include "<lib>.h"
+.LP
+.ft B
+dict_h <lib>_create( oo_compare, ko_compare, flags, errnop )
+int (*oo_compare)( dict_obj, dict_obj ) ;
+int (*ko_compare)( dict_key, dict_obj ) ;
+int flags ;
+int *errnop ;
+.LP
+.ft B
+void <lib>_destroy( handle )
+dict_h handle ;
+.LP
+.ft B
+int <lib>_insert( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+int <lib>_insert_uniq( handle, object, objectp )
+dict_h handle ;
+dict_obj object ;
+dict_obj *objectp ;
+.LP
+.ft B
+dict_obj <lib>_search( handle, key )
+dict_h handle ;
+dict_key key ;
+.LP
+.ft B
+int <lib>_delete( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj <lib>_minimum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj <lib>_maximum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj <lib>_successor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj <lib>_predecessor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+void <lib>_iterate( handle, direction )
+dict_h handle ;
+enum dict_direction direction ;
+.LP
+.ft B
+dict_obj <lib>_nextobj( handle )
+dict_h handle ;
+.LP
+.ft B
+extern int dict_errno ;
+.SH DESCRIPTION
+This is a framework for libraries that solve the dictionary problem:
+insertion, location, deletion of objects from a set.
+Each library uses a unique prefix in place of
+.I "<lib>_"
+that reflects the way it works.
+For example, the
+.I "binary search tree"
+library uses the
+.I bst_
+prefix.
+A dictionary library provides only structure for the objects stored in it.
+It does not provide storage space.
+Therefore, the
+.I dict_obj
+and
+.I dict_key
+types are pointer types (the exact pointer type is implementation-dependent).
+There is no copying of keys. The key is part of the object.
+.LP
+Some dictionary libraries keep the inserted objects ordered. Others
+may not support ordering. Others still may support either ordered or
+unordered objects.
+When a library instance is created, the caller
+can select between ordered and unordered objects depending on the requirements
+of the application.
+A request for ordering will be rejected if the library does not support it,
+but a request for lack of ordering is usually treated as a hint, and it may 
+not be rejected.
+.LP
+.B <lib>_create
+creates a library instance and returns a handle to it.
+Object-object comparisons will be required when key uniqueness is requested,
+or if the library needs to impose an order on the inserted objects.
+Such comparisons are done using the
+.I oo_compare
+function.
+This function will be called with two arguments of type
+.I dict_obj,
+and it should return an integer less-than/equal-to/greater-than 0
+if the first argument is less-than/equal-to/greater-than the second
+argument (therefore, it is up to the programmer to define the object ordering).
+If the library supports the
+.B DICT_UNORDERED
+flag (which requests that the objects not be ordered), then
+providing an
+.I oo_compare
+function is optional.
+.LP
+The
+.I ko_compare
+function (also specified at the time of library instance creation) is used by
+.B <lib>_search()
+to locate objects with the specified key value.
+It will be called with 2 arguments, the first of type
+.I dict_key,
+and the second of type
+.I dict_obj,
+and it should return an integer less-than/equal-to/greater-than 0
+if the specified key (first argument) is less-than/equal-to/greater-than 
+the key of the object (second argument). Specifying this function is
+optional, but you should note that use of
+.B <lib>_search()
+when this function has not been specified will cause abnormal program
+termination.
+.LP
+The
+.I flags
+argument is formed by ORing one or more of the following constants:
+.RS
+.TP
+.SB DICT_RETURN_ERROR
+If a call encounters an error condition, it will return a value that
+indicates that an error occurred. The default is to terminate the
+program with an appropriate error message. The errors that are
+handled this way are usually non-recoverable (for example, lack of
+memory), or they are programmer errors.
+Errors like searching for an object that is not in the library instance,
+or trying to insert an object with a non-unique key value,
+do not terminate the program.
+.TP
+.SB DICT_UNIQUE_KEYS
+Objects with equal keys are allowed unless this flag is specified.
+If objects with equal keys are allowed, it is guaranteed that a
+.B <lib>_search()
+operation will locate one of them, and subsequent
+.B <lib>_successor()
+operations will return the rest of them.
+.TP
+.SB DICT_UNORDERED
+Requests that inserted objects are not ordered. This request may be
+rejected if the library requires object ordering.
+.TP
+.SB DICT_ORDERED
+Requests that inserted objects are ordered. This request may be rejected
+if the library does not support object ordering.
+.RE
+.LP
+Some dictionary library implementations support additional flags.
+Such flags will be quietly ignored by implementations that don't support them.
+The constant
+.B DICT_NOFLAGS
+can be used to specify no flags.
+The
+.I errnop
+argument specifies a location to place error codes when a call fails.
+If it is specified as
+.I "(int *)0,"
+the integer variable
+.I dict_errno
+will be used for this purpose.
+.LP
+.B <lib>_destroy()
+destroys the library instance identified by the
+.I handle.
+.LP
+.B <lib>_insert()
+and
+.B <lib>_insert_uniq()
+are used for object insertions, with the latter requiring that the
+new object be unique (in terms of its key).
+If the 
+.I objectp 
+argument of 
+.B <lib>_insert_uniq()
+is not
+.SM NULL
+then if the insertion is successful, it will point to
+.I object.
+If the insertion is not successful because there is already an
+object with an equal key value, then
+.I objectp
+will point to that object.
+.LP
+.B <lib>_delete()
+deletes an object from a library instance.
+It is not a programmer error if the object does not exist in the library
+instance (i.e. the program will not be terminated if the
+.SB DICT_RETURN_ERROR
+flag is not specified; an error code will always be returned instead).
+.LP
+.B <lib>_search()
+locates objects with a key equal to the specified key.
+.LP
+The action of the 
+.B <lib>_minimum(),
+.B <lib>_maximum(),
+.B <lib>_successor(),
+and
+.B <lib>_predecessor()
+operations depends on whether the library orders the objects stored
+in it. If it does, then these operations have the meaning denoted by
+their names (although it should be noted that the order is really
+defined by the
+.I oo_compare
+function and may not be intuitive).
+If the objects are stored in any order, then the meaning of these
+operations is undefined. However,
+it is guaranteed that by starting
+at the object identified by
+.B "<lib>_minimum()"
+or
+.B "<lib>_maximum(),"
+and iterating with
+.B "<lib>_successor()"
+or 
+.B "<lib>_predecessor()"
+respectively,
+all objects stored in the library instance will be enumerated.
+.LP
+.B <lib>_successor()
+returns the object that is the successor of the specified
+.I object.
+The specified object must exist in the library instance
+(non-existence is considered a programmer error).
+.LP
+.B <lib>_predecessor()
+returns the object that is the predecessor of the specified  
+.I object.
+The specified object must exist in the library instance
+(non-existence is considered a programmer error).
+.LP
+.B "<lib>_iterate()"
+prepares the library instance identified by
+.I handle
+for an iteration.
+Assuming a library that orders objects according to non-decreasing key value,
+if
+.I direction 
+is
+.I DICT_FROM_START
+then the objects will be iterated according to non-decreasing key value,
+while if 
+.I direction 
+is
+.I DICT_FROM_END
+then the objects will be iterated according to non-increasing key value.
+If the library does not provide any ordering, then the
+.I direction 
+argument is ignored.
+.LP
+.B "<lib>_nextobj()"
+returns the next object.
+The reason for providing
+.B "<lib>_iterate()"
+and
+.B "<lib>_nextobj()"
+is that they are more convenient to use when it is desirable
+to optionally delete the object returned from
+.B "<lib>_nextobj()"
+and continue iterating.
+.SH "RETURN VALUES"
+.LP
+Functions returning handles or objects, return
+.SM NULL
+if they fail.
+.LP
+Functions returning \fIint\fRs, return
+.B DICT_OK
+on success, and
+.B DICT_ERR
+on failure.
+When a call fails, it sets the error variable to an appropriate value.
+The error variable is either 
+.I dict_errno,
+or is the one specified in the call to 
+.B <lib>_create()
+which created the given library instance.
+.LP
+.B <lib>_create()
+returns a library instance handle if it succeeds, or
+.SM NULL
+if it fails.
+.LP
+.B <lib>_insert()
+returns
+.B DICT_OK
+if it succeeds, or
+.B DICT_ERR
+if it fails.
+.LP
+.B <lib>_insert_uniq()
+returns 
+.B DICT_OK
+if it succeeds, or
+.B DICT_ERR
+if it fails.
+.LP
+.B <lib>_delete()
+returns
+.B DICT_OK
+if it succeeds, or
+.B DICT_ERR
+if it fails.
+.LP
+.B <lib>_search()
+returns an object if it succeeds, or
+.SM NULL
+if it fails (the error variable is not set in this case as
+there is only one explanation for the failure).
+.LP
+.B <lib>_minimum()
+returns an object, or
+.SM NULL
+if there are no objects in the particular library instance.
+.LP
+.B <lib>_maximum()
+returns an object, or
+.SM NULL
+if there are no objects in the particular library instance.
+.LP
+.B <lib>_successor()
+.B "(<lib>_predecessor())"
+returns an object, or
+.SM NULL
+if the specified object has no successor (predecessor),
+or when the specified object does not exist (assuming the
+.SB DICT_RETURN_ERROR
+flag was used when the specific library instance was created).
+In order to discriminate between these two cases, in the former case
+the error variable 
+(\fIdict_errno\fP or the one specified when the 
+specific library instance was created)
+will be set to
+.SB DICT_ENOERROR,
+and in the latter case it will contain an error code.
+.LP
+.B <lib>_nextobj()
+returns an object, or
+.SM NULL
+if there are no more objects.
+.SH ERRORS
+.LP
+The following error codes are placed in
+.I dict_errno
+or in the user-specified error variable.
+Error codes marked with "*" cause program termination if the
+.B DICT_RETURN_ERROR
+flag is not used.
+.IP DICT_ENOERROR 20
+No error.
+.IP "DICT_ENOMEM *"
+Operation failed because of lack of memory.
+.IP DICT_ENOTFOUND
+Object not found.
+.IP "DICT_ENOOOCOMP *"
+Object-to-object comparator function is missing.
+.\"
+.\" .IP "DICT_ENOKOCOMP *"
+.\" Key-to-object comparator function is missing.
+.\"
+.IP "DICT_ENULLOBJECT *"
+Object is
+.SM NULL.
+.IP DICT_EEXISTS
+Object with equal key exists.
+.IP "DICT_EBADOBJECT *"
+The object used in a 
+.I "<lib>_successor"
+or 
+.I "<lib>_predecessor"
+operation does not exist.
+.IP "DICT_ENOHVFUNC *"
+The function to convert a key or object to a hash value is missing.
+.IP "DICT_EBADORDER *"
+Both the
+.SM DICT_ORDERED
+and
+.SM DICT_UNORDERED
+flags were specified.
+.IP "DICT_EORDER"
+The specified order flag is not supported by the particular library
+implementation.
+.SH EXAMPLE
+The following code fragment reads words from standard input and places them
+in a set making sure that the set contains no duplicates. At the
+end-of-file indication, all the words in the set are listed in
+alphanumeric order. A balanced binary search tree is used to maintain
+the set.
+.RS
+.sp 1
+.ft B
+.nf
+#include "bst.h"
+.sp 1
+dict_h word_set ;
+char buf[ 80 ] ;
+char *word ;
+int strcmp() ;
+.sp 1
+word_set = bst_create( strcmp, strcmp,
+.RS
+DICT_UNIQUE_KEYS + DICT_BALANCED_TREE, (int *)0 ) ;
+.RE
+while ( gets( buf ) )
+{
+.RS
+/*
+ * We expect one word per line
+ */
+word = malloc( strlen( buf ) + 1 ) ;
+(void) strcpy( word, buf ) ;
+if ( bst_insert( word_set, (dict_obj) word ) == DICT_ERR )
+.RS
+free( word ) ;
+.RE
+.RE
+}
+for ( word = (char *) bst_minimum( word_set ) ; word ;
+.RS
+.RS
+word = (char *) bst_successor( word_set, word ) )
+.RE
+.RE
+.RS
+printf( "%s\\n", word ) ;
+.RE

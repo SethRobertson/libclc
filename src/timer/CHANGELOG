@@ -1,0 +1,9 @@
+
+1.2.2:
+	Posted as part of xinetd
+
+1.3.0:
+	-	Minor fixes to the Makefile
+	-	The STATES file was added to the distribution
+	-	Preprocessor flags were added to selectively disable timers of
+		specific types.

@@ -1,0 +1,76 @@
+.\"(c) Copyright 1992 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: ftwx.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.TH FTWX 3X "25 January 1992"
+.SH NAME
+ftwx -- file tree walk
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "ftwx.h"
+.LP
+.ft B
+.ft B
+.ft B
+int ftwx( path, func, depth, flags )
+char *path ;
+int (*func)() ;
+int depth ;
+int flags ;
+.SH DESCRIPTION
+.LP
+.B ftwx()
+is an extension to \fIftw(3)\fR that optionally follows symbolic
+links (the default is not to follow them). It recursively descends
+the directory tree whose root is \fIpath\fR. For each object it finds
+(an object is anything that is in the file system name space,
+like a directory, a socket, a regular file, a device etc.)
+it invokes \fIfunc()\fR passing
+it a pointer to a string containing the object path name (the first
+component of the path will be \fIpath\fR), a pointer to a \fIstat()\fR
+structure that contains information about the object, and a flag (of
+type \fIint\fR). The user function is never invoked for the directory 
+entries "." and "..".
+Possible flag values are:
+.TP 10
+.SB FTW_D
+the object is a directory
+.TP
+.SB FTW_DNR
+the object is a directory that is not readable
+.TP
+.SB FTW_F
+the object is not a directory
+.TP
+.SB FTW_NS
+the \fIstat()\fR of the object failed. The value of the pointer passed
+to the user function is undefined. This flag value will be returned
+for directory entries of a directory for which execute access is not
+permitted.
+.LP
+\fBftwx\fR visits a directory before visiting any of the files in
+the directory. The tree walk continues until the tree is exhausted,
+the user function returns a negative value or some error occurs
+(since -1 indicates an error in \fBftwx()\fR, the user function
+should not return that value).
+If the user function returns a positive value for a directory, that
+directory is not traversed.
+Symbolic links are followed if the \fIflag\fR is \fBFTWX_FOLLOW\fR.
+.LP
+The \fBdepth\fR argument determines how deep in the tree to go. The
+original \fIpath\fR is at depth 0. If \fIdepth\fR is \fBFTWX_ALL\fR,
+there is no depth limit. However since \fBftwx()\fR uses a file
+descriptor for each level of the tree, there is a limit to
+the tree depth that it can process that depends on the number
+of available file descriptors.
+.SH "RETURN VALUES"
+.LP
+\fBftwx()\fR
+returns 0 if is successful, -1 if an error occurs (\fIerrno\fR is set)
+and the (negative) value returned by the user function if that occurs.
+.SH "SEE ALSO"
+.LP
+ftw(3)

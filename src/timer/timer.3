@@ -1,0 +1,323 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: timer.3,v 1.1 2001/05/26 22:04:51 seth Exp $
+.TH TIMER 3X "20 April 1993"
+.SH NAME
+timer_create, timer_destroy, timer_start, timer_stop, timer_block, timer_unblock, timer_expirations, timer_block_type, timer_unblock_type - timer management functions
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "timer.h"
+.LP
+.ft B
+enum timer_types { TIMER_REAL, TIMER_VIRTUAL, TIMER_PROF } ;
+enum timer_timetypes { TIMER_ABSOLUTE, TIMER_RELATIVE } ;
+.LP
+.ft B
+extern int timer_errno ;
+.LP
+.ft B
+timer_h timer_create( type, flags, errnop )
+enum timer_types type ;
+int flags ;
+int *errnop ;
+.LP
+.ft B
+void timer_destroy( handle )
+timer_h handle ;
+.LP
+.ft B
+int timer_start( handle, itvp, time_type, action )
+timer_h handle ;
+struct itimerval *itvp ;
+enum timer_timetypes time_type ;
+struct timer_action *action ;
+.LP
+.ft B
+void timer_stop( handle )
+timer_h handle ;
+.LP
+.ft B
+void timer_block( handle )
+timer_h handle ;
+.LP
+.ft B
+void timer_unblock( handle )
+timer_h handle ;
+.LP
+.ft B
+unsigned timer_expirations( handle )
+timer_h handle ;
+.LP
+.ft B
+void timer_block_type( type )
+enum timer_types type ;
+.LP
+.ft B
+void timer_unblock_type( type )
+enum timer_types type ;
+.SH DESCRIPTION
+.LP
+This library provides support for multiple timers of various types by
+multiplexing the timers provided by the operating system.
+An action is associated with each timer.
+The action can either be a function that will be invoked when the
+timer expires,
+or it can be an integer variable that will either be set to
+.SM TRUE
+when the timer expires or it will be increased for every expiration
+of the timer (it is up to the user to clear the variable after inspecting
+its value).
+If a function is used, then it is possible that while that function is running,
+more timers may expire and their functions be called 
+(i.e. timer interrupts are not blocked while the function is running).
+The timer-action association can change through the lifetime of the timer.
+The timer types supported by this library depend on the operating system.
+.\" *********************** timer_create *****************************
+.LP
+.B timer_create()
+creates a timer and returns a handle to it. When the timer is created, it
+is inactive. Possible values for \fItype\fP are:
+.TP 18
+.SB TIMER_REAL
+timers of this type are wall-clock timers
+.TP
+.SB TIMER_VIRTUAL
+timers of this type are running only when the process is running
+.TP
+.SB TIMER_PROF
+timers of this type are running only when the process is running 
+or the system is doing work on behalf of the process.
+.LP
+Possible values for \fIflags\fP are formed by ORing any of the following
+constants:
+.TP 20
+.SB TIMER_RETURN_ERROR
+if an error
+occurs while handling \fIthis\fP timer an error indication will be returned
+(the default is program termination)
+.LP
+You can use the constant
+.B TIMER_NOFLAGS
+to specify no flags at all.
+The argument
+.I errnop
+is a pointer to a variable where error values will be placed
+(the default, in case 
+.I errnop
+is
+.SM NULL,
+is \fItimer_errno\fP).
+.\" *********************** timer_destroy *****************************
+.LP
+.B timer_destroy()
+destroys the timer specified by \fIhandle\fP. 
+If the timer is active, it is deactivated first.
+.\" *********************** timer_start *****************************
+.LP
+.B timer_start()
+activates the timer specified by
+.I handle.
+The expiration time is determined by
+.I itvp
+and
+.I time_type.
+.I time_type
+can be either
+.B TIMER_ABSOLUTE
+or 
+.B TIMER_RELATIVE.
+Timers of the former
+type expire at the time 
+specified by
+.I "itvp->it_value"
+(if that time is before the
+current time then the timer expires immediately), while the expiration
+time of timers of the latter type expire at
+.I "current time + itvp->it_value."
+.I "itvp->it_interval"
+is the interval between subsequent expirations of the timer after the
+original expiration.
+The
+.I action
+argument determines the action to be taken when the timer expires.
+.LP
+.I "struct timer_action"
+is defined as follows:
+.sp 1
+.PD .1v
+.RS
+.nf
+struct timer_action
+{
+.RS
+.IP "int" 15
+ta_flags ;
+.IP "void"
+(*ta_func)() ;
+.IP void
+*ta_arg ;
+.IP jmp_buf
+ta_env ;
+.RE
+} ;
+.RE
+.PD
+.fi
+.LP
+The type of action taken when a timer expires depends on
+.I ta_func
+and
+.I ta_arg.
+.RS
+.IP "Case 1: ta_func != NULL"
+The function will be invoked with 2 arguments: the handle of the expired
+timer and
+.I ta_arg.
+.I "Such functions should not use longjmp."
+.IP "Case 2: ta_func == NULL && ta_arg != NULL"
+.I ta_arg
+is assumed to be a pointer to an integer variable. This variable will
+either be set to
+.SM TRUE
+or its value will be increased.
+.IP "Case 3: ta_func == NULL && ta_arg == NULL"
+nothing happens.
+.RE
+.sp 1
+.I ta_flags
+is formed by ORing any of the following constants:
+.TP 20
+.SB TIMER_INC_VAR
+When the action associated with the timer is an integer variable then
+the variable will be increased by the number of timer expirations (the
+default is for the variable to be set to 1).
+.TP
+.SB TIMER_BLOCK_ALL
+When the action associated with the timer is a function, all timer
+interrupts will be blocked while the function is running.
+.TP
+.SB TIMER_BLOCK_SAME
+When the action associated with the timer is a function, all timers
+of the same type will be blocked while the function is running.
+.TP
+.SB TIMER_LONGJMP
+A longjmp(3) will be performed using
+.I ta_env
+after the action associated with the timer is performed.
+.LP
+You can use the constant
+.B TIMER_NOFLAGS
+to specify no flags at all.
+.\" *********************** timer_stop *****************************
+.LP
+.B timer_stop()
+stops the specified timer. The timer becomes inactive and it cannot
+be restarted for the time that was remaining until expiration.
+.\" *********************** timer_block *****************************
+.LP
+.B timer_block()
+blocks the specified timer. The timer is still active and may expire
+but its action will not be executed until the
+timer is unblocked.
+.\" *********************** timer_unblock *****************************
+.LP
+.B timer_unblock()
+unblocks the specified timer. If the timer is past its expiration time,
+the associated action will be executed immediately.
+.\" *********************** timer_expirations *****************************
+.LP
+.B timer_expirations()
+should be used by the user-specified function to find out 
+the number of times the timer expired until the function was called.
+Multiple expirations are possible for a timer that expires periodically.
+.\" *********************** timer_block_type *****************************
+.LP
+.B timer_block_type()
+blocks all timers of the specified \fItype\fP.
+This also includes any timers started 
+.I after
+this function is invoked.
+.\" *********************** timer_unblock_type *****************************
+.LP
+.B timer_unblock_type()
+unblocks all timers of the specified \fItype\fP.
+.\" *********************** notes *****************************
+.SH NOTES
+.LP
+Any of the timer operations can be used on any timer handle at any time.
+Specifically, the operations can be used from within the functions
+invoked when the timers expire.
+.LP
+The function associated with a timer is not
+invoked for each expiration of that timer.
+It is possible for a timer to expire
+multiple times while its function is running (because timers can
+be scheduled to expire periodically), or while other timer functions
+are running. The timer function can find out how many times its timer
+has expired by using the
+.B timer_expirations()
+operation.
+.LP
+It is guaranteed that the function associated with a specific timer will 
+not be called recursively if that timer expires multiple times.
+.LP
+The order of execution of timer-associated functions for
+timers that expire at the same time is undefined.
+.SH "RETURN VALUES"
+.LP
+Values for 
+.I timer_errno
+will be stored in the user-specified variable if one was provided.
+.LP
+.B timer_create()
+returns a timer handle if successful or
+.SM NULL
+if it fails.
+.LP
+.B timer_start()
+returns 
+.B TIMER_OK
+if successful or
+.B TIMER_ERR
+if it fails.
+.LP
+.B timer_expirations()
+returns a positive (non-zero) number when invoked from a timer-associated
+function; otherwise its return value is undefined.
+.RE
+.SH "ERRORS"
+The following is a list of error codes which will be placed in
+.I timer_errno
+or the user-specified variable when a timer operation fails:
+.RS
+.TP 20
+.SB TIMER_ENOMEM
+A memory allocation request failed.
+.TP
+.SB TIMER_EBADTYPE
+An unknown timer type was specified.
+.TP
+.SB TIMER_ESIGPROBLEM
+A signal handler could not be installed.
+.TP
+.SB TIMER_EBADSTATE
+The timer state does not allow this operation (for example, the timer is
+running and the operation attempted was \fBtimer_start()\fP).
+.TP
+.SB TIMER_EBADTIME
+The time value specified was negative.
+.TP
+.SB TIMER_ENOTAVAILABLE
+The requested timer type is not available.
+.TP
+.SB TIMER_ECANTINSERT
+The insertion of this timer in the queue of timers failed.
+.TP
+.SB TIMER_SIGPROBLEM
+There was an error while trying to install a signal handler.
+.SH "SEE ALSO"
+setitimer(2), setjmp(3), longjmp(3)

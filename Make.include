@@ -1,0 +1,20 @@
+# -*- makefile -*-
+######################################################################
+#
+# Master makefile template
+#
+######################################################################
+
+WANT_SOS_LIBS=
+PRIVATE_DEFINES=-DPROTOTYPES -D__FTWX_NO_FTW -DHAVE_DIRENT_H -DHAS_MMAP -DHAS_MEMOPS -DHAS_ISATTY -DVERSION=\"SOS_CLC_1.1\" -DCOALESCE -DNO_SIO
+
+override COMPILER_DEBUG=-W -Wall -Wno-unused -Wno-sign-compare
+
+include /usr/local/include/make/sos.mk
+
+depend: depends
+
+######################################################################
+# submake
+archmake::
+	cd BUILD/$(ARCH_DIR); make

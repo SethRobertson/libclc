@@ -1,0 +1,37 @@
+
+1.0.x-1.4.x:
+	-	These version have not been released.
+
+1.5.0:
+	-	Added the function Smorefds
+	-	Improved the handling of pointers in Sprint
+
+1.5.3:
+	-	Fixed a bug in Srdline
+
+1.5.6:
+	-	Added multiple ways of determining the number of available fds
+
+1.6.0:
+	-	Updated the way SIO is configured. Instead of multiple configuration
+		files, one per OS/machine, there is now a single configuration header
+		file where the user can define via preprocessor flags the features
+		supported by the particular OS/machine.
+
+1.6.1:
+	-	Simplified the Sprint-related configuration flags
+	-	Fixed a bug in the events code
+	-	Replaced all uses of memcpy with sio_memcopy
+
+1.6.2:
+	-	Fixed a bug in the INS_CHAR macro: the buffer size was not respected
+		when printing to strings. This had no effect on the SIO library,
+		but it did affect the strx_* functions of the STR library
+
+1.6.3:
+	-	The values for INCLUDEDIR and MANDIR in the Makefile were reversed
+		(this might have been confusing to people trying to install the
+		library).
+	-	Updated the sio manpage with respect to the handling of interrupted
+		system calls.
+

@@ -1,0 +1,129 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: dll.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.TH DLL 3X "23 April 1993"
+.SH NAME
+dll_create, dll_destroy, dll_insert, dll_insert_uniq, dll_delete, dll_search, dll_minimum, dll_maximum, dll_successor, dll_predecessor, dll_iterate, dll_nextobj - double linked list management functions
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "dll.h"
+.LP
+.ft B
+dict_h dll_create( oo_compare, ko_compare, flags, errnop )
+int (*oo_compare)( dict_obj, dict_obj ) ;
+int (*ko_compare)( dict_key, dict_obj ) ;
+int flags ;
+int *errnop ;
+.LP
+.ft B
+void dll_destroy( handle )
+dict_h handle ;
+.LP
+.ft B
+int dll_insert( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+int dll_insert_uniq( handle, object, objectp )
+dict_h handle ;
+dict_obj object ;
+dict_obj *objectp ;
+.LP
+.ft B
+int dll_append( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+int dll_append_uniq( handle, object, objectp )
+dict_h handle ;
+dict_obj object ;
+dict_obj *objectp ;
+.LP
+.ft B
+int dll_delete( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj dll_search( handle, key )
+dict_h handle ;
+dict_key key ;
+.LP
+.ft B
+dict_obj dll_minimum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj dll_maximum( handle )
+dict_h handle ;
+.LP
+.ft B
+dict_obj dll_successor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+dict_obj dll_predecessor( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+void dll_iterate( handle, direction )
+dict_h handle ;
+enum dict_direction direction ;
+.LP
+.ft B
+dict_obj dll_nextobj( handle )
+dict_h handle ;
+.SH DESCRIPTION
+.LP
+This library supports dictionary functions using double linked lists.
+It follows the standard library interface which is explained in
+.I "dict(3)."
+The flags supported by
+.B dll_create()
+include:
+.RS
+.TP
+.SB DICT_RETURN_ERROR
+.TP
+.SB DICT_UNIQUE_KEYS
+.TP
+.SB DICT_UNORDERED
+.TP
+.SB DICT_ORDERED
+.RE
+.LP
+If the flag
+.B DICT_UNORDERED
+is used when a list is created, a 
+.B dll_insert()
+operation will always insert an object at the beginning of the list.
+This allows such a list to be used to enforce an LRU policy by
+deleting the most recently found node and inserting it back.
+.LP
+.B dll_append()
+behaves exactly like
+.B dll_insert()
+except that it starts all operations from the END instead of the
+begining of the list.
+.LP
+.B dll_minimum()
+returns the object with the minimum key value if the list is sorted, or
+the object at the beginning of the list if the list is not sorted.
+.LP
+.B dll_maximum()
+returns the object with the maximum key value if the list is sorted, or
+the object at the end of the list if the list is not sorted.
+.SH "SEE ALSO"
+dict(3)
+.SH "RETURN VALUES"
+Check
+.I "dict(3)"
+for function return values and error codes.

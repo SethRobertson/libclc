@@ -1,0 +1,47 @@
+
+CLC is the acronym for my C Libraries Collection, a group of general
+purpose C libraries. The following is a short description of what each
+library does. Please read the man pages for more information.
+
+dict  :  support for various types of data structures, including double
+         linked lists, hash tables and binary search trees (which can also
+         be balanced using the red-black balancing algorithms). The data
+         structures support operations for insertion/deletion/location of
+         an object, as well as operations for finding the minimum/maximum
+         object and for enumeration of all objects.
+
+fsma  :  support for quick memory allocation/deallocation of fixed size
+         objects.
+
+misc  :  a collection of generic functions including management of
+         environment variables, a tree walk function to replace ftw(3),
+         functions to get the basename/dirname of a pathname etc.
+
+pq    :  an implementation of priority queues using heaps.
+
+pset  :  support for pointer sets, implemented as dynamic pointer arrays.
+
+sio   :  supports fast stream I/O, optionally using memory mapping for input
+         if the operating system supports it.
+
+str   :  this library contains 4 types of functions: string matching
+         functions (offering the Boyer-Moore, Knuth-Morris-Pratt,
+         Rabin-Karp, and Shift-Or algorithms), string printing functions
+         (similar to sprintf), string parsing functions, and string
+         utility functions (convert a string to upper/lower case etc).
+
+timer :  support for multiple timers by multiplexing the timers provided
+         by the operating system.
+
+xlog  :  this library provides logging objects which can be connected
+         either to syslog or to a file. Objects connected to files
+         may be customized to not exceed a certain file size.
+
+
+The INSTALL file contains information on how to install any or all
+of these libraries.
+
+Please send comments/bug-reports to panos@cs.colorado.edu
+
+	-- Panos Tsirigotis, Nov. 26, 1993 --
+

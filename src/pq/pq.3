@@ -1,0 +1,156 @@
+.\"(c) Copyright 1993 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: pq.3,v 1.1 2001/05/26 22:04:50 seth Exp $
+.TH PQ 3PT "22 December 1991"
+.SH NAME
+pq_create, pq_destroy, pq_head, pq_extract_head, pq_insert, pq_delete - functions that manage priority queues
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "pq.h"
+.LP
+.ft B
+pq_h pq_create( func, flags, errnop )
+int (*func)() ;
+int flags ;
+int *errnop ;
+.LP
+.ft B
+void pq_destroy( pq )
+pq_h pq ;
+.LP
+.ft B
+pq_obj pq_head( pq )
+pq_h pq ;
+.LP
+.ft B
+pq_obj pq_extract_head( pq )
+pq_h pq ;
+.LP
+.ft B
+int pq_insert( pq, object )
+pq_h pq ;
+pq_obj object ;
+.LP
+.ft B
+int pq_delete( pq, object )
+pq_h pq ;
+pq_obj object ;
+.LP
+.ft B
+void pq_iterate( pq )
+pq_h pq ;
+.LP
+.ft B
+dict_obj pq_nextobj( pq )
+pq_h pq ;
+.SH DESCRIPTION
+.LP
+This library handles priority queues that contain objects. Objects are
+of type
+.I pq_obj
+which is a pointer type.
+The object at the head of a priority queue is the 
+.I best
+object. The
+user defines the ordering by providing a function that compares objects
+when the priority queue is created.
+.LP
+.B pq_create()
+creates a priority queue and returns a handle to be used for operations
+on that queue. \fIfunc\fR is a pointer to a function that takes 2 objects
+as arguments and returns 1 if the first object is 
+.I "better" 
+than the
+second and 0 otherwise. The only possible value for the \fIflags\fR
+argument is \fBPQ_RETURN_ERROR\fR which if used will cause queue
+operations applied on the specific priority queue to return an error
+status if they fail (the default is to terminate the program with
+an appropriate error message). The value \fBPQ_NOFLAGS\fR can be
+used to specify no flags.
+The \fIerrnop\fR argument is a pointer to an integer where an
+error code will be stored if an operation fails
+(and \fBPQ_RETURN_ERROR\fR is used). If no pointer is specified,
+error codes are placed in the global variable \fIpq_error\fR.
+.LP
+.B pq_destroy()
+is used to destroy a priority queue.
+.LP
+.B pq_head()
+returns the object at the head of the priority queue.
+.LP
+.B pq_extract_head()
+extracts and returns the object at the head of the priority queue.
+.LP
+.B pq_insert()
+inserts the given \fIobject\fR in the priority queue.
+.LP
+.B pq_delete()
+deletes the given \fIobject\fR from the priority queue.
+.LP
+.B pq_iterate()
+prepares the priority queue for iteration.  The iteration is not ordered.
+.LP
+.B pq_nextobj()
+returns the next object.  It is safe to delete this object.
+.SH "RETURN VALUES"
+.LP
+In the following, values for \fIpq_errno\fR will be stored in the
+user-specified variable if one was provided.
+.LP
+.B pq_create()
+returns a priority queue handle if successful, or 
+.SM NULL
+if it fails.
+Possible \fIpq_errno\fR values:
+.RS
+.TP 20
+.SB PQ_ENOFUNC
+The object comparison function is missing.
+.TP
+.SB PQ_ENOMEM
+The program ran out of memory.
+.RE
+.LP
+.B pq_insert()
+returns \fBPQ_OK\fR if successful and \fBPQ_ERR\fR if it fails.
+Possible \fIpq_errno\fR values:
+.RS
+.TP 20
+.SB PQ_ENULLOBJECT
+The object value is
+.SM NULL.
+.TP
+.SB PQ_ENOMEM
+The program ran out of memory.
+.RE
+.LP
+.B pq_head()
+returns the object at the head of the queue or
+.SM NULL
+if the queue is empty.
+.LP
+.B pq_extract_head()
+returns the object at the head of the queue or
+.SM NULL
+if the queue is empty.
+.LP
+.B pq_delete()
+returns \fBPQ_OK\fR if successful and \fBPQ_ERR\fR if it fails.
+Possible \fIpq_errno\fR values:
+.RS
+.TP 20
+.SB PQ_ENULLOBJECT
+The object value is
+.SM NULL.
+.TP
+.SB PQ_ENOTFOUND
+The object is not in the queue.
+.LP
+.B pq_nextobj()
+returns the next object
+.SM NULL
+if the queue has been completely iterated.

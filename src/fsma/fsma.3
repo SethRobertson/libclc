@@ -1,0 +1,113 @@
+.\"(c) Copyright 1992 by Panagiotis Tsirigotis
+.\"All rights reserved.  The file named COPYRIGHT specifies the terms 
+.\"and conditions for redistribution.
+.\"
+.\" $Id: fsma.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.TH FSMA 3X "10 October 1992"
+.SH NAME
+fsm_create, fsm_destroy, fsm_alloc, fsm_free, fsm_size - fixed size memory allocator
+.SH SYNOPSIS
+.LP
+.nf
+.ft B
+#include "fsma.h"
+.LP
+.ft B
+fsma_h fsm_create( size, slots_per_chunk, flags )
+unsigned size ;
+unsigned slots_per_chunk ;
+int flags ;
+.LP
+.ft B
+void fsm_destroy( handle )
+fsma_h handle ;
+.LP
+.ft B
+char *fsm_alloc( handle )
+fsma_h handle ;
+.LP
+.ft B
+void fsm_free( handle, ptr )
+fsma_h handle ;
+char *ptr ;
+.LP
+.ft B
+unsigned fsm_size( handle )
+fsma_h handle ;
+.SH DESCRIPTION
+The fixed-size memory allocator routines allocate and free memory in 
+fixed-size quantities.
+The basic operation is as follows: first \fBfsm_create()\fR
+is called to create an allocator for objects that are \fIsize\fR
+bytes big. It returns an allocator handle (whose type is \fIfsma_h\fR).
+Everytime \fBfsm_alloc()\fR
+is called with that handle as an argument, it will return a pointer
+to a memory block of \fIsize\fR bytes.
+.B fsm_alloc()
+works by allocating big chunks of memory, breaking them into
+blocks of \fIsize\fR bytes
+and then allocating from that pool of blocks.
+.LP
+.B fsm_create()
+creates a memory allocator for objects of \fIsize\fR bytes. The second
+argument determines the size of the chunks that are allocated
+because it defines how many objects should fit in a chunk. If
+\fIslots_per_chunk\fR is 0, \fBfsm_create()\fR will use a default chunk size.
+The \fIflags\fR argument is formed by ORing one or more of the following
+constants:
+.TP 20
+.SB FSM_RETURN_ERROR
+determines the behavior of the particular allocator
+in case of a \fBmalloc()\fR failure. When used, the call that
+failed will return a value that indicates failure
+(the default behavior is to terminate the process)
+.TP
+.SB FSM_ZERO_ALLOC
+will cause memory blocks returned from the specified allocator
+by \fBfsm_alloc()\fR to be zeroed.
+.TP
+.SB FSM_ZERO_FREE
+will cause memory blocks returned to the specified allocator by 
+\fBfsm_free()\fR to be zeroed.
+(this will help catch references to an object after free'ing it).
+.TP
+.SB FSM_ZERO_DESTROY
+will cause all memory associated with the allocator to be zeroed
+when the allocator is destroyed.
+.LP
+The constant \fBFSM_NOFLAGS\fR can be used to specify no flags.
+.LP
+.B fsm_destroy()
+destroys an allocator and frees all memory allocated by it.
+.LP
+.B fsm_alloc()
+allocates a memory block from the specified allocator. The block
+will be properly aligned.
+.LP
+.B fsm_free()
+returns a block to the specified allocator.
+.LP
+.B fsm_size()
+returns the size of blocks that are handed out by the specified allocator.
+.SH RETURN VALUES
+.LP
+.B fsm_create()
+returns an allocator handle, or
+.SM NULL
+if the request fails.
+.LP
+.B fsm_alloc()
+returns a pointer to a memory block of the appropriate size or
+.SM NULL
+if the request fails.
+.SH NOTES
+.B fsm_alloc(),
+.B fsm_free()
+and
+.B fsm_size()
+are macros, so the & operator cannot be applied to them
+(if that is needed, you can use the functions
+.B _fsm_alloc()
+and
+.B _fsm_free()
+that perform the same job as the macros).

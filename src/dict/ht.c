@@ -1,13 +1,13 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.22 2003/05/16 21:30:16 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.23 2003/06/03 23:17:58 seth Exp $";
 
 #define CUR_MIN_PERF_HACK
 
-/* 
+/*
  * Define this for some interesting hash table tidbits
  */
 /* #define HASH_STATS */
@@ -77,7 +77,7 @@ static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29 } ;
  * so you can figure out which particular hash table the stats are for.
  *
  * THREADS: MT-SAFE
- */ 
+ */
 PRIVATE void print_hashstats(stats_s *hs, header_s *hp)
 {
   printf("HT=%p\t(%u!+%u)/%u buckets[%u/%u] (%.0f%% coll %.0f%% used)\n",
@@ -88,14 +88,14 @@ PRIVATE void print_hashstats(stats_s *hs, header_s *hp)
   printf("oh=%p\t%u!/%u insert (%.0f%% clash) - %u delete = %u max\n",
 	 hp->args.ht_objvalue,
 	 hs->clashes, hs->inserts, (100.0 * hs->clashes) / hs->inserts,
-	 hs->deletes, hs->max_cnt); 
+	 hs->deletes, hs->max_cnt);
   printf("kh=%p\t%u-/%u search (%.0f%% fail) %.5g hits/insert %u errors\n",
 	 hp->args.ht_keyvalue,
 	 hs->failures, hs->searches, (100.0 * hs->failures) / hs->searches,
 	 (100.0 * (hs->searches - hs->failures)) / hs->inserts, hs->errors);
   printf("\t\t%u pred|succ, %u min|max, %u step / %u iterate (%.0f avg)\n\n",
-	 hs->succ_steps,  hs->minmaxes, hs->iter_steps, hs->iterations, 
-	 hs->iter_steps / (double) hs->iterations); 
+	 hs->succ_steps,  hs->minmaxes, hs->iter_steps, hs->iterations,
+	 hs->iter_steps / (double) hs->iterations);
 }
 #endif /* HASH_STATS */
 
@@ -113,7 +113,7 @@ PRIVATE void print_hashstats(stats_s *hs, header_s *hp)
  *		one that is not a multiple of the selected primes.
  *
  * THREADS: MT-SAFE
- */ 
+ */
 PRIVATE unsigned find_good_size(register unsigned int hint)
 {
   register unsigned int		k ;
@@ -130,9 +130,9 @@ PRIVATE unsigned find_good_size(register unsigned int hint)
   for ( k = 0 ; ; k++ )
     if ( hint < (unsigned int)( 1 << k ) - 1 )
       break ;
-	
+
   starting_point  = ( 1 << (k-1) ) - 1 ;
-	
+
   /*
    * XXX:	This may be slow, especially on machines without division
    *			hardware (for example, SPARC V[78] implementations).
@@ -145,7 +145,7 @@ PRIVATE unsigned find_good_size(register unsigned int hint)
       if ( size % primes[j] == 0 )
 	goto next;
     return( size ) ;
-  next: 
+  next:
     continue; // Stupid insight complaints
   }
 }
@@ -177,9 +177,9 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
   if ( hp == NULL )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 
-#ifdef BK_USING_PTHREADS
   hp->flags = flags;
 
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_init(&(hp->lock), NULL) != 0)
   {
     free( (char *)hp ) ;
@@ -218,7 +218,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
     argsp->ht_bucket_entries = ht_num_bucket_entries ;
   bucket_size = sizeof( bucket_s ) +
     argsp->ht_bucket_entries * sizeof( dict_obj ) ;
-	
+
   /*
    * XXX: can't use fast allocator if we set FSM_ZERO_ALLOC
    *      (we no longer do this for buckets of size 1)
@@ -294,7 +294,7 @@ void ht_destroy(dict_h handle)
 #else
       0
 #endif /* HASH_STATS */
-#ifdef COALESCE
+#if defined(COALESCE)
       || !(hp->flags & DICT_NOCOALESCE)
 #endif /* COALESCE */
 #if defined (__INSURE__) || defined(USING_DMALLOC)
@@ -346,8 +346,8 @@ void ht_destroy(dict_h handle)
 
 /*
  * Bucket chain reverse lookup:
- * 	Return a pointer to the last dict_obj of the bucket chain that
- * 	starts with bp (search up to the bucket 'stop' but *not* that bucket)
+ *	Return a pointer to the last dict_obj of the bucket chain that
+ *	starts with bp (search up to the bucket 'stop' but *not* that bucket)
  *
  * THREADS: UNSAFE
  */
@@ -439,7 +439,7 @@ PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj obje
 PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
 {
   dheader_s	*dhp = DHP( hp ) ;
-  bucket_s     	*bp ;
+  bucket_s	*bp ;
 
   bp = (bucket_s *) fsm_alloc( hp->alloc ) ;
   if ( bp == NULL )
@@ -472,7 +472,7 @@ PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
 PRIVATE dict_obj *te_search(tabent_s *tep, header_s *hp, search_e type, dict_h arg)
 {
   dheader_s	*dhp = DHP( hp ) ;
-  bucket_s     	*bp ;
+  bucket_s	*bp ;
 
   for ( bp = tep->head_bucket ; bp != NULL ; bp = bp->next )
   {
@@ -516,7 +516,7 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
     HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
   }
-	
+
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
@@ -1010,7 +1010,7 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
     errret = DICT_EBADOBJECT;
     goto error;
   }
-	
+
   ERRNO( dhp ) = DICT_ENOERROR ;
 
   for ( i = bucket_index-1 ; i >= 0 ; i-- )
@@ -1019,7 +1019,7 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
       ret = BUCKET_OBJECTS( stop )[ i ];
       break;
     }
-	
+
   for ( ;; )
   {
     found = bc_reverse_lookup( tep->head_bucket, bucket_entries, stop ) ;

@@ -1,5 +1,8 @@
 2002-02-22  Alexander Dupuy  <dupuy@sysdetect.com>
 
+	* include/dict.h (DICT_NUKE): delete contents and dict itself
+	(_DICT_NUKE_WORK_LOOP): common code for DICT_NUKE, DICT_NUKE_CONTENTS
+
 	* src/dict/dictimpl.h (HANDLE_ERROR): Eliminate unused id argument
 	[use __FUNCTION__  here instead if you need it for debugging]
 

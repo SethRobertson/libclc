@@ -1,3 +1,7 @@
+2003-07-09  James Tanis  <jtt@hawking.sysdetect.com>
+
+	* src/dict/dll.c (dll_error_reason): Export pulibcally
+
 2003-06-13  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* include/dict.h, include/ht.h, include/pq.h: avoid stupid void * #1311

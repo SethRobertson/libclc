@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dict.c,v 1.8 2003/06/17 05:10:51 seth Exp $";
+static const char RCSid[] = "$Id: dict.c,v 1.9 2003/07/09 22:44:04 jtt Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -136,9 +136,9 @@ void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_
 
 
 /*
- * Internal routine to return text error string for an error
+ * Public routine to return text error string for an error
  */
-char *__dict_error_reason(int dicterrno)
+char *dict_error_reason(int dicterrno)
 {
   int ctr;
   char *ret;

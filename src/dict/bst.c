@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.18 2003/06/18 21:10:19 brian Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.19 2003/07/09 22:44:04 jtt Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -1020,7 +1020,7 @@ char *bst_error_reason(dict_h handle, int *errnop)
 
   if (errnop) *errnop = dicterrno;
 
-  return(__dict_error_reason(dicterrno));
+  return(dict_error_reason(dicterrno));
 }
 
 

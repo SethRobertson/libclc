@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.14 2003/06/17 05:10:50 seth Exp $
+ * $Id: dict.h,v 1.15 2003/07/09 22:44:04 jtt Exp $
  */
 
 
@@ -117,6 +117,8 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
    _DICT_NUKE_WORK_LOOP(Q, prefix, ptr, errcode, code);		\
    prefix##_destroy(Q);						\
  } while (0)
+
+extern char *dict_error_reason(int dicterrno);
 
 #endif	/* __DICT_H */
 

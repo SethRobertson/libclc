@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.27 2003/06/13 20:36:39 dupuy Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.28 2003/07/09 22:44:04 jtt Exp $";
 
 #define CUR_MIN_PERF_HACK
 
@@ -1277,7 +1277,7 @@ char *ht_error_reason(dict_h handle, int *errnop)
 
   if (errnop) *errnop = dicterrno;
 
-  return(__dict_error_reason(dicterrno));
+  return(dict_error_reason(dicterrno));
 }
 
 

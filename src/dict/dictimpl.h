@@ -9,7 +9,7 @@
 #define __DICTIMPL_H
 
 /*
- * $Id: dictimpl.h,v 1.6 2003/06/17 05:10:51 seth Exp $
+ * $Id: dictimpl.h,v 1.7 2003/07/09 22:44:04 jtt Exp $
  */
 
 #include "dict.h"
@@ -60,7 +60,6 @@ typedef int bool_int ;
 int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders, int *fsmaflags);
 void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags) ;
 dict_h __dict_create_error(char *caller, int flags, int error_code) ;
-char *__dict_error_reason(int dicterrno) ;
 
 #endif	/* __DICTIMPL_H */
 

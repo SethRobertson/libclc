@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.14 2003/06/18 21:10:19 brian Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.15 2003/07/09 22:44:04 jtt Exp $";
 
 #include <stdlib.h>
 #include "clchack.h"
@@ -99,7 +99,7 @@ void dll_destroy(dict_h handle)
 {
   header_s	*hp	= LHP( handle ) ;
 #ifdef COALESCE
- dheader_s	*dhp	= DHP( hp ) ;
+  dheader_s	*dhp	= DHP( hp ) ;
   node_s *x = NULL;
   node_s *y = NULL;
 
@@ -830,5 +830,5 @@ char *dll_error_reason(dict_h handle, int *errnop)
 
   if (errnop) *errnop = dicterrno;
 
-  return(__dict_error_reason(dicterrno));
+  return(dict_error_reason(dicterrno));
 }

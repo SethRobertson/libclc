@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: fsma.h,v 1.2 2001/07/05 15:19:12 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT					8
@@ -46,43 +46,28 @@ typedef struct __fsma_header *fsma_h ;
 #define FSM_ZERO_DESTROY			0x8
 
 
-/*
- * INTERFACE
- */
+fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
+void	fsm_destroy	( fsma_h handle )  ;
+char	*_fsm_alloc	( fsma_h handle )  ;
+void	_fsm_free	( fsma_h handle, char *ptr )  ;
 
-#ifdef __ARGS
-#undef __ARGS
-#endif
+#define fsm_alloc( fsma ) \
+     ( \
+      (!(fsma)->next_free || (fsma)->flags & FSM_ZERO_ALLOC) \
+      ? _fsm_alloc( fsma ) \
+      : ((fsma)->temp = (fsma)->next_free, \
+	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp) \
+      )
 
-#ifdef PROTOTYPES
-#  define __ARGS( s )               s
-#else
-#  define __ARGS( s )               ()
-#endif
+#define fsm_free( fsma, p ) \
+     if ( (fsma)->flags & FSM_ZERO_FREE ) \
+       _fsm_free( fsma, p ); \
+     else \
+       (fsma)->temp = (p), \
+	 *(__fsma_pointer *) (fsma)->temp = (fsma)->next_free,  \
+	 (fsma)->next_free = (fsma)->temp
 
-fsma_h fsm_create __ARGS( ( unsigned size, unsigned slots, int flags ) ) ;
-void fsm_destroy __ARGS( ( fsma_h handle ) ) ;
-char *_fsm_alloc __ARGS( ( fsma_h handle ) ) ;
-void _fsm_free __ARGS( ( fsma_h handle, char *ptr ) ) ;
-
-#define fsm_alloc( fsma )																\
-	(																							\
-		( ! (fsma)->next_free || (fsma)->flags & FSM_ZERO_ALLOC )         \
-			? _fsm_alloc( fsma )															\
-			: ((fsma)->temp = (fsma)->next_free,                           \
-				(fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free,  \
-				(char *) (fsma)->temp)													\
-	)
-
-#define fsm_free( fsma, p )															\
-			if ( (fsma)->flags & FSM_ZERO_FREE )									\
-				_fsm_free( fsma, p )	;													\
-			else																				\
-				(fsma)->temp = (p),														\
-				*(__fsma_pointer *) (fsma)->temp = (fsma)->next_free, 		\
-				(fsma)->next_free = (fsma)->temp
-
-#define fsm_size( fsma )			(fsma)->slot_size
+#define fsm_size( fsma )	(fsma)->slot_size
 
 extern int fsma_slots_per_chunk;
 

@@ -1,0 +1,9 @@
+2001-07-05  Seth Robertson  <seth@yeah.baka.org>
+
+	* src/dict/htimpl.h: Fix indention
+
+	* src/fsma/fsma.c (fsm_destroy): Nuke __ARGS() && cleanup c++ warnings
+
+	* include/ bst.h dict.h dll.h fsma.h hpq.h ht.h pq.h: Sanify indention style.
+	Nuke __ARGS() -- all compilers are ANSI compatible && need function prototypes
+

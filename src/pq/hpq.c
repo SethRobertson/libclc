@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: hpq.c,v 1.1 2001/05/26 22:04:50 seth Exp $" ;
+static char RCSid[] = "$Id: hpq.c,v 1.2 2001/07/05 15:19:14 seth Exp $" ;
 static char version[] = VERSION ;
 
 #include <stdlib.h>
@@ -190,7 +190,7 @@ PRIVATE int grow(header_s *hp)
   else
     new_size = hp->max_size + INCREMENT ;
 
-  new_objects = realloc( (char *)hp->objects, new_size * sizeof( pq_obj ) ) ;
+  new_objects = (char *)realloc( (char *)hp->objects, new_size * sizeof( pq_obj ) ) ;
   if ( new_objects == NULL )
     HANDLE_ERROR( hp->flags, PQ_ERR, hp->errnop, PQ_ENOMEM,
 		  "HPQ grow: out of memory\n" ) ;

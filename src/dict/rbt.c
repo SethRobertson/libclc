@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: rbt.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: rbt.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
 
 #include "bstimpl.h"
 #include "clchack.h"
@@ -20,9 +20,9 @@ static char RCSid[] = "$Id: rbt.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
  */
 PRIVATE void right_rotate(header_s *hp, tnode_s *x)
 {
-	tnode_s		*y		= LEFT( x ) ;
+	tnode_s		*y	= LEFT( x ) ;
 	tnode_s		*px	= PARENT( x ) ;
-	tnode_s		*b		= RIGHT( y ) ;
+	tnode_s		*b	= RIGHT( y ) ;
 
 #ifdef DEBUG_RBT
 	if ( x == ANCHOR( hp ) )
@@ -66,9 +66,9 @@ PRIVATE void right_rotate(header_s *hp, tnode_s *x)
  */
 PRIVATE void left_rotate(header_s *hp, tnode_s *x)
 {
-	tnode_s		*y		= RIGHT( x ) ;
+	tnode_s		*y	= RIGHT( x ) ;
 	tnode_s		*px	= PARENT( x ) ;
-	tnode_s		*b		= LEFT( y ) ;
+	tnode_s		*b	= LEFT( y ) ;
 
 
 #ifdef DEBUG_RBT
@@ -106,13 +106,13 @@ PRIVATE void left_rotate(header_s *hp, tnode_s *x)
  * The function makes sure that the red-black properties of the tree
  * are not violated by the insertion
  */
-void __dict_rbt_insfix(header_s *hp, tnode_s *new)
+void __dict_rbt_insfix(header_s *hp, tnode_s *newnode)
 {
 	register tnode_s	*x, *y ;
 	register tnode_s	*px ;
-	tnode_s				*ppx ;
+	tnode_s			*ppx ;
 
-	x = new ;
+	x = newnode ;
 	COLOR( x ) = RED ;
 
 	/*

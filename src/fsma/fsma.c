@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -39,7 +39,7 @@ static int coalesce_size = 1;
 #endif /* COALESCE */
 
 
-PRIVATE void init_free_list __ARGS( ( unsigned, unsigned, char * ) ) ;
+PRIVATE void init_free_list  ( unsigned, unsigned, char * )  ;
 
 
 
@@ -224,9 +224,9 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     {
       /* Add memory to hold this fsma size/flags allocator */
       if (!coalesce)
-	coalesce = malloc(sizeof(fsma_h)*2);
+	coalesce = (fsma_h *)malloc(sizeof(fsma_h)*2);
       else
-	coalesce = realloc(coalesce,(coalesce_size+1)*sizeof(fsma_h));
+	coalesce = (fsma_h *)realloc(coalesce,(coalesce_size+1)*sizeof(fsma_h));
 
       if (!coalesce)
 	{
@@ -273,7 +273,7 @@ void fsm_destroy(register fsma_h fp)
 	{
 	  *fpp = coalesce[(--coalesce_size)-1];
 	  coalesce[coalesce_size-1] = NULL;
-	  coalesce = realloc(coalesce, coalesce_size * sizeof(fsma_h));
+	  coalesce = (fsma_h *)realloc(coalesce, coalesce_size * sizeof(fsma_h));
 	  if (!coalesce)
 	    {
 	      /* XXX - something drastic, but what? How can this fail anyway? */

@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -261,7 +261,7 @@ PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_t
  * Search the bucket chain for the specified object
  * Returns the pointer of the bucket where the object was found.
  */
-PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj object, int *index)
+PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj object, int *idx)
 {
 	bucket_s		*bp ;
 
@@ -273,8 +273,8 @@ PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj obje
 		for ( i = 0 ; i < entries ; i++ )
 			if ( bucket_list[ i ] == object )
 			{
-				if ( index )
-					*index = i ;
+				if ( idx )
+					*idx = i ;
 				return( bp ) ;
 			}
 	}

@@ -8,7 +8,7 @@
 #define __PQ_H
 
 /*
- * $Id: pq.h,v 1.1 2001/05/26 22:04:51 seth Exp $
+ * $Id: pq.h,v 1.2 2001/07/05 15:19:12 seth Exp $
  */
 
 /*
@@ -22,18 +22,18 @@ extern int pq_errno ;
 /*
  * pq_errno values
  */
-#define PQ_ENOERROR				0
-#define PQ_ENOFUNC				1
-#define PQ_ENOMEM					2
-#define PQ_ENULLOBJECT			3
-#define PQ_ENOTFOUND				4
-#define PQ_ENOTSUPPORTED		5
+#define PQ_ENOERROR		0
+#define PQ_ENOFUNC		1
+#define PQ_ENOMEM		2
+#define PQ_ENULLOBJECT		3
+#define PQ_ENOTFOUND		4
+#define PQ_ENOTSUPPORTED	5
 
 /*
  * flag values
  */
-#define PQ_NOFLAGS				0x0
-#define PQ_RETURN_ERROR			0x1
+#define PQ_NOFLAGS		0x0
+#define PQ_RETURN_ERROR		0x1
 
 typedef void *pq_h ;
 typedef void *pq_obj ;

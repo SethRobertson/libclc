@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: bstimpl.h,v 1.1 2001/05/26 22:04:49 seth Exp $
+ * $Id: bstimpl.h,v 1.2 2001/07/05 15:19:13 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -133,6 +133,6 @@ typedef struct tree_header header_s ;
 #define NODE_ALLOC( hp )               TNP( fsm_alloc( (hp)->alloc ) )
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
 
-void __dict_rbt_insfix(header_s *hp, tnode_s *new);
+void __dict_rbt_insfix(header_s *hp, tnode_s *newnode);
 void __dict_rbt_delfix(header_s *hp, tnode_s *x);
 

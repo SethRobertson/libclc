@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -18,16 +18,12 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
 /*
  * Find the minimum node of the subtree with root 'start'
  */
-#define FIND_MINIMUM( hp, start, x )													\
-									x = start ;													\
-									while ( LEFT( x ) != NIL( hp ) ) x = LEFT( x )
+#define FIND_MINIMUM( hp, start, x )	x = start; while ( LEFT( x ) != NIL( hp ) ) x = LEFT( x )
 
 /*
  * Find the maximum node of the subtree with root 'start'
  */
-#define FIND_MAXIMUM( hp, start, x )													\
-									x = start ;													\
-									while ( RIGHT( x ) != NIL( hp ) ) x = RIGHT( x )
+#define FIND_MAXIMUM( hp, start, x )	x = start; while ( RIGHT( x ) != NIL( hp ) ) x = RIGHT( x )
 
 
 /*
@@ -36,7 +32,7 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
  */
 PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
 {
-	dheader_s 			*dhp 	= DHP( hp ) ;
+	dheader_s 		*dhp 	= DHP( hp ) ;
 	register tnode_s	*np	= ROOT( hp ) ;
 	register tnode_s	*null = NIL( hp ) ;
 	register int 		v ;
@@ -62,15 +58,11 @@ PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
  * Create a tree (either simple or red-black)
  */
 dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags, int *errnop)
-	             	         					/* object-object comparator */
-	             	         					/* key-object comparator */
-	    				       
-	   				         
 {
 	register header_s	*hp ;
-	unsigned				tnode_size ;
-	bool_int 			balanced_tree	= flags & DICT_BALANCED_TREE ;
-	char					*id = "bst_create" ;
+	unsigned		tnode_size ;
+	bool_int 		balanced_tree	= flags & DICT_BALANCED_TREE ;
+	char			*id = "bst_create" ;
 
 	flags |= DICT_RETURN_ERROR; /* prevent calls to exit() */
 
@@ -129,7 +121,6 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags, int *
  */
 static void bst_redelete(header_s *hp, tnode_s *np)
 {
-
   if (!hp || !np || np == NIL(hp))
     return;
 
@@ -168,10 +159,10 @@ void bst_destroy(dict_h handle)
  */
 PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_obj *objectp)
 {
-	dheader_s			*dhp	= DHP( hp ) ;
+	dheader_s		*dhp	= DHP( hp ) ;
 	register tnode_s	*x		= ROOT( hp ) ;
 	register tnode_s	*px	= ANCHOR( hp ) ;
-	tnode_s				*new ;
+	tnode_s			*newnode ;
 	register int 		v ;
 
 	if ( object == NULL_OBJ )
@@ -210,23 +201,23 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
 	/*
 	 * Allocate a new node and initialize all its fields
 	 */
-	new = NODE_ALLOC( hp ) ;
-	if ( new == NULL_NODE )
+	newnode = NODE_ALLOC( hp ) ;
+	if ( newnode == NULL_NODE )
 	{
 		ERRNO( dhp ) = DICT_ENOMEM ;
 		return( DICT_ERR ) ;
 	}
-	LEFT( new ) = RIGHT( new ) = NIL( hp ) ;
-	OBJ( new ) = object ;
-	PARENT( new ) = px ;
+	LEFT( newnode ) = RIGHT( newnode ) = NIL( hp ) ;
+	OBJ( newnode ) = object ;
+	PARENT( newnode ) = px ;
 
 	if ( v < 0 )
-		LEFT( px ) = new ;
+		LEFT( px ) = newnode ;
 	else
-		RIGHT( px ) = new ;
+		RIGHT( px ) = newnode ;
 
 	if ( dhp->flags & DICT_BALANCED_TREE )
-		__dict_rbt_insfix( hp, new ) ;
+		__dict_rbt_insfix( hp, newnode ) ;
 	
 	if ( objectp != NULL )
 		*objectp = object ;
@@ -261,12 +252,12 @@ int bst_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
  */
 int bst_delete(dict_h handle, dict_obj object)
 {
-	header_s				*hp	= THP( handle ) ;
-	dheader_s			*dhp	= DHP( hp ) ;
+	header_s		*hp	= THP( handle ) ;
+	dheader_s		*dhp	= DHP( hp ) ;
 	register tnode_s	*null = NIL( hp ) ;
-	tnode_s				*delnp=NULL ;
+	tnode_s			*delnp=NULL ;
 	register tnode_s	*y, *x ;
-	tnode_s				*py ;
+	tnode_s			*py ;
 #ifdef SAFE_ITERATE
 	struct tree_iterator	*tip		= &THP( handle )->iter ;
 	dict_obj		safe_nextobj	= NULL;
@@ -402,8 +393,8 @@ int bst_delete(dict_h handle, dict_obj object)
  */
 dict_obj bst_search(dict_h handle, dict_key key)
 {
-	header_s				*hp	= THP( handle ) ;
-	dheader_s			*dhp	= DHP( hp ) ;
+	header_s		*hp	= THP( handle ) ;
+	dheader_s		*dhp	= DHP( hp ) ;
 	register tnode_s	*np	= ROOT( hp ) ;
 	register tnode_s	*null = NIL( hp ) ;
 	register int 		v ;
@@ -427,8 +418,8 @@ dict_obj bst_search(dict_h handle, dict_key key)
  */
 dict_obj bst_minimum(dict_h handle)
 {
-	register header_s		*hp = THP( handle ) ;
-	register tnode_s		*np ;
+	register header_s	*hp = THP( handle ) ;
+	register tnode_s	*np ;
 
 	if ( TREE_EMPTY( hp ) )
 		return( NULL_OBJ ) ;
@@ -444,8 +435,8 @@ dict_obj bst_minimum(dict_h handle)
  */
 dict_obj bst_maximum(dict_h handle)
 {
-	register header_s		*hp = THP( handle ) ;
-	register tnode_s		*np ;
+	register header_s	*hp = THP( handle ) ;
+	register tnode_s	*np ;
 
 	if ( TREE_EMPTY( hp ) )
 		return( NULL_OBJ ) ;
@@ -460,8 +451,8 @@ dict_obj bst_maximum(dict_h handle)
  */
 PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x)
 {
-	register tnode_s		*px ;
-	register tnode_s		*next ;
+	register tnode_s	*px ;
+	register tnode_s	*next ;
 
 	if ( RIGHT( x ) != NIL( hp ) )
 	{
@@ -492,11 +483,11 @@ PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x)
  */
 dict_obj bst_successor(dict_h handle, dict_obj object)
 {
-	register header_s		*hp	= THP( handle ) ;
-	dheader_s				*dhp	= DHP( hp ) ;
-	register tnode_s		*x ;
-	register tnode_s		*successor ;
-	char						*id = "bst_successor" ;
+	register header_s	*hp	= THP( handle ) ;
+	dheader_s		*dhp	= DHP( hp ) ;
+	register tnode_s	*x ;
+	register tnode_s	*successor ;
+	char			*id = "bst_successor" ;
 
 	if ( object == NULL_OBJ )
 		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
@@ -527,8 +518,8 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
  */
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
 {
-	register tnode_s		*px ;
-	register tnode_s		*previous ;
+	register tnode_s	*px ;
+	register tnode_s	*previous ;
 
 	if ( LEFT( x ) != NIL( hp ) )
 	{
@@ -560,11 +551,11 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
  */
 dict_obj bst_predecessor(dict_h handle, dict_obj object)
 {
-	register header_s		*hp	= THP( handle ) ;
-	dheader_s				*dhp	= DHP( hp ) ;
-	tnode_s					*predecessor ;
-	register tnode_s		*x ;
-	char						*id = "bst_predecessor" ;
+	register header_s	*hp	= THP( handle ) ;
+	dheader_s		*dhp	= DHP( hp ) ;
+	tnode_s			*predecessor ;
+	register tnode_s	*x ;
+	char			*id = "bst_predecessor" ;
 
 	if ( object == NULL_OBJ )
 		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
@@ -592,9 +583,9 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
 
 void bst_iterate(dict_h handle, enum dict_direction direction)
 {
-	register header_s		*hp	= THP( handle ) ;
-	struct tree_iterator *tip	= &hp->iter ;
-	tnode_s					*np ;
+	register header_s	*hp	= THP( handle ) ;
+	struct tree_iterator	*tip	= &hp->iter ;
+	tnode_s			*np ;
 
 	tip->direction = direction ;
 	if ( TREE_EMPTY( hp ) )
@@ -616,9 +607,9 @@ void bst_iterate(dict_h handle, enum dict_direction direction)
 
 dict_obj bst_nextobj(dict_h handle)
 {
-	register header_s		*hp		= THP( handle ) ;
-	struct tree_iterator *tip		= &hp->iter ;
-	tnode_s					*current = tip->next ;
+	register header_s	*hp		= THP( handle ) ;
+	struct tree_iterator	*tip		= &hp->iter ;
+	tnode_s			*current	= tip->next ;
 
 	if ( current == NULL )
 		return( NULL_OBJ ) ;
@@ -640,9 +631,9 @@ dict_obj bst_nextobj(dict_h handle)
 
 
 PRIVATE void preorder( hp, np, action )
-	header_s		*hp ;
+	header_s	*hp ;
 	tnode_s		*np ;
-	void			(*action)() ;
+	void		(*action)() ;
 {
 	if ( np == NIL( hp ) )
 		return ;

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.1 2001/05/26 22:04:49 seth Exp $
+ * $Id: htimpl.h,v 1.2 2001/07/05 15:19:13 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -20,7 +20,7 @@
  * The following definition is a little deceptive.
  * The bucket really looks like this:
  *
- *		-------------
+ *    -------------
  *   |    next     |
  *   |-------------|
  *   |             |
@@ -41,11 +41,9 @@ struct bucket
 
 typedef struct bucket bucket_s ;
 
-#define BP( p )						((bucket_s *)(p))
-
-#define BUCKET_NULL					BP(0)
-
-#define BUCKET_OBJECTS( bp )		((dict_obj *)(&((bucket_s *)(&(bp)->next))[1]))
+#define BP( p )			((bucket_s *)(p))
+#define BUCKET_NULL		BP(0)
+#define BUCKET_OBJECTS( bp )	((dict_obj *)(&((bucket_s *)(&(bp)->next))[1]))
 
 /*
  * Defaults
@@ -67,7 +65,7 @@ typedef struct table_entry tabent_s ;
 
 
 #define ENTRY_HAS_CHAIN( tep )		( (tep)->head_bucket != NULL )
-#define ENTRY_IS_FULL( tep )			( (tep)->n_free == 0 )
+#define ENTRY_IS_FULL( tep )		( (tep)->n_free == 0 )
 
 
 struct ht_iter
@@ -84,8 +82,8 @@ struct ht_iter
  */
 struct ht_header
 {
-	dheader_s 				dh ;
-	fsma_h 					alloc ;
+	dheader_s 		dh ;
+	fsma_h 			alloc ;
 	struct table_entry	*table ;
 	struct ht_args 		args ;
 	struct ht_iter 		iter ;
@@ -94,8 +92,8 @@ struct ht_header
 typedef struct ht_header header_s ;
 
 
-#define HHP( p )							((header_s *)p)
-#define DHP( hp )							(&(hp->dh))
+#define HHP( p )		((header_s *)p)
+#define DHP( hp )		(&(hp->dh))
 
 typedef enum { KEY_SEARCH, OBJECT_SEARCH } search_e ;
 

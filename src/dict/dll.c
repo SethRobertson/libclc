@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dll.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: dll.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
 
 #include <stdlib.h>
 #include "dllimpl.h"
@@ -96,12 +96,12 @@ void dll_destroy(dict_h handle)
 
 PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register dict_obj object, dict_obj *objectp, int flags)
 {
-	register dheader_s	*dhp				= DHP( hp ) ;
+	register dheader_s	*dhp = DHP( hp ) ;
 	register bool_int 	unordered_list = ( dhp->flags & DICT_UNORDERED ) ;
 	register node_s		*np = NULL ;
-	node_s					*new ;
-	node_s					*before, *after ;
-	char						*id = "dll_do_insert" ;
+	node_s			*newnode ;
+	node_s			*before, *after ;
+	char			*id = "dll_do_insert" ;
 
 	if ( object == NULL )
 		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, DICT_ERR ) ;
@@ -148,11 +148,11 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
 		if ( flags & DLL_POSTPEND )
 			np = PREV(hp->head) ;
 		else
-			np = NEXT( hp->head ) ;
+			np = NEXT(hp->head) ;
 	}
 
-	new = (node_s *) fsm_alloc( hp->alloc ) ;
-	if ( new == NULL )
+	newnode = (node_s *) fsm_alloc( hp->alloc ) ;
+	if ( newnode == NULL )
 		HANDLE_ERROR( dhp, id, DICT_ENOMEM, DICT_ERR ) ;
 
 	if (flags & DLL_POSTPEND)
@@ -171,11 +171,11 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
 	    before = PREV( np ) ;
 	    after = np ;
 	  }
-	NEXT( new ) = after ;
-	PREV( new ) = before ;
-	NEXT( before ) = new ;
-	PREV( after ) = new ;
-	OBJ( new ) = object ;
+	NEXT( newnode ) = after ;
+	PREV( newnode ) = before ;
+	NEXT( before ) = newnode ;
+	PREV( after ) = newnode ;
+	OBJ( newnode ) = object ;
 	if ( objectp != NULL )
 		*objectp = object ;
 	return( DICT_OK ) ;

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.13 2003/04/09 19:51:56 seth Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.14 2003/04/24 18:30:23 jtt Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -192,9 +192,9 @@ static void bst_redelete(header_s *hp, tnode_s *np)
 void bst_destroy(dict_h handle)
 {
   header_s	*hp	= THP( handle ) ;
+#ifdef COALESCE
   dheader_s	*dhp	= DHP( hp ) ;
 
-#ifdef COALESCE
   if (!(dhp->flags & DICT_NOCOALESCE) && !TREE_EMPTY(hp))
     bst_redelete(hp, ROOT(hp));
 #endif /* COALESCE */

@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Make.include,v 1.4 2003/04/09 19:51:56 seth Exp $
+# $Id: Make.include,v 1.5 2003/04/24 18:30:22 jtt Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -16,3 +16,4 @@
 #
 GROUP_INCS=-I$(BK_TRUEGROUPTOP)/include
 GROUP_DEFINES=-DPROTOTYPES -D__FTWX_NO_FTW -DHAVE_DIRENT_H -DHAS_MMAP -DHAS_MEMOPS -DHAS_ISATTY -DVERSION=\"BAKA_CLC_2.1+PTHREAD\" -DCOALESCE -DNO_SIO
+#GROUP_DEFINES=-DPROTOTYPES -D__FTWX_NO_FTW -DHAVE_DIRENT_H -DHAS_MMAP -DHAS_MEMOPS -DHAS_ISATTY -DVERSION=\"BAKA_CLC_2.1+PTHREAD\" -DNO_SIO

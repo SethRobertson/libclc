@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.17 2003/04/16 21:25:53 jtt Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.18 2003/04/24 18:30:24 jtt Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -27,9 +27,6 @@ static const char version[] = VERSION;
 
 
 unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
-#ifdef COALESCE
-static fsma_h *coalesce = NULL;
-static int coalesce_size = 0;
 
 /*
  * <TRICKY>
@@ -41,6 +38,11 @@ static int coalesce_size = 0;
  * </TRICKY>
  */
 static int thread_override = 0;
+
+
+#ifdef COALESCE
+static fsma_h *coalesce = NULL;
+static int coalesce_size = 0;
 
 #ifdef BK_USING_PTHREADS
 static pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;

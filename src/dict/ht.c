@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.23 2003/06/03 23:17:58 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.24 2003/06/05 06:54:04 seth Exp $";
 
 #define CUR_MIN_PERF_HACK
 
@@ -13,8 +13,8 @@ static const char RCSid[] = "$Id: ht.c,v 1.23 2003/06/03 23:17:58 seth Exp $";
 /* #define HASH_STATS */
 
 #if defined(DEBUG) || defined(HASH_STATS)
-#include <stdio.h>
 #endif
+#include <stdio.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -667,6 +667,8 @@ int ht_delete(dict_h handle, dict_obj object)
 #endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
+  errret = (*(hp)->args.ht_objvalue)(object);
+  //  fprintf(stderr, "ht_delete: %d %d %d\n", junkptr, errret%hp->args.ht_table_entries, errret);
   if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep ) )
   {
     errret = DICT_ENOTFOUND;

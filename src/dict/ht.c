@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.20 2003/05/12 15:43:44 jtt Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.21 2003/05/12 15:47:06 jtt Exp $";
 
 #define CUR_MIN_PERF_HACK
 
@@ -54,7 +54,7 @@ static int junkptr = 0;
 
 #else /* !HASH_STATS */
 
-#define HASH_ERROR(hs)	( 0 )
+#define HASH_ERROR(hs)
 
 #endif /* !HASH_STATS */
 

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.7 2002/07/18 22:52:46 dupuy Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.8 2002/09/05 19:19:21 seth Exp $";
 
 #include <stdlib.h>
 #include "dllimpl.h"
@@ -15,7 +15,10 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
   header_s			*hp ;
   char				*id = "dll_create" ;
 
-  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED + DICT_UNORDERED ) )
+  if (!(flags & (DICT_ORDERED|DICT_UNORDERED)))
+    flags |= DICT_ORDERED;			// Ordered by default
+
+  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED | DICT_UNORDERED ) )
     return( NULL_HANDLE ) ;
 
   hp = (header_s *) malloc( sizeof( header_s ) ) ;

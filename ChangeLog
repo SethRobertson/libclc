@@ -1,3 +1,10 @@
+2002-09-05  Seth Robertson  <seth@winwood.sysdetect.com>
+
+	* src/dict/dll.c (dll_create): Default order is ordered.
+
+	* src/dict/dll.c (dll_create): Use bitwise and for bits, instead
+	of addition.  Prevented an argument sanity check from occurring.
+
 2002-08-29  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* include/fsma.h (struct __fsma_header): AHHHHH-HHHHAAAAAAAA!

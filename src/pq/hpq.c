@@ -4,9 +4,6 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: hpq.c,v 1.11 2004/04/08 21:03:48 jtt Exp $";
-static char const version[] = VERSION;
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -21,6 +18,9 @@ static char const version[] = VERSION;
 #ifndef NULL
 #define NULL 0
 #endif
+
+UNUSED static const char RCSid[] = "$Id: hpq.c,v 1.12 2004/07/08 04:40:21 lindauer Exp $";
+UNUSED static char const version[] = VERSION;
 
 
 /*

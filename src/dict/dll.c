@@ -4,11 +4,11 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.15 2003/07/09 22:44:04 jtt Exp $";
-
 #include <stdlib.h>
 #include "clchack.h"
 #include "dllimpl.h"
+
+UNUSED static const char RCSid[] = "$Id: dll.c,v 1.16 2004/07/08 04:40:20 lindauer Exp $";
 
 
 

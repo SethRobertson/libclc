@@ -3,8 +3,6 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.28 2003/07/09 22:44:04 jtt Exp $";
-
 #define CUR_MIN_PERF_HACK
 
 /*
@@ -21,6 +19,8 @@ static const char RCSid[] = "$Id: ht.c,v 1.28 2003/07/09 22:44:04 jtt Exp $";
 #include <string.h>
 #include "clchack.h"
 #include "htimpl.h"
+
+UNUSED static const char RCSid[] = "$Id: ht.c,v 1.29 2004/07/08 04:40:20 lindauer Exp $";
 
 
 int ht_num_table_entries = DEFAULT_TABLE_ENTRIES;

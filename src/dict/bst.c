@@ -4,13 +4,14 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.19 2003/07/09 22:44:04 jtt Exp $";
-
 #include "clchack.h"
 #include "bstimpl.h"
 
 #define NODE_ALLOC( hp )               TNP( fsm_alloc( (hp)->alloc ) )
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
+
+UNUSED static const char RCSid[] = "$Id: bst.c,v 1.20 2004/07/08 04:40:20 lindauer Exp $";
+
 
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
 PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x);

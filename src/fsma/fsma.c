@@ -4,13 +4,12 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.23 2003/09/19 18:52:55 seth Exp $";
-static const char version[] = VERSION;
-
 #include "clchack.h"
 #include "fsma.h"
 #include "impl.h"
 
+UNUSED static const char RCSid[] = "$Id: fsma.c,v 1.24 2004/07/08 04:40:20 lindauer Exp $";
+UNUSED static const char version[] = VERSION;
 
 /*
  * Normally when using insight et al we want to debug

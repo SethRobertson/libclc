@@ -18,4 +18,10 @@
 #include <dmalloc.h>
 #endif
 
+#ifdef __GNUC__
+#define UNUSED __attribute__ ((unused))
+#else
+#define UNUSED
+#endif // __GNUC__
+
 #endif /* _CLCHACK_H */

@@ -4,8 +4,10 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: pq.c,v 1.3 2003/06/17 05:10:53 seth Exp $";
-static const char version[] = VERSION;
+#include "clchack.h"
+
+UNUSED static const char RCSid[] = "$Id: pq.c,v 1.4 2004/07/08 04:40:21 lindauer Exp $";
+UNUSED static const char version[] = VERSION;
 
 int pq_errno ;
 

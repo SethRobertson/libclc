@@ -1,47 +1,31 @@
 ######################################################################
+# $Id: Makefile,v 1.2 2001/06/18 20:47:28 seth Exp $
 #
-# PLEX utility library
+# ++Copyright LIBBK++
 #
-######################################################################
+# Copyright (c) 2001 The Authors.  All rights reserved.
+#
+# This source code is licensed to you under the terms of the file
+# LICENSE.TXT in this release for further details.
+#
+# Mail <projectbaka@baka.org> for further information
+#
+# --Copyright LIBBK--
+#
+# libbk Makefile
+#
+BK_LARGE_LIB=../libfsma.a
+BK_LARGE_LIBSRC=fsma.c
+BK_MAN=fsma.3
 
-SRC=	fsma.c
-MAN3=	fsma.3
-
-OBJ=${SRC:.c=.o}
-
-######################################################################
-##
-## Private definitions
-##
-PRIVATE_INCLUDES= -I$(TOPDIR)/include -I$(TOPDIR)/$(BUILD_UPDIR)/include
-LIBS=../libfsma.a
-
-TOPDIR=../..
-CURDIR=src/fsma
-
-ifneq ($(strip $(PUBINST)),)
-INSTALL_LIB_DIR=/usr/local/lib
-INSTALL_MAN3_DIR=/usr/local/man/man3
-else
-INSTALL_LIB_DIR=$(SOS)/lib/lib.$(ARCH_DIR)
-INSTALL_MAN3_DIR=$(SOS)/man/man3
-endif
-
-#VPATH=.:
-include $(TOPDIR)/Make.include
-VPATH += .:../../$(TOPDIR)/$(CURDIR)
-
-$(LIBS): $(OBJ) 
-	$(AR) $(ARFLAGS) $@ $?
-	$(RANLIB) $@
-
-depend: depends
-
-install:: $(LIBS)
-	mkdir -p $(INSTALL_LIB_DIR)
-	$(INSTALL) $(INSTALL_OTHERFLAGS) $(LIBS) $(INSTALL_LIB_DIR)
-	$(RANLIB) $(INSTALL_LIB_DIR)/libfsma.a
-
-install:: $(MAN3)
-	mkdir -p $(INSTALL_MAN3_DIR)
-	$(INSTALL) $(INSTALL_OTHERFLAGS) $^ $(INSTALL_MAN3_DIR)
+GROUPTOP=../..
+GROUPSUBDIR=src/fsma
+##################################################
+## BEGIN BKSTANDARD MAKEFILE
+-include $(GROUPTOP)/Make.preinclude
+include $(GROUPTOP)/$(PKGTOP)/bkmk/Make.include
+-include $(GROUPTOP)/$(PKGTOP)/Make.include
+-include $(GROUPTOP)/Make.include
+-include ./Make.include
+## END BKSTANDARD MAKEFILE
+##################################################

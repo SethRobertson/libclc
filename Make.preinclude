@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Make.include,v 1.2 2001/06/18 20:47:27 seth Exp $
+# $Id: Make.preinclude,v 1.1 2001/06/18 20:47:27 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -12,7 +12,8 @@
 #
 # --Copyright LIBBK--
 #
-# libbk group Makefile 
+# libbk group Make preinclude for PKG definitions
 #
-GROUP_INCS=-I$(BK_TRUEGROUPTOP)/include
-GROUP_DEFINES=-DPROTOTYPES -D__FTWX_NO_FTW -DHAVE_DIRENT_H -DHAS_MMAP -DHAS_MEMOPS -DHAS_ISATTY -DVERSION=\"BAKA_CLC_2.0\" -DCOALESCE -DNO_SIO
+PKGTOP=..
+PKGSUBDIR=libclc
+NO_STDBKCCSTUFF=true

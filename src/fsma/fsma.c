@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.15 2003/04/09 19:51:56 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.16 2003/04/16 09:33:25 dupuy Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -30,8 +30,8 @@ unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 #ifdef COALESCE
 static fsma_h *coalesce = NULL;
 static int coalesce_size = 0;
-#ifdef BK_USING_PTHREADS
 static int thread_override = 0;
+#ifdef BK_USING_PTHREADS
 static pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif /* BK_USING_PTHREADS */
 #endif /* COALESCE */
@@ -608,9 +608,7 @@ void _fsm_free(fsma_h fp, void *object)
 #endif /* FSMA_USE_MALLOC */
 
 
-#ifdef BK_USING_PTHREADS
 void fsm_threaded_makeready(int preference)
 {
   thread_override = preference;
 }
-#endif // BK_USING_PTHREADS

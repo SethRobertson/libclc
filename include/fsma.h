@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.7 2003/04/09 19:51:56 seth Exp $
+ * $Id: fsma.h,v 1.8 2003/04/16 09:33:25 dupuy Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -48,17 +48,13 @@ typedef struct __fsma_header *fsma_h ;
 #define FSM_ZERO_ALLOC				0x2
 #define FSM_ZERO_FREE				0x4
 #define FSM_ZERO_DESTROY			0x8
-#ifdef BK_USING_PTHREADS
 #define FSM_THREADED				0x10
-#endif /* BK_USING_PTHREADS */
 #define FSM_FREE_USEFUN				0x20 // Only for internal FSMA use--otherwise infinite loop
 
 
-#ifdef BK_USING_PTHREADS
 extern void fsm_threaded_makeready(int preference);
 #define FSM_PREFER_SAFE		0x1
 #define FSM_PREFER_NOCOALESCE	0x2
-#endif // BK_USING_PTHREADS
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
 void	fsm_destroy	( fsma_h handle )  ;

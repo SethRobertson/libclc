@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dlltest2.c,v 1.2 2001/07/07 02:58:23 seth Exp $" ;
+static char RCSid[] = "$Id: dlltest2.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
 
 struct foo
 {
@@ -24,14 +24,18 @@ struct foo
 
 void baz(dict_h lh);
 
-static int int_comp(struct foo *p1, struct foo *p2)
+static int int_comp(void *p1v, void *p2v)
 {
+  struct foo *p1=(struct foo *)p1v;
+  struct foo *p2=(struct foo *)p2v;
   return(p1->compare - p2->compare);
 }
 
 
-static int int_kcomp(int *p1, struct foo *p2)
+static int int_kcomp(void *p1v, void *p2v)
 {
+  int *p1=(int *)p1v;
+  struct foo *p2=(struct foo *)p2v;
   return(*p1 - p2->compare);
 }
 

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bsttest.c,v 1.2 2001/07/07 02:58:21 seth Exp $" ;
+static char RCSid[] = "$Id: bsttest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -15,9 +15,9 @@ static char RCSid[] = "$Id: bsttest.c,v 1.2 2001/07/07 02:58:21 seth Exp $" ;
 #include "clchack.h"
 
 
-int int_comp( char *p1, char *p2 );
 
-int int_comp( char *p1, char *p2 )
+int int_comp( void *p1, void *p2 );
+int int_comp( void *p1, void *p2 )
 {
 	int i1 = *(int *)p1 ;
 	int i2 = *(int *)p2 ;

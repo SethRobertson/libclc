@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dlltest.c,v 1.2 2001/07/07 02:58:23 seth Exp $" ;
+static char RCSid[] = "$Id: dlltest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
 
 
 #ifndef NULL
@@ -26,8 +26,11 @@ static char RCSid[] = "$Id: dlltest.c,v 1.2 2001/07/07 02:58:23 seth Exp $" ;
 
 #define INTP( p )					((int *)(p))
 
-static int int_comp(char *p1, char *p2)
+static int int_comp(void *p1v, void *p2v)
 {
+  char *p1=(char *)p1v;
+  char *p2=(char *)p2v;
+
 	int i1 = *INTP( p1 ) ;
 	int i2 = *INTP( p2 ) ;
 
@@ -35,8 +38,11 @@ static int int_comp(char *p1, char *p2)
 }
 
 
-static int int_kcomp(char *p1, char *p2)
+static int int_kcomp(void *p1v, void *p2v)
 {
+  char *p1=(char *)p1v;
+  char *p2=(char *)p2v;
+
 	int k = *INTP( p1 ) ;
 	int obj = *INTP( p2 ) ;
 

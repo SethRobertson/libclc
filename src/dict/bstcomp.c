@@ -13,9 +13,11 @@
 #include "clchack.h"
 
 
-int int_comp(char *p1, char *p2);
-int int_comp(char *p1, char *p2)
+int int_comp(void *p1v, void *p2v);
+int int_comp(void *p1v, void *p2v)
 {
+  char *p1=(char *)p1v;
+  char *p2=(char *)p2v;
 	int i1 = *(int *)p1 ;
 	int i2 = *(int *)p2 ;
 

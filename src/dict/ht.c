@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.26 2003/06/07 23:51:14 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.27 2003/06/13 20:36:39 dupuy Exp $";
 
 #define CUR_MIN_PERF_HACK
 
@@ -1147,7 +1147,7 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
     hs->iterations++;
 #endif /* HASH_STATS */
 
-  return(iter);
+  return((struct dict_iter *)iter);
 
 #ifdef BK_USING_PTHREADS
  error:
@@ -1181,7 +1181,7 @@ void ht_iterate_done(dict_h handle, dict_iter iter)
 
     for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
     {
-      if (hp->iter[itercnt] == iter)
+      if (hp->iter[itercnt] == (struct ht_iter *)iter)
       {
 	hp->iter[itercnt] = NULL;
 	break;
@@ -1208,7 +1208,7 @@ void ht_iterate_done(dict_h handle, dict_iter iter)
 dict_obj ht_nextobj(dict_h handle, dict_iter iter)
 {
   header_s		*hp = HHP( handle ) ;
-  struct ht_iter	*ip = iter;
+  struct ht_iter	*ip = (struct ht_iter *)iter;
   unsigned int		i ;
   dict_obj		obj = NULL_OBJ;
 #ifdef HASH_STATS

@@ -1,3 +1,7 @@
+2003-06-13  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* include/dict.h, include/ht.h, include/pq.h: avoid stupid void * #1311
+
 2003-06-07  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/dict/ht.c (ht_create): argsp may change size between

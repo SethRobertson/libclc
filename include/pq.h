@@ -8,7 +8,7 @@
 #define __PQ_H
 
 /*
- * $Id: pq.h,v 1.5 2003/04/01 04:40:56 seth Exp $
+ * $Id: pq.h,v 1.6 2003/06/13 20:36:39 dupuy Exp $
  */
 
 
@@ -39,8 +39,8 @@
 #define PQ_NOFLAGS		0x0		// Naught
 #define PQ_THREADED_SAFE	0x1		// Protect against multiple threads on same PQ
 
-typedef void *pq_h ;
 typedef void *pq_obj ;
+typedef struct pq *pq_h ;
 
 #include "hpq.h"
 

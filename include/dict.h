@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.12 2003/05/10 08:29:06 dupuy Exp $
+ * $Id: dict.h,v 1.13 2003/06/13 20:36:39 dupuy Exp $
  */
 
 
@@ -56,9 +56,9 @@
 
 typedef int (*dict_function)(void *, void *) ;
 typedef void *dict_obj ;
-typedef void *dict_iter ;
 typedef void *dict_key ;
-typedef void *dict_h ;
+typedef struct dict_iter *dict_iter ;
+typedef struct dict *dict_h ;
 
 enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
 

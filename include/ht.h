@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.7 2003/06/07 23:51:14 seth Exp $
+ * $Id: ht.h,v 1.8 2003/06/13 20:36:39 dupuy Exp $
  */
 
 #include "dict.h"
@@ -24,7 +24,7 @@ struct ht_args
   ht_func ht_keyvalue ;
 #define HT_ARG_COPY_SIZE (sizeof(unsigned) + sizeof(unsigned) + sizeof(ht_func) + sizeof(ht_func))
 #ifdef HASH_STATS
-  void *ht_stats ;
+  struct ht_stats *ht_stats ;
 #endif
 } ;
 

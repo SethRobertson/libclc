@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.15 2003/05/07 19:39:58 dupuy Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.16 2003/06/13 20:36:39 dupuy Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -908,7 +908,7 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
     abort();
 #endif /* BK_USING_PTHREADS */
 
-  return(tip);
+  return((struct dict_iter *)tip);
 
 #ifdef BK_USING_PTHREADS
  error:
@@ -939,7 +939,7 @@ void bst_iterate_done(dict_h handle, dict_iter iter)
 
     for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
     {
-      if (hp->tip[tipcnt] == iter)
+      if (hp->tip[tipcnt] == (struct tree_iterator *)iter)
       {
 	hp->tip[tipcnt] = NULL;
 	break;
@@ -966,7 +966,7 @@ void bst_iterate_done(dict_h handle, dict_iter iter)
 dict_obj bst_nextobj(dict_h handle, dict_iter iter)
 {
   register header_s	*hp		= THP( handle ) ;
-  struct tree_iterator	*tip		= iter ;
+  struct tree_iterator	*tip		= (struct tree_iterator *)iter ;
   tnode_s		*current;
   dict_obj		ret = NULL;
 

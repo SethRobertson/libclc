@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.12 2003/06/12 21:47:41 seth Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.13 2003/06/13 20:36:39 dupuy Exp $";
 
 #include <stdlib.h>
 #include "clchack.h"
@@ -725,7 +725,7 @@ dict_iter dll_iterate(dict_h handle, enum dict_direction direction)
     abort();
 #endif /* BK_USING_PTHREADS */
 
-  return(dip);
+  return((struct dict_iter *)dip);
 
 #ifdef BK_USING_PTHREADS
  error:
@@ -756,7 +756,7 @@ void dll_iterate_done(dict_h handle, dict_iter iter)
 
     for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
     {
-      if (hp->iter[itercnt] == iter)
+      if (hp->iter[itercnt] == (struct dll_iterator *)iter)
       {
 	hp->iter[itercnt] = NULL;
 	break;
@@ -785,7 +785,7 @@ dict_obj dll_nextobj(dict_h handle, dict_iter iter)
 #ifdef BK_USING_PTHREADS
   register header_s	*hp	= LHP( handle ) ;
 #endif /* BK_USING_PTHREADS */
-  struct dll_iterator	*dip		= iter ;
+  struct dll_iterator	*dip		= (struct dll_iterator *)iter ;
   node_s		*current;
   dict_obj		ret;
 

@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.4 2001/07/07 02:58:23 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.5 2001/07/07 13:41:16 seth Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -725,14 +725,14 @@ dict_obj ht_nextobj(dict_h handle)
 char *ht_error_reason(dict_h handle, int *errnop)
 {
   header_s	*hp		= HHP( handle ) ;
-  int		errno;
+  int		dicterrno;
 
   if (handle)
-    errno = ERRNO(DHP(hp));
+    dicterrno = ERRNO(DHP(hp));
   else
-    errno = dict_errno;
+    dicterrno = dict_errno;
 
-  if (errnop) *errnop = errno;
+  if (errnop) *errnop = dicterrno;
 
-  return(__dict_error_reason(errno));
+  return(__dict_error_reason(dicterrno));
 }

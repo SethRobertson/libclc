@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dll.c,v 1.3 2001/07/07 02:58:22 seth Exp $" ;
+static char RCSid[] = "$Id: dll.c,v 1.4 2001/07/07 13:41:15 seth Exp $" ;
 
 #include <stdlib.h>
 #include "dllimpl.h"
@@ -452,14 +452,14 @@ dict_obj dll_nextobj(dict_h handle)
 char *dll_error_reason(dict_h handle, int *errnop)
 {
   header_s	*hp		= LHP( handle ) ;
-  int		errno;
+  int		dicterrno;
 
   if (handle)
-    errno = ERRNO(DHP(hp));
+    dicterrno = ERRNO(DHP(hp));
   else
-    errno = dict_errno;
+    dicterrno = dict_errno;
 
-  if (errnop) *errnop = errno;
+  if (errnop) *errnop = dicterrno;
 
-  return(__dict_error_reason(errno));
+  return(__dict_error_reason(dicterrno));
 }

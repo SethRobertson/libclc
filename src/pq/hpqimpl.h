@@ -5,7 +5,7 @@
  */
 
 /*
- * $Id: hpqimpl.h,v 1.2 2001/07/07 02:58:24 seth Exp $
+ * $Id: hpqimpl.h,v 1.3 2001/07/07 13:41:16 seth Exp $
  */
 
 #include "hpq.h"
@@ -15,7 +15,7 @@
 #define HANDLE_ERROR( header, retval, errval, msg )	\
 		do {					\
 		  if (header)				\
-		    (header)->errno = errval ;		\
+		    (header)->dicterrno = errval ;		\
                   else					\
 		    pq_errno = errval ;			\
 		  return( retval ) ;			\

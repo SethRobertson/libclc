@@ -9,7 +9,7 @@
 #define __DICTIMPL_H
 
 /*
- * $Id: dictimpl.h,v 1.2 2001/07/07 02:58:22 seth Exp $
+ * $Id: dictimpl.h,v 1.3 2001/07/07 13:41:15 seth Exp $
  */
 
 #include "dict.h"
@@ -21,14 +21,14 @@ struct dict_header
 	dict_function	oo_comp ;
 	dict_function	ko_comp ;
 	int		flags ;
-	int		errno ;
+	int		dicterrno ;
 } ;
 
 typedef struct dict_header dheader_s ;
 
 typedef int bool_int ;
 
-#define ERRNO( dhp )					((dhp)->errno)
+#define ERRNO( dhp )					((dhp)->dicterrno)
 
 #ifndef NULL
 #define NULL 0
@@ -61,7 +61,7 @@ typedef int bool_int ;
 int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders);
 void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags) ;
 dict_h __dict_create_error(char *caller, int flags, int error_code) ;
-char *__dict_error_reason(int errno) ;
+char *__dict_error_reason(int dicterrno) ;
 
 #endif	/* __DICTIMPL_H */
 

@@ -8,7 +8,7 @@
 #define __HPQ_H
 
 /*
- * $Id: hpq.h,v 1.4 2001/07/07 02:58:20 seth Exp $
+ * $Id: hpq.h,v 1.5 2001/07/07 13:41:15 seth Exp $
  */
 
 /*
@@ -35,7 +35,7 @@
 struct __hpq_header
 {
   int (*is_better)(void *, void *) ;
-  int errno ;
+  int dicterrno ;
   int flags ;
   pq_obj *objects ;				/* array of objects */
   unsigned cur_size ;				/* # of objects in array */
@@ -53,7 +53,7 @@ int  __hpq_delete 		( pq_h handle, pq_obj object )  ;
 void __hpq_iterate		( pq_h handle )  ;
 pq_obj __hpq_nextobj		( pq_h handle )  ;
 int __hpq_verify		(header_s *hp, unsigned int current)  ;
-char *__hpq_error_reason	( int errno ) ;
+char *__hpq_error_reason	( int dicterrno ) ;
 char *pq_error_reason		( pq_h handle, int *errnop ) ;
 
 

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: hpq.c,v 1.3 2001/07/07 02:58:24 seth Exp $" ;
+static char RCSid[] = "$Id: hpq.c,v 1.4 2001/07/07 13:41:16 seth Exp $" ;
 static char version[] = VERSION ;
 
 #include <stdlib.h>
@@ -100,7 +100,7 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
    * Initialize the header
    */
   hp->is_better = func ;
-  hp->errno = 0 ;
+  hp->dicterrno = 0 ;
   hp->flags = flags ;
   hp->max_size = INITIAL_ARRAY_SIZE ;
   hp->cur_size = 0 ;
@@ -460,12 +460,12 @@ static struct name_value error_codes[] =
 
 
 
-char *__hpq_error_reason(int errno)
+char *__hpq_error_reason(int dicterrno)
 {
   int ctr;
   char *ret;
 
-  for(ctr = 0; error_codes[ctr].nv_name && errno != error_codes[ctr].nv_value; ctr++) ;
+  for(ctr = 0; error_codes[ctr].nv_name && dicterrno != error_codes[ctr].nv_value; ctr++) ;
 
   if (ret = error_codes[ctr].nv_name)
     return(ret);
@@ -478,13 +478,13 @@ char *__hpq_error_reason(int errno)
 char *pq_error_reason(pq_h handle, int *errnop)
 {
   header_s *hp = HHP( handle ) ;
-  int errno;
+  int dicterrno;
 
   if (hp)
-    errno = hp->errno;
+    dicterrno = hp->dicterrno;
   else
-    errno = pq_errno;
+    dicterrno = pq_errno;
 
-  if (errnop) *errnop = errno;
-  return(__hpq_error_reason(errno));
+  if (errnop) *errnop = dicterrno;
+  return(__hpq_error_reason(dicterrno));
 }

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dict.c,v 1.2 2001/07/07 02:58:22 seth Exp $" ;
+static char RCSid[] = "$Id: dict.c,v 1.3 2001/07/07 13:41:15 seth Exp $" ;
 static char version[] = VERSION ;
 
 #include <unistd.h>
@@ -106,17 +106,17 @@ void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_
 	dhp->oo_comp = oo_comp ;
 	dhp->ko_comp = ko_comp ;
 	dhp->flags = flags ;
-	dhp->errno = DICT_ENOERROR ;
+	dhp->dicterrno = DICT_ENOERROR ;
 }
 
 
 
-char *__dict_error_reason(int errno)
+char *__dict_error_reason(int dicterrno)
 {
   int ctr;
   char *ret;
 
-  for(ctr = 0; error_codes[ctr].nv_name && errno != error_codes[ctr].nv_value; ctr++) ;
+  for(ctr = 0; error_codes[ctr].nv_name && dicterrno != error_codes[ctr].nv_value; ctr++) ;
 
   if (ret = error_codes[ctr].nv_name)
     return(ret);

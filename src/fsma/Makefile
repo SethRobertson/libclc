@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.4 2002/05/10 22:19:28 jtt Exp $
+# $Id: Makefile,v 1.5 2002/05/11 01:36:27 dupuy Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -14,7 +14,7 @@
 #
 # libbk Makefile
 #
-BK_LARGE_LIB=../libfsma$(LIBEXT)
+BK_LARGE_LIB=../libfsma.a
 BK_LARGE_LIBSRC=fsma.c
 BK_MAN=fsma.3
 

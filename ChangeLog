@@ -1,3 +1,8 @@
+2002-05-10  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* src/fsma/Makefile (BK_LARGE_LIB): back out shared libfsma;
+	this breaks libtool in a strange way that requires investigation
+
 2002-05-10  James Tanis  <jtt@winwood.sysdetect.com>
 
 	* src/fsma/fsma.c: Formatting and simplify coalesce code.

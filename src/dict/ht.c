@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.13 2002/09/09 16:42:31 jtt Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.14 2003/02/01 04:12:33 seth Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -130,7 +130,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
     argsp->ht_table_entries = ht_num_table_entries ;
   else
   {
-    if (!(flags | DICT_HT_STRICT_HINTS))
+    if (!(flags & DICT_HT_STRICT_HINTS))
       argsp->ht_table_entries = find_good_size( argsp->ht_table_entries ) ;
   }
 

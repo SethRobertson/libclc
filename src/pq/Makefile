@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.5 2005/02/05 02:29:57 seth Exp $
+# $Id: Makefile,v 1.6 2005/02/07 18:17:14 dupuy Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -12,13 +12,15 @@
 #
 # --Copyright LIBBK--
 #
-# libbk Makefile
+# libpqueue convenience library Makefile
 #
-BK_LARGE_LIB=../libpqueue$(LIBEXT)
+
+# NOTE: this does *NOT* need to be built as a separate shared library;
+# it is compiled PIC for sharing, and is incorporated into the shared libbk.
+
+BK_LARGE_LIB=../libpqueue.a
 BK_LARGE_LIBSRC=pq.c hpq.c
 BK_MAN=pq.3
-
-LT_LDLIBS=-lfsma
 
 GROUPTOP=../..
 GROUPSUBDIR=src/pq

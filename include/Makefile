@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.2 2001/06/18 20:47:27 seth Exp $
+# $Id: Makefile,v 1.3 2001/06/18 21:02:33 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -25,4 +25,5 @@ include $(GROUPTOP)/$(PKGTOP)/bkmk/Make.include
 -include $(GROUPTOP)/$(PKGTOP)/Make.include
 -include $(GROUPTOP)/Make.include
 -include ./Make.include
-./include/Makefile
+## END BKSTANDARD MAKEFILE
+##################################################

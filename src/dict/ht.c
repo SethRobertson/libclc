@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.16 2003/04/09 19:51:56 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.17 2003/04/22 03:18:11 jtt Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -426,6 +426,12 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
 
   tep = HASH_OBJECT( hp, object, min_index ) ;
 
+#if 0
+  if (hp->flags & DICT_NOTE_CLASHES && ENTRY_HAS_CHAIN(tep))
+  {
+    write(2, "CLASH\n", 6);
+  }
+#endif
   /*
    * We search the entry chain only if it exists and uniqueness is required.
    */

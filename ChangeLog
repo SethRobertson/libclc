@@ -1,3 +1,12 @@
+2002-05-10  James Tanis  <jtt@winwood.sysdetect.com>
+
+	* src/fsma/fsma.c: Formatting and simplify coalesce code.
+
+	* src/fsma/Makefile (BK_LARGE_LIB): Make libfsma shared.
+
+	* src/dict/bst.c (bst_redelete): Improve efficiency by avoiding
+	unnecessary checks and recusive calls.
+
 2002-02-22  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* include/dict.h (DICT_NUKE): delete contents and dict itself

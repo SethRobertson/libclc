@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.8 2002/02/22 07:21:56 dupuy Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.9 2002/05/10 22:19:27 jtt Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -24,6 +24,7 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
  * Find the maximum node of the subtree with root 'start'
  */
 #define FIND_MAXIMUM( hp, start, x )	x = start; while ( RIGHT( x ) != NIL( hp ) ) x = RIGHT( x )
+
 
 
 /*
@@ -141,19 +142,18 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
  */
 static void bst_redelete(header_s *hp, tnode_s *np)
 {
-  if (!hp || !np || np == NIL(hp))
-    return;
+  // if (!hp || !np || np == NIL(hp))
+  //return;
 
-  if (LEFT(np))
+  if (LEFT(np) != NIL(hp))
     bst_redelete(hp, LEFT(np));
 
-  if (RIGHT(np))
+  if (RIGHT(np) != NIL(hp))
     bst_redelete(hp, RIGHT(np));
 
   NODE_FREE(hp, np);
 }
 #endif /* COALESCE */
-
 
 
 /*

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.10 2002/07/18 22:52:46 dupuy Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.11 2002/07/24 21:20:15 seth Exp $";
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -281,7 +281,9 @@ int bst_delete(dict_h handle, dict_obj object)
   tnode_s		*py ;
 #ifdef SAFE_ITERATE
   struct tree_iterator	*tip		= &THP( handle )->iter ;
+#ifdef PARANOID_ITERATE
   dict_obj		safe_nextobj	= NULL;
+#endif /* PARANOID_ITERATE */
 #endif /* SAFE_ITERATE */
 #ifdef FAST_ACTIONS
   tnode_s *tmp=NULL;
@@ -322,8 +324,10 @@ int bst_delete(dict_h handle, dict_obj object)
     {
       bst_nextobj(handle, tip);
     }
+#ifdef PARANOID_ITERATE
     if (tip->next)
       safe_nextobj = OBJ(tip->next);
+#endif /* PARANOID_ITERATE */
   }
 #endif /* SAFE_IITERATE */
 
@@ -379,23 +383,29 @@ int bst_delete(dict_h handle, dict_obj object)
   else
     RIGHT( py ) = x ;
 
-#ifdef SAFE_ITERATE	
+#ifdef PARANOID_ITERATE
   if (tip->next)
   {
-    if (OBJ(tip->next) != safe_nextobj)
+    // These errors should not happen
+    if ((OBJ(tip->next) != safe_nextobj) || tip->next == y)
     {
-      /* Find bloody object */
-      /* OBJ(delnp) == safe_nextobj */
-      tip->next = delnp;
+      // Find bloody object
+
+      if (!safe_nextobj)
+	tip->next = NULL;
+      else
+      {
+	// Search for safeobj
+	while ( tip->next != null )
+	{
+	  if (OBJ( tip->next ) == safe_nextobj)
+	    break;
+	  tip->next = ( (*dhp->oo_comp)( safe_nextobj, OBJ( tip->next ) ) < 0 ) ? LEFT( tip->next ) : RIGHT( tip->next ) ;
+	}
+      }
     }
   }
-
-  /* This should not be possible due to previous protections, but... */
-  if (tip->next == y)
-  {
-    bst_nextobj(handle, tip);
-  }
-#endif /* SAFE_ITERATE */
+#endif /* PARANOID_ITERATE */
 
   /*
    * If this is a balanced tree and we unbalanced it, do the necessary repairs

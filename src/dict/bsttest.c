@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bsttest.c,v 1.4 2001/11/05 19:31:45 seth Exp $" ;
+static char RCSid[] = "$Id: bsttest.c,v 1.5 2002/07/24 21:20:15 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -109,5 +109,7 @@ int main( int argc, char *argv[] )
 	for ( ip=(int *)bst_maximum( bh ) ;ip; ip=(int *)bst_predecessor( bh, ip ) ) 
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
+
+	bst_destroy(hh);
 	exit( 0 ) ;
 }

@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.10 2003/06/06 03:34:51 seth Exp $
+ * $Id: fsma.h,v 1.11 2003/06/13 02:27:59 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -148,7 +148,7 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 #define fsm_alloc( fsma )									\
      (												\
       (!(fsma)->next_free || (fsma)->flags & (FSM_ZERO_ALLOC))					\
-      ? _fsm_alloc( fsma )									\
+      ? _fsm_alloc( fsma, 0 )									\
       : ((fsma)->temp = (fsma)->next_free,							\
 	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp)	\
       )

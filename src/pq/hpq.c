@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: hpq.c,v 1.5 2001/11/29 17:39:56 jtt Exp $" ;
+static char RCSid[] = "$Id: hpq.c,v 1.6 2002/03/22 11:39:50 dupuy Exp $" ;
 static char version[] = VERSION ;
 
 #include <stdlib.h>
@@ -467,7 +467,7 @@ char *__hpq_error_reason(int dicterrno)
 
   for(ctr = 0; error_codes[ctr].nv_name && dicterrno != error_codes[ctr].nv_value; ctr++) ;
 
-  if (ret = error_codes[ctr].nv_name)
+  if ((ret = error_codes[ctr].nv_name))
     return(ret);
 
   return("Unknown CLC error");

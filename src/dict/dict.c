@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dict.c,v 1.3 2001/07/07 13:41:15 seth Exp $" ;
+static char RCSid[] = "$Id: dict.c,v 1.4 2002/03/22 11:39:50 dupuy Exp $" ;
 static char version[] = VERSION ;
 
 #include <unistd.h>
@@ -118,7 +118,7 @@ char *__dict_error_reason(int dicterrno)
 
   for(ctr = 0; error_codes[ctr].nv_name && dicterrno != error_codes[ctr].nv_value; ctr++) ;
 
-  if (ret = error_codes[ctr].nv_name)
+  if ((ret = error_codes[ctr].nv_name))
     return(ret);
 
   return("Unknown CLC error");

@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.7 2002/02/22 07:26:54 dupuy Exp $
+ * $Id: dict.h,v 1.8 2002/03/22 11:39:50 dupuy Exp $
  */
 
 /*
@@ -60,7 +60,7 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
  * <TRICKY>Do not change this macro, you will surely regret it.</TRICKY>
  */
 #define _DICT_NUKE_WORK_LOOP(Q, prefix, ptr, errcode, code)	\
- while ((ptr) = prefix##_minimum(Q))				\
+ while (((ptr) = prefix##_minimum(Q)))				\
  {								\
    if (prefix##_delete((Q), (ptr)) != DICT_OK)			\
    {								\

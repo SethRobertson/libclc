@@ -8,7 +8,7 @@
 #define __BST_H
 
 /*
- * $Id: bst.h,v 1.4 2001/11/05 19:31:45 seth Exp $
+ * $Id: bst.h,v 1.5 2003/04/01 04:40:56 seth Exp $
  */
 
 #include "dict.h"
@@ -17,6 +17,8 @@ dict_h   bst_create		 (dict_function oo_compare, dict_function ko_compare, int f
 void	 bst_destroy		 ( dict_h bh )  ;
 int	 bst_insert		 ( dict_h bh, dict_obj obj )  ;
 int	 bst_insert_uniq	 ( dict_h bh, dict_obj obj, dict_obj *objp )  ;
+#define bst_append bst_insert
+#define bst_append_uniq bst_insert_uniq
 int	 bst_delete		 ( dict_h bh, dict_obj obj )  ;
 dict_obj bst_search		 ( dict_h bh, dict_key key )  ;
 dict_obj bst_minimum		 ( dict_h bh )  ;

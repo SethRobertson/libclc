@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.5 2002/08/27 11:17:39 seth Exp $
+ * $Id: htimpl.h,v 1.6 2003/04/01 04:40:57 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -62,7 +62,7 @@ struct table_entry
 
 typedef struct table_entry tabent_s ;
 
-#define TEP( p )							((tabent_s *)(p))
+#define TEP( p )		((tabent_s *)(p))
 
 
 #define ENTRY_HAS_CHAIN( tep )		( (tep)->head_bucket != NULL )
@@ -88,7 +88,14 @@ struct ht_header
 	fsma_h 			alloc ;
 	struct table_entry	*table ;
 	struct ht_args 		args ;
+#ifdef HAVE_PTHREADS
+	u_int			flags;
+        pthread_mutex_t		lock;
+	int			iter_cnt;
+	struct ht_iter		**iter ;
+#else /* HAVE_PTHREADS */
 	struct ht_iter 		iter ;
+#endif /* HAVE_PTHREADS */
         unsigned int		cur_min;
   	unsigned int		obj_cnt;
 } ;

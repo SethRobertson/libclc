@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bsttest.c,v 1.5 2002/07/24 21:20:15 seth Exp $" ;
+static const char RCSid[] = "$Id: bsttest.c,v 1.6 2003/04/01 04:40:56 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -42,7 +42,6 @@ int main( int argc, char *argv[] )
 	dict_h bh ;
 	int i ;
 	int *ip ;
-	int j ;
 	int flags = DICT_NOFLAGS ;
 #ifdef BST_DEBUG
 	struct bst_depth d ;
@@ -110,6 +109,6 @@ int main( int argc, char *argv[] )
 		printf( "%d ", *ip ) ;
 	putchar( '\n' ) ;
 
-	bst_destroy(hh);
+	bst_destroy(bh);
 	exit( 0 ) ;
 }

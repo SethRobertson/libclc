@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: bstimpl.h,v 1.2 2001/07/05 15:19:13 seth Exp $
+ * $Id: bstimpl.h,v 1.3 2003/04/01 04:40:56 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -23,7 +23,7 @@ struct tree_node
 	struct tree_node	*left ;
 	struct tree_node	*right ;
 	struct tree_node	*parent ;
-	dict_obj				obj ;
+	dict_obj		 obj ;
 } ;
 
 typedef struct tree_node tnode_s ;
@@ -46,9 +46,8 @@ struct balanced_tree_node
 
 typedef struct balanced_tree_node btnode_s ;
 
-#define BTNP( p )								((btnode_s *)(p))
-
-#define COLOR( p )							BTNP(p)->color
+#define BTNP( p )			((btnode_s *)(p))
+#define COLOR( p )			BTNP(p)->color
 
 
 /*
@@ -94,7 +93,7 @@ struct hints
 struct tree_iterator
 {
 	enum dict_direction	direction ;
-	tnode_s					*next ;
+	tnode_s			*next ;
 } ;
 
 
@@ -110,12 +109,19 @@ struct tree_iterator
  */
 struct tree_header
 {
-	dheader_s				dh ;
+	dheader_s			dh ;
 	struct hints			hint ;
-	fsma_h					alloc ;
-	btnode_s					anchor ;
-	btnode_s					nil ;
-	struct tree_iterator iter ;
+	fsma_h				alloc ;
+	btnode_s			anchor ;
+	btnode_s			nil ;
+#ifdef HAVE_PTHREADS
+	u_int				flags;
+        pthread_mutex_t			lock;
+	int				tip_cnt;
+        struct tree_iterator	      **tip;
+#else /* HAVE_PTHREADS */
+        struct tree_iterator	        iter;
+#endif /* HAVE_PTHREADS */
 } ;
 
 typedef struct tree_header header_s ;

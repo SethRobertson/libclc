@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.5 2002/08/30 03:18:16 seth Exp $
+ * $Id: fsma.h,v 1.6 2003/04/01 04:40:56 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -32,6 +32,9 @@ struct __fsma_header
   unsigned short flags;
   unsigned short is_inlined;			/* header is inlined (boolean) (should be converted to a flag) */
   unsigned int references;			// Number of people using this allocator.  Yes, Virginia, we can have more than 2^16.
+#ifdef HAVE_PTHREADS
+  pthread_mutex_t lock;
+#endif /* HAVE_PTHREADS */
 } ;
 
 typedef struct __fsma_header *fsma_h ;
@@ -45,6 +48,10 @@ typedef struct __fsma_header *fsma_h ;
 #define FSM_ZERO_ALLOC				0x2
 #define FSM_ZERO_FREE				0x4
 #define FSM_ZERO_DESTROY			0x8
+#ifdef HAVE_PTHREADS
+#define FSM_THREADED				0x10
+#endif /* HAVE_PTHREADS */
+#define FSM_FREE_USEFUN				0x20 // Only for internal FSMA use--otherwise infinite loop
 
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
@@ -52,25 +59,112 @@ void	fsm_destroy	( fsma_h handle )  ;
 void	*_fsm_alloc	( fsma_h handle )  ;
 void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
-#define fsm_alloc( fsma ) \
-     ( \
-      (!(fsma)->next_free || (fsma)->flags & FSM_ZERO_ALLOC) \
-      ? _fsm_alloc( fsma ) \
-      : ((fsma)->temp = (fsma)->next_free, \
-	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp) \
+#ifdef HAVE_PTHREADS
+#ifdef __GNUC__
+#define fsm_alloc( fsma )											\
+    ({														\
+       void *_fsm_ret = NULL;											\
+														\
+       if (!(fsma)->next_free)											\
+       { /* No fast path available */										\
+	 _fsm_ret = _fsm_alloc(fsma);										\
+       }													\
+       else													\
+       {													\
+	 if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_lock(&(fsma)->lock) != 0))			\
+	 {													\
+	   /* Complain, somehow--locking failed */								\
+	   _fsm_ret = NULL;											\
+	 }													\
+	 else													\
+	 {													\
+	   _fsm_ret = (fsma)->next_free;									\
+	   (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;						\
+														\
+	   if ((fsma)->flags & FSM_ZERO_ALLOC)									\
+	     memset(_fsm_ret, 0, (fsma)->slot_size);								\
+														\
+	   if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))			\
+	   {													\
+	     /* Complain, somehow--locking failed */								\
+	   }													\
+	 }													\
+       }													\
+       _fsm_ret;												\
+    })
+
+#else /* GNUC */
+
+#define fsm_alloc( fsma )									\
+     (												\
+      (!(fsma)->next_free || (fsma)->flags & (FSM_ZERO_ALLOC|FSM_THREADED))			\
+      ? _fsm_alloc( fsma )									\
+      : ((fsma)->temp = (fsma)->next_free,							\
+	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp)	\
       )
 
-#define fsm_free( fsma, p ) \
-     if ( (fsma)->flags & FSM_ZERO_FREE ) \
-       _fsm_free( fsma, p ); \
-     else \
-       (fsma)->temp = (p), \
-	 *(__fsma_pointer *) (fsma)->temp = (fsma)->next_free,  \
-	 (fsma)->next_free = (fsma)->temp
+#endif /* GNUC */
+
+#define fsm_free( fsma, p )										\
+    do													\
+      {													\
+	__fsma_pointer *_fsm_next = (void *)(p);							\
+													\
+        if ((fsma)->flags & FSM_FREE_USEFUN)								\
+        {												\
+	  _fsm_free(fsma, _fsm_next);									\
+	  break;											\
+	}												\
+													\
+	if ((fsma)->flags & FSM_ZERO_FREE)								\
+	  memset((void *)_fsm_next, 0, (fsma)->slot_size);						\
+													\
+	if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_lock(&(fsma)->lock) != 0))			\
+	{												\
+	  /* Complain, somehow--locking failed and we did not free pointer */				\
+	  break;											\
+	}												\
+													\
+	*_fsm_next = (fsma)->next_free;									\
+	(fsma)->next_free = _fsm_next;									\
+													\
+	if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))		\
+	{												\
+	  /* Complain, somehow--locking failed */							\
+	}												\
+      } while (0)
+
+#else /* HAVE_PTHREADS */
+
+#define fsm_alloc( fsma )									\
+     (												\
+      (!(fsma)->next_free || (fsma)->flags & (FSM_ZERO_ALLOC))					\
+      ? _fsm_alloc( fsma )									\
+      : ((fsma)->temp = (fsma)->next_free,							\
+	 (fsma)->next_free = *(__fsma_pointer *) (fsma)->next_free, (char *) (fsma)->temp)	\
+      )
+
+#define fsm_free( fsma, p )					\
+    do								\
+      {								\
+	__fsma_pointer *_fsm_next = (void *)(p);		\
+								\
+        if ((fsma)->flags & FSM_FREE_USEFUN)			\
+        { 							\
+	  _fsm_free(fsma, _fsm_next);				\
+	  break;						\
+	}							\
+								\
+	if ((fsma)->flags & FSM_ZERO_FREE)			\
+	  memset((void *)_fsm_next, 0, (fsma)->slot_size);	\
+								\
+	*_fsm_next = (fsma)->next_free;				\
+	(fsma)->next_free = _fsm_next;				\
+      } while (0)
+
+#endif /* HAVE_PTHREADS */
 
 #define fsm_size( fsma )	(fsma)->slot_size
-
-extern unsigned int fsma_slots_per_chunk;
 
 #endif 	/* __FSMA_H */
 

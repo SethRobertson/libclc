@@ -4,10 +4,10 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: rbt.c,v 1.3 2002/07/18 22:52:46 dupuy Exp $";
+static const char RCSid[] = "$Id: rbt.c,v 1.4 2003/04/01 04:40:57 seth Exp $";
 
-#include "bstimpl.h"
 #include "clchack.h"
+#include "bstimpl.h"
 
 /*
  * Transformation:

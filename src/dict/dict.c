@@ -4,13 +4,12 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dict.c,v 1.5 2002/07/18 22:52:46 dupuy Exp $";
+static const char RCSid[] = "$Id: dict.c,v 1.6 2003/04/01 04:40:56 seth Exp $";
 static const char version[] = VERSION;
 
-#include <unistd.h>
-#include <string.h>
-#include "dictimpl.h"
 #include "clchack.h"
+#include "dictimpl.h"
+#include "fsma.h"
 
 int dict_errno ;				/* Only for errors before we have a context */
 
@@ -50,9 +49,15 @@ dict_h __dict_create_error(char *caller, int flags, int error_code)
 
 
 
-int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders)
+/*
+ * Internal routine to verify create argument sanity
+ */
+int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders, int *fsma_flags)
 {
   int requested_order ;
+
+  if (fsma_flags)
+    *fsma_flags = 0;
 
   if ( BAD_ORDER( flags ) )
   {
@@ -96,11 +101,30 @@ int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function
   }
 #endif
 
+#ifdef HAVE_PTHREADS
+  // Do not need both NOCOALESCE and THREADED_MEMORY
+  if ( (flags & DICT_NOCOALESCE) && (flags & DICT_THREADED_MEMORY))
+    flags &= ~DICT_THREADED_MEMORY;
+
+  // Must have either NOCOALESCE or THREADED_MEMORY on with THREADED_SAFE
+  if ((flags & DICT_THREADED_SAFE) && !((flags & DICT_NOCOALESCE) || (flags & DICT_THREADED_MEMORY)))
+    flags |= DICT_THREADED_MEMORY;
+
+  if (fsma_flags && (flags & DICT_THREADED_MEMORY))
+    *fsma_flags = FSM_THREADED;
+#endif /* HAVE_PTHREADS */
+
+  if (fsma_flags && (flags & DICT_NOCOALESCE))
+    *fsma_flags = FSM_NOCOALESCE;
+
   return( TRUE ) ;
 }
 
 
 
+/*
+ * Internal routine to initialize some headers
+ */
 void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags)
 {
 	dhp->oo_comp = oo_comp ;
@@ -111,6 +135,9 @@ void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_
 
 
 
+/*
+ * Internal routine to return text error string for an error
+ */
 char *__dict_error_reason(int dicterrno)
 {
   int ctr;

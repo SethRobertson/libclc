@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dlltest.c,v 1.4 2001/11/05 19:31:45 seth Exp $" ;
+static const char RCSid[] = "$Id: dlltest.c,v 1.5 2003/04/01 04:40:57 seth Exp $" ;
 
 
 #ifndef NULL

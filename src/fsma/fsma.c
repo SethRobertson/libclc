@@ -4,19 +4,12 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.12 2002/11/11 22:54:00 jtt Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.13 2003/04/01 04:40:57 seth Exp $";
 static const char version[] = VERSION;
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <assert.h>
+#include "clchack.h"
 #include "fsma.h"
 #include "impl.h"
-#ifdef DEBUG
-#include <stdio.h>
-#endif
-#include "clchack.h"
 
 
 /*
@@ -37,6 +30,9 @@ unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 #ifdef COALESCE
 static fsma_h *coalesce = NULL;
 static int coalesce_size = 0;
+#ifdef HAVE_PTHREADS
+pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif /* HAVE_PTHREADS */
 #endif /* COALESCE */
 
 #ifndef FSMA_USE_MALLOC
@@ -89,6 +85,8 @@ PRIVATE void init_free_list  ( unsigned, unsigned, void * )  ;
 
 /*
  * Create a memory allocator
+ *
+ * THREADS: MT-SAFE
  */
 fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int flags)
 {
@@ -117,6 +115,15 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 
 
 #ifdef COALESCE
+
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_lock(&coalesce_lock) != 0)
+  {
+    // Error message, somehow
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
+
   if (!(flags & FSM_NOCOALESCE))
   {
     int cnt;
@@ -128,11 +135,33 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
       {
 	coalesce[cnt]->references++;
 	//jtt_printf("lazy allocating: %p\n", coalesce[cnt]);
-	return(coalesce[cnt]);
+
+	fp = coalesce[cnt];
+
+#ifdef HAVE_PTHREADS
+	if (pthread_mutex_unlock(&coalesce_lock) != 0)
+	{
+	  // Error message, somehow
+	}
+#endif /* HAVE_PTHREADS */
+
+#ifdef DEBUG
+	fprintf(stderr,"Coalesced %p with references %d\n", fp, coalesce[cnt]->references);
+#endif /*DEBUG*/
+	return(fp);
       }
     }
   }
+
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_unlock(&coalesce_lock) != 0)
+  {
+    // Error message, somehow
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
 #endif /* COALESCE */
+
 
   /*
    * Adjust memory allocation to prevent wasting space due to most
@@ -161,9 +190,11 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   init_free_list( nslots, slot_size, slots ) ;
 
 #ifdef DEBUG
-  fprintf( stderr, "Size = %d, nslots = %d\n", slot_size, nslots );
+  fprintf( stderr, "Size = %d, nslots = %d, slots %p\n", slot_size, nslots, slots );
+#ifdef SUPERDEBUG
   for ( tmp1 = 0 ; tmp1 < nslots ; tmp1++ )
-    fprintf( stderr, "slot[ %d ] = %p\n", tmp1, (*(char **) (slots + tmp1 * slot_size )));
+    fprintf( stderr, "slot[ %d ] = %p/%p\n", tmp1, ((char *)slots + tmp1 * slot_size), (*(char **)((char *)slots + tmp1 * slot_size )));
+#endif /* SUPERDEBUG */
 #endif /* DEBUG */
 
 
@@ -195,6 +226,17 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     header_inlined = FALSE ;
   }
 
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_init(&fp->lock, NULL) != 0)
+  {
+    // Error message, somehow
+    free(chp);
+    if (!header_inlined)
+      free(fp);
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
+
   //jtt_printf("allocating: %p\n", fp);
   fp->next_free = (POINTER) slots ;
   fp->chunk_chain = chp ;
@@ -208,7 +250,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 #endif /* COALESCE */
 	
 #ifdef DEBUG
-  fprintf( stderr, "Slots/chunk = %d\n", nslots ) ;
+  fprintf( stderr, "fp = %p, Slots/chunk = %d, flags = %x\n", fp, nslots, fp->flags ) ;
   fprintf( stderr, "Allocating chunk %p\n", chp ) ;
 #endif
 
@@ -216,12 +258,21 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   if (!(flags & FSM_NOCOALESCE))
   {
     fsma_h *tmp;
+
+#ifdef HAVE_PTHREADS
+    if (pthread_mutex_lock(&coalesce_lock) != 0)
+    {
+      // Error message, somehow
+      goto bypass_coalesce;
+    }
+#endif /* HAVE_PTHREADS */
+
     coalesce_size++;
     //jtt_printf("Expanding coalesce: %d\n", coalesce_size);
     if (!(tmp = realloc(coalesce, coalesce_size * sizeof(fsma_h))))
     {
 #ifdef DEBUG      
-      fprintf(stderr,"Could not realloc coalesce array: %s", strerror(errno));
+      perror("Could not realloc coalesce array\n");
 #endif /* DEBUG */
     }
     else
@@ -229,6 +280,15 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
       coalesce = tmp;
       coalesce[coalesce_size-1] = fp;
     }
+
+#ifdef HAVE_PTHREADS
+    if (pthread_mutex_unlock(&coalesce_lock) != 0)
+    {
+      // Error message, somehow
+      goto bypass_coalesce;
+    }
+  bypass_coalesce:
+#endif /* HAVE_PTHREADS */
   }
 #endif /* COALESCE */
 
@@ -239,6 +299,8 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 
 /*
  * Done with allocator--if everyone done, destroy it.
+ *
+ * THREADS: REENTRANT
  */
 void fsm_destroy(register fsma_h fp)
 {
@@ -248,10 +310,18 @@ void fsm_destroy(register fsma_h fp)
   register int chunk_size = fp->chunk_size ;
 
 #ifdef COALESCE
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_lock(&coalesce_lock) != 0)
+  {
+    // Error message, somehow
+  }
+#endif /* HAVE_PTHREADS */
+
   if (--fp->references)
   {
     //jtt_printf("lazy freeing: %p\n", fp);
-    return;
+    fp = NULL;
+    goto bypasscoalescefree;
   }
 
   //jtt_printf("freeing: %p\n", fp);
@@ -270,6 +340,17 @@ void fsm_destroy(register fsma_h fp)
     assert(cnt < coalesce_size);		// Or fsma ds are really messed up
     coalesce_size--;
   }
+
+ bypasscoalescefree:
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_unlock(&coalesce_lock) != 0)
+  {
+    // Error message, somehow
+  }
+#endif /* HAVE_PTHREADS */
+
+  if (!fp)
+    return;
 #endif /* COALESCE */
 
   /*
@@ -282,7 +363,7 @@ void fsm_destroy(register fsma_h fp)
       (void) memset( chp, 0, chunk_size ) ;
 
 #ifdef DEBUG
-    fprintf( stderr, "Freeing chunk %p\n", chp ) ;
+    fprintf( stderr, "Freeing chunk %p (fp %p)\n", chp, fp ) ;
 #endif
     free( chp ) ;
   }
@@ -300,10 +381,20 @@ void fsm_destroy(register fsma_h fp)
 /*
  * Slow case allocator -- handle memory clears, new
  * allocations, etc
+ *
+ * THREADS: THREAD_REENTRANT
  */
 void *_fsm_alloc(register fsma_h fp)
 {
-  register POINTER object ;
+  register POINTER object = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((fp->flags & FSM_THREADED) && (pthread_mutex_lock(&fp->lock) != 0))
+  {
+    /* Complain, somehow--locking failed */
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
 
   /*
    * Check if there are any slots on the free list
@@ -322,7 +413,7 @@ void *_fsm_alloc(register fsma_h fp)
 #endif /* DEBUG */
     if ( chp == NULL )
     {
-      return( NULL ) ;
+      goto done;
     }
 
 #ifdef DEBUG
@@ -349,21 +440,30 @@ void *_fsm_alloc(register fsma_h fp)
   if ( fp->flags & FSM_ZERO_ALLOC )
     (void) memset( object, 0, fp->slot_size ) ;
 
+ done:
+
+#ifdef HAVE_PTHREADS
+  if ((fp->flags & FSM_THREADED) && (pthread_mutex_unlock(&fp->lock) != 0))
+  {
+    /* Complain, somehow--locking failed */
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
+
   return( object ) ;
 }
 
 
 
 /*
- * Done with slot slow case
+ * Well, the slow case no longer exists--it is all the fast
+ * case...left for backwards compatability and debuggers
+ *
+ * THREADS: MT-SAFE
  */
 void _fsm_free(fsma_h fp, void *object)
 {
-  if ( fp->flags & FSM_ZERO_FREE )
-    (void) memset( object, 0, fp->slot_size ) ;
-
-  *(POINTER *)object = fp->next_free ;
-  fp->next_free = object ;
+  fsm_free(fp, object);
 }
 
 
@@ -371,6 +471,8 @@ void _fsm_free(fsma_h fp, void *object)
 /*
  * Ensure the free list is nice and initialized and that each element
  * points to the next.
+ *
+ * THREADS: REENTRANT
  */
 PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, void *slots)
 {
@@ -378,7 +480,8 @@ PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, voi
   register void *next ;
   register POINTER current ;
 
-  for ( i = 0, current = slots, next = (char *)slots + size ; i < nslots - 1 ;
+  for ( i = 0, current = slots, next = (char *)slots + size ;
+	i < nslots - 1 ;
 	i++, current = next, next = (char *)next + size )
     *(POINTER *)current = next ;
   *(POINTER *)current = NULL ;
@@ -392,6 +495,8 @@ PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, voi
 
 /*
  * Trivial memory allocator--wrapper around malloc
+ *
+ * THREADS: MT-SAFE
  */
 fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int flags)
 {
@@ -404,11 +509,20 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     return( NULL ) ;
   }
 
+#ifdef HAVE_PTHREADS
+  if (pthread_mutex_init(&fp->lock, NULL) != 0)
+  {
+    // Error message, somehow
+    free(fp);
+    return(NULL);
+  }
+#endif /* HAVE_PTHREADS */
+
   /* force fsm_alloc macro to invoke _fsm_alloc function */
   fp->next_free = NULL ;
 
-  /* FSM_ZERO_FREE forces fsm_free macro to invoke _fsm_free function */
-  fp->flags = flags | FSM_ZERO_FREE;
+  /* force fsm_free macro in invoke _fsm_free function */
+  fp->flags = flags | FSM_FREE_USEFUN;
 
   /*
    * Make sure that the slot_size is a multiple of the pointer size
@@ -436,6 +550,8 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 
 /*
  * Trivial memory allocator destruction function
+ *
+ * THREADS: REENTRANT
  */
 void fsm_destroy(register fsma_h fp)
 {
@@ -447,6 +563,8 @@ void fsm_destroy(register fsma_h fp)
 
 /*
  * Trivial memory allocator - allocate memory via malloc
+ *
+ * THREADS: MT-SAFE
  */
 void *_fsm_alloc(register fsma_h fp)
 {
@@ -468,13 +586,13 @@ void *_fsm_alloc(register fsma_h fp)
 
 /*
  * Trivial memory allocator -- free memory
+ *
+ * THREADS: MT-SAFE
  */
 void _fsm_free(fsma_h fp, void *object)
 {
-#ifdef REALLY_WANT_FREE_ZERO
   if ( fp->flags & FSM_ZERO_FREE )
     (void) memset( object, 0, fp->slot_size ) ;
-#endif /* REALLY_WANT_FREE_ZERO */
 
   free ( object ) ;
 }

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: dllimpl.h,v 1.1 2001/05/26 22:04:49 seth Exp $
+ * $Id: dllimpl.h,v 1.2 2003/04/01 04:40:57 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -16,7 +16,7 @@ struct list_node
 {
 	struct list_node	*next ;
 	struct list_node	*prev ;
-	dict_obj				obj ;
+	dict_obj		obj ;
 } ;
 
 typedef struct list_node node_s ;
@@ -36,9 +36,9 @@ typedef struct list_node node_s ;
  * The oo_compare function is used for insertions and deletions.
  * The ko_compare function is used in searches.
  * These functions are expected to return:
- *				a negative value 	if		key(o1) < key(o2)
- *				0						if 	key(o1) = key(o2)
- *				a positive value 	if		key(o1) > key(o2)
+ *	a negative value 	if	key(o1) < key(o2)
+ *	0			if 	key(o1) = key(o2)
+ *	a positive value 	if	key(o1) > key(o2)
  *
  *
  * The list is sorted according to some key. The package does not
@@ -55,12 +55,12 @@ typedef struct list_node node_s ;
  * 	c. To avoid bad hints, dll_delete sets the DATA field of a 
  *			list_node to NULL.
  * 	d. We do not allow insertions of NULL.
- *		e. An operation that uses/consults a hint always clears it or resets it.
+ *	e. An operation that uses/consults a hint always clears it or resets it.
  *
  *   --------------------------------------------------------------------
  *  | OPERATIONS |                        HINTS                          |
  *  |------------|-------------------------------------------------------|
- *  |	        	  |    SEARCH    |    SUCCESSOR		  |		PREDECESSOR  |
+ *  |	     	 |    SEARCH    |    SUCCESSOR	     |    PREDECESSOR    |
  *  |------------|--------------|--------------------|-------------------|
  *  | insert     |       X      |        X           |         X         |
  *  | delete     | USE & CLEAR  |      CLEAR         |       CLEAR       |
@@ -85,24 +85,31 @@ struct hints
 
 struct dll_iterator
 {
-	node_s					*next ;
+	node_s			*next ;
 	enum dict_direction	direction ;
 } ;
 
 struct dll_header
 {
 	struct dict_header 	dh ;
-	struct hints 			hint ;
-	fsma_h 					alloc ;						/* FSM allocator */
-	node_s					*head ;
+	struct hints 		hint ;
+	fsma_h 			alloc ;		/* FSM allocator */
+	node_s			*head ;
+#ifdef HAVE_PTHREADS
+	u_int			flags;
+        pthread_mutex_t		lock;
+	int			iter_cnt;
+	struct dll_iterator	**iter ;
+#else /* HAVE_PTHREADS */
 	struct dll_iterator	iter ;
+#endif /* HAVE_PTHREADS */
 } ;
 
 typedef struct dll_header header_s ;
 
-#define DHP( hp )					(&(hp->dh))
-#define LHP( p )					((struct dll_header *) (p))
+#define DHP( hp )		(&(hp->dh))
+#define LHP( p )		((struct dll_header *) (p))
 
-#define HINT_CLEAR( hp, hint_name )		hp->hint.hint_name = hp->head
+#define HINT_CLEAR( hp, hint_name )	hp->hint.hint_name = hp->head
 
 

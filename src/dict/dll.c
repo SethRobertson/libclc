@@ -4,32 +4,49 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.8 2002/09/05 19:19:21 seth Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.9 2003/04/01 04:40:57 seth Exp $";
 
 #include <stdlib.h>
-#include "dllimpl.h"
 #include "clchack.h"
+#include "dllimpl.h"
 
+
+
+/*
+ * Create and initialize the DLL header
+ *
+ * THREADS: MT_SAFE (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
 {
   header_s			*hp ;
   char				*id = "dll_create" ;
+  int				 fsma_flags = 0;
 
   if (!(flags & (DICT_ORDERED|DICT_UNORDERED)))
     flags |= DICT_ORDERED;			// Ordered by default
 
-  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED | DICT_UNORDERED ) )
+  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED | DICT_UNORDERED, &fsma_flags ) )
     return( NULL_HANDLE ) ;
 
   hp = (header_s *) malloc( sizeof( header_s ) ) ;
   if ( hp == NULL )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 	
+#ifdef HAVE_PTHREADS
+  hp->flags = flags;
+
+  if (pthread_mutex_init(&(hp->lock), NULL) != 0)
+  {
+    free( (char *)hp ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
+#endif /* HAVE_PTHREADS */
+
   /*
    * Create an allocator
    */
-  hp->alloc = fsm_create( sizeof( node_s ), 0,
-			  ( flags & DICT_NOCOALESCE ) ? FSM_NOCOALESCE : FSM_NOFLAGS ) ;
+  hp->alloc = fsm_create( sizeof( node_s ), 0, fsma_flags);
   if ( hp->alloc == NULL )
   {
     free( (char *)hp ) ;
@@ -58,28 +75,38 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
   HINT_CLEAR( hp, last_successor ) ;
   HINT_CLEAR( hp, last_predecessor ) ;
 
+#ifdef HAVE_PTHREADS
+  hp->iter_cnt = 0;
+  hp->iter = NULL;
+#else /* HAVE_PTHREADS */
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
   /* Make sure iteration stuff is initialized too. */
   dll_iterate(hp, DICT_FROM_START);
-#endif
+#endif /* SAFE_ITERATE || FAST_ACTIONS */
+#endif /* HAVE_PTHREADS */
 
   return( (dict_h) hp ) ;
 }
 
 
 
+/*
+ * Destroy a dll and contents
+ *
+ * THREADS: MT_SAFE (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 void dll_destroy(dict_h handle)
 {
   header_s	*hp	= LHP( handle ) ;
   dheader_s	*dhp	= DHP( hp ) ;
-
 #ifdef COALESCE
-  node_s *x, *y;
+  node_s *x = NULL;
+  node_s *y = NULL;
 
   if (!(dhp->flags & DICT_NOCOALESCE))
   {
     NEXT(PREV(hp->head)) = NULL;		/* Break dll loop */
-    for(x=hp->head;x;x=y)
+    for (x=hp->head; x; x=y)
     {
       y = NEXT(x);
       fsm_free(hp->alloc, x);
@@ -92,12 +119,23 @@ void dll_destroy(dict_h handle)
     fsm_free(hp->alloc, hp->head);
   }
 
+#ifdef HAVE_PTHREADS
+  if (hp->iter)
+    free(hp->iter);
+  pthread_mutex_destroy(&hp->lock);
+#endif /* HAVE_PTHREADS */
+
   fsm_destroy( hp->alloc ) ;
   free( (char *)hp ) ;
 }
 
 
 
+/*
+ * Internal common routine which actually performs insert
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register dict_obj object, dict_obj *objectp, int flags)
 {
   register dheader_s	*dhp = DHP( hp ) ;
@@ -105,9 +143,15 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
   register node_s	*np = NULL ;
   node_s		*newnode ;
   node_s		*before, *after ;
+  int			errret ;
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if (!unordered_list || must_be_uniq)
   {
@@ -138,8 +182,8 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
 	{
 	  if ( objectp != NULL )
 	    *objectp = OBJ( np ) ;
-	  ERRNO( dhp ) = DICT_EEXISTS ;
-	  return( DICT_ERR ) ;
+	  errret = DICT_EEXISTS ;
+	  goto error;
 	}
 	else
 	  break ;
@@ -156,7 +200,10 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
 
   newnode = (node_s *) fsm_alloc( hp->alloc ) ;
   if ( newnode == NULL )
-    HANDLE_ERROR( dhp, DICT_ENOMEM, DICT_ERR ) ;
+  {
+    errret = DICT_ENOMEM;
+    goto error;
+  }
 
   if (flags & DLL_POSTPEND)
   {
@@ -181,10 +228,30 @@ PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register
   OBJ( newnode ) = object ;
   if ( objectp != NULL )
     *objectp = object ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return( DICT_OK ) ;
+
+ error:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, errret, DICT_ERR ) ;
 }
 
 
+
+/*
+ * Normal insert routine
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 int dll_insert(dict_h handle, dict_obj object)
 {
   header_s		*hp = LHP( handle ) ;
@@ -196,6 +263,11 @@ int dll_insert(dict_h handle, dict_obj object)
 
 
 
+/*
+ * Insert with duplicate return
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 int dll_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
   header_s		*hp	= LHP( handle ) ;
@@ -207,6 +279,12 @@ int dll_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 }
 
 
+
+/*
+ * Insert where current object is postpended to dups
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 int dll_append(dict_h handle, dict_obj object)
 {
   header_s		*hp = LHP( handle ) ;
@@ -218,6 +296,11 @@ int dll_append(dict_h handle, dict_obj object)
 
 
 
+/*
+ * For API completeness.  Same as insert_uniq()
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 int dll_append_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
   header_s		*hp	= LHP( handle ) ;
@@ -229,31 +312,61 @@ int dll_append_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 }
 
 
+
+/*
+ * Delete a node, given the object
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 int dll_delete(dict_h handle, register dict_obj object)
 {
   register header_s	*hp	= LHP( handle ) ;
   dheader_s		*dhp	= DHP( hp ) ;
   register node_s	*np=NULL ;
   node_s		*after, *before ;
+#ifdef HAVE_PTHREADS
+  int			itercnt;
+  node_s		*tmp = NULL;
+#else /* HAVE_PTHREADS */
 #ifdef SAFE_ITERATE
   struct dll_iterator	*dip		= &LHP( handle )->iter ;
 #endif
-
+#endif /* HAVE_PTHREADS */
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-#ifdef SAFE_ITERATE	
-  if (dip->next && (OBJ(dip->next) == object) )
-  {
-    dll_nextobj(handle, dip);
-  }
-#endif
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
 #ifdef FAST_ACTIONS
+#ifdef HAVE_PTHREADS
+  /* See if the interator contains a hint as to where obj might be */
+  for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+  {
+    if (hp->iter[itercnt] && hp->iter[itercnt]->next && hp->iter[itercnt]->next != hp->head)
+    {
+      if (hp->iter[itercnt]->direction == DICT_FROM_START && (tmp = PREV(hp->iter[itercnt]->next)) && OBJ(tmp) == object)
+      {
+	np = tmp;
+	break;
+      }
+      if (hp->iter[itercnt]->direction == DICT_FROM_END && (tmp = NEXT(hp->iter[itercnt]->next)) && OBJ(tmp) == object)
+      {
+	np = tmp;
+	break;
+      }
+    }
+  }
+  if (np)
+    ; /* Intentionally blank */
+#else /* HAVE_PTHREADS */
   if ( dip->next && PREV(dip->next) && (OBJ( PREV(dip->next))==object) )
     np = PREV(dip->next);
-  if ( OBJ( hp->hint.last_predecessor ) == object )
+#endif /* HAVE_PTHREADS */
+  else if ( OBJ( hp->hint.last_predecessor ) == object )
     np = hp->hint.last_predecessor;
   else if ( OBJ( hp->hint.last_successor ) == object )
     np = hp->hint.last_successor;
@@ -262,14 +375,36 @@ int dll_delete(dict_h handle, register dict_obj object)
     if ( OBJ( hp->hint.last_search ) == object )
       np = hp->hint.last_search ;
     else
+    {
       for ( np = NEXT( hp->head ) ;; np = NEXT( np ) )
 	if ( np == hp->head )
 	{
-	  ERRNO( dhp ) = DICT_ENOTFOUND ;
-	  return( DICT_ERR ) ;
+	  goto error;
 	}
 	else if ( object == OBJ( np ) )
 	  break ;
+    }
+
+#ifdef SAFE_ITERATE	
+#ifdef HAVE_PTHREADS
+  // See if the iterator is pointing to the dying node
+  for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+  {
+    if (hp->iter[itercnt] && hp->iter[itercnt]->next == np)
+    {
+      if ( hp->iter[itercnt]->direction == DICT_FROM_START )
+	hp->iter[itercnt]->next = NEXT( hp->iter[itercnt]->next ) ;
+      else
+	hp->iter[itercnt]->next = PREV( hp->iter[itercnt]->next ) ;
+    }
+  }
+#else /* HAVE_PTHREADS */
+  if (dip->next && (OBJ(dip->next) == object) )
+  {
+    dll_nextobj(handle, dip);
+  }
+#endif /* HAVE_PTHREADS */
+#endif /* SAFE_ITERATE */
 
   /*
    * First disconnect, then release
@@ -288,16 +423,41 @@ int dll_delete(dict_h handle, register dict_obj object)
   HINT_CLEAR( hp, last_successor ) ;
   HINT_CLEAR( hp, last_predecessor ) ;
 
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return( DICT_OK ) ;
+
+ error:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, DICT_ENOTFOUND, DICT_ERR ) ;
 }
 
 
+
+/*
+ * Try to find the node for a key
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_obj dll_search(dict_h handle, register dict_key key)
 {
   register header_s	*hp		= LHP( handle ) ;
   register dheader_s	*dhp		= DHP( hp ) ;
   register bool_int	unordered_list	= ( dhp->flags & DICT_UNORDERED ) ;
-  register node_s	*np ;
+  register node_s	*np;
+  dict_obj		ret = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   for ( np = NEXT( hp->head ) ; np != hp->head ; np = NEXT( np ) )
   {
@@ -306,13 +466,21 @@ dict_obj dll_search(dict_h handle, register dict_key key)
     if ( v == 0 )
     {
       hp->hint.last_search = np ;		/* update search hint */
-      return( OBJ( np ) ) ;
+      ret = OBJ(np);
+      break;
     }
     else if ( v < 0 && ! unordered_list )
       break ;
   }
-  return( NULL_OBJ ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
+
 
 
 /*
@@ -320,14 +488,29 @@ dict_obj dll_search(dict_h handle, register dict_key key)
  * NULL if the list is empty.
  *
  * NOTE: here we depend on the fact that OBJ( head ) == NULL
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj dll_minimum(dict_h handle)
 {
   header_s		*hp = LHP( handle ) ;
   node_s		*np = NEXT( hp->head ) ;
+  dict_obj		ret;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   hp->hint.last_successor = np ;			/* update hint */
-  return( OBJ( np ) ) ;
+
+  ret = OBJ( np );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+  return( ret );
 }
 
 
@@ -336,14 +519,29 @@ dict_obj dll_minimum(dict_h handle)
  * NULL if the list is empty.
  *
  * NOTE: here we depend on the fact that OBJ( head ) == NULL
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj dll_maximum(dict_h handle)
 {
   header_s		*hp = LHP( handle ) ;
   node_s		*np = PREV( hp->head ) ;
+  dict_obj		ret;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   hp->hint.last_predecessor = np ;			/* update hint */
-  return( OBJ( np ) ) ;
+  ret = OBJ( np );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
@@ -353,6 +551,8 @@ dict_obj dll_maximum(dict_h handle)
  * list.
  *
  * NOTE: here we depend on the fact that OBJ( head ) == NULL
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj dll_successor(dict_h handle, register dict_obj object)
 {
@@ -360,9 +560,15 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   register node_s	*np ;
   node_s		*successor ;
+  dict_obj		ret;
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( OBJ( hp->hint.last_successor ) == object )
     successor = NEXT( hp->hint.last_successor ) ;
@@ -373,11 +579,26 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
       if ( OBJ( np ) == object )
 	break ;
     if ( np == hp->head )
-      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+      goto error;
     successor = NEXT( np ) ;
   }
   hp->hint.last_successor = successor ;
-  return( OBJ( successor ) ) ;
+  ret = OBJ( successor );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
+
+ error:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 }
 
 
@@ -388,6 +609,8 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
  * list.
  *
  * NOTE: here we depend on the fact that OBJ( head ) == NULL
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj dll_predecessor(dict_h handle, register dict_obj object)
 {
@@ -395,9 +618,15 @@ dict_obj dll_predecessor(dict_h handle, register dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   node_s		*predecessor ;
   register node_s	*np ;
+  dict_obj		ret;
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( OBJ( hp->hint.last_predecessor ) == object )
     predecessor = PREV( hp->hint.last_predecessor ) ;
@@ -408,25 +637,56 @@ dict_obj dll_predecessor(dict_h handle, register dict_obj object)
       if ( OBJ( np ) == object )
 	break ;
     if ( np == hp->head )
-      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+      goto error;
     predecessor = PREV( np ) ;
   }
   hp->hint.last_predecessor = predecessor ;
-  return( OBJ( predecessor ) ) ;
+  ret = OBJ( predecessor );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return( ret );
+
+ error:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
 }
 
 
+
+/*
+ * Start iterating from start/end of list
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_iter dll_iterate(dict_h handle, enum dict_direction direction)
 {
   register header_s	*hp	= LHP( handle ) ;
+#ifdef HAVE_PTHREADS
   dheader_s		*dhp	= DHP( hp ) ;
+  struct dll_iterator	*dip;
+  int itercnt;
+#else /* HAVE_PTHREADS */
   struct dll_iterator	*dip	= &hp->iter ;
+#endif /* HAVE_PTHREADS */
 
-  /* TODO -- create dynamically allocated iterator */
+#ifdef HAVE_PTHREADS
+  if (!(dip = malloc(sizeof(*dip))))
+    HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
+#endif /* HAVE_PTHREADS */
 
+#ifdef UNORDERED_LISTS_HAVE_NO_ORDER
   if ( dhp->flags & DICT_UNORDERED )
     dip->direction = DICT_FROM_START ;
   else
+#endif /*UNORDERED_LISTS_HAVE_NO_ORDER*/
     dip->direction = direction ;
 
   if ( dip->direction == DICT_FROM_START )
@@ -434,33 +694,130 @@ dict_iter dll_iterate(dict_h handle, enum dict_direction direction)
   else
     dip->next = PREV( hp->head ) ;
 
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+
+  for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+  {
+    if (!hp->iter[itercnt])
+    {
+      hp->iter[itercnt] = dip;
+      goto done;
+    }
+  }
+
+  if (dip)
+  {
+    struct dll_iterator **new;
+    if (!(new = realloc(hp->iter, sizeof(struct tree_iterator *)*(hp->iter_cnt+1))))
+    {
+      free(dip);
+      goto error;
+    }
+    hp->iter = new;
+    hp->iter[hp->iter_cnt] = dip;
+    hp->iter_cnt++;
+  }
+
+ done:
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return(dip);
+
+#ifdef HAVE_PTHREADS
+ error:
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+
+  HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
+#endif /* HAVE_PTHREADS */
 }
 
 
+
+/*
+ * Clean up a no-longer-used iterator
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 void dll_iterate_done(dict_h handle, dict_iter iter)
 {
-  /* TODO -- delete dynamically allocated iterator */
+#ifdef HAVE_PTHREADS
+  register header_s	*hp	= LHP( handle ) ;
+  int			itercnt;
+
+  if (iter)
+  {
+    if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+      abort();
+
+    for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+    {
+      if (hp->iter[itercnt] == iter)
+      {
+	hp->iter[itercnt] = NULL;
+	break;
+      }
+    }
+
+    if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+      abort();
+
+    free(iter);
+  }
+#endif /* HAVE_PTHREADS */
 
   return;
 }
 
 
+
+/*
+ * Iterate to the next object
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_obj dll_nextobj(dict_h handle, dict_iter iter)
 {
+#ifdef HAVE_PTHREADS
+  register header_s	*hp	= LHP( handle ) ;
+#endif /* HAVE_PTHREADS */
   struct dll_iterator	*dip		= iter ;
-  node_s		*current	= dip->next ;
+  node_s		*current;
+  dict_obj		ret;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  current = dip->next;
 
   if ( dip->direction == DICT_FROM_START )
     dip->next = NEXT( current ) ;
   else
     dip->next = PREV( current ) ;
-  return( OBJ( current ) ) ;
+
+  ret = OBJ( current );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
 
-
+/*
+ * Return the error of the reason?
+ *
+ * THREADS: UNSAFE
+ */
 char *dll_error_reason(dict_h handle, int *errnop)
 {
   header_s	*hp		= LHP( handle ) ;

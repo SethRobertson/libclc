@@ -8,8 +8,10 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.9 2002/11/11 22:53:59 jtt Exp $
+ * $Id: dict.h,v 1.10 2003/04/01 04:40:56 seth Exp $
  */
+
+
 
 /*
  * Return values
@@ -17,17 +19,23 @@
 #define DICT_OK					0
 #define DICT_ERR				(-1)
 
+
+
 /*
  * Flags
  */
 #define DICT_NOFLAGS				0x0
 #define DICT_NOCOALESCE				0x1
-#define DICT_THREAD_NOCOALESCE			DICT_NOCOALESCE	// For easier modification later
+#define DICT_THREAD_NOCOALESCE			DICT_NOCOALESCE
 #define DICT_UNIQUE_KEYS			0x2
 #define DICT_UNORDERED				0x4
 #define DICT_ORDERED				0x8
 #define DICT_BALANCED_TREE			0x10
 #define DICT_HT_STRICT_HINTS			0x20
+#define DICT_THREADED_SAFE			0x40 // protect against multiple threads on same CLC
+#define DICT_THREADED_MEMORY			0x80 // protect against multiple threads on different CLC
+
+
 
 /*
  * Error values
@@ -44,6 +52,7 @@
 #define DICT_EORDER				9
 #define DICT_EBADORDER				10
 
+
 typedef int (*dict_function)(void *, void *) ;
 typedef void *dict_obj ;
 typedef void *dict_iter ;
@@ -57,6 +66,10 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
 /*
  * Delete all of the elements in a CLC dict datastructure (of type "prefix").
  * For use only by DICT_NUKE_CONTENTS and DICT_NUKE. 
+ *
+ * THREADS: REENTRANT (assuming different dictionaries)
+ *
+ * <TODO>Can we figure out this is a bst and turn off balanced_tree?</TODO>
  *
  * <TRICKY>Do not change this macro, you will surely regret it.</TRICKY>
  */
@@ -76,6 +89,9 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
  * User supplies the code to actually free the objects in the dict.
  * Errcode is unlikely to do anything very useful--just log messages--but is
  * also not likely to ever execute.
+ *
+ * THREADS: REENTRANT (assuming different dictionaries)
+ *
  */
 #define DICT_NUKE_CONTENTS(Q, prefix, ptr, errcode, code)	\
  do								\
@@ -89,6 +105,9 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
  * User supplies the code to actually free the objects in the dict.
  * Errcode is unlikely to do anything very useful--just log messages--but is
  * also not likely to ever execute.
+ *
+ * THREADS: REENTRANT (assuming different dictionaries)
+ *
  */
 #define DICT_NUKE(Q, prefix, ptr, errcode, code)		\
  do								\

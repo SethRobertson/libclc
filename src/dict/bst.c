@@ -4,21 +4,25 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.11 2002/07/24 21:20:15 seth Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.12 2003/04/01 04:40:56 seth Exp $";
 
-#include <stdlib.h>
-#include "bstimpl.h"
 #include "clchack.h"
+#include "bstimpl.h"
 
 #define NODE_ALLOC( hp )               TNP( fsm_alloc( (hp)->alloc ) )
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
 
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
+PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x);
+
+
 
 /*
  * Find the minimum node of the subtree with root 'start'
  */
 #define FIND_MINIMUM( hp, start, x )	x = start; while ( LEFT( x ) != NIL( hp ) ) x = LEFT( x )
+
+
 
 /*
  * Find the maximum node of the subtree with root 'start'
@@ -30,6 +34,8 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
 /*
  * Returns a pointer to the node that contains the specified object
  * or NIL( hp ) if the object is not found under the node
+ *
+ * THREADS: REENTRANT
  */
 PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 {
@@ -64,9 +70,12 @@ PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 }
 
 
+
 /*
  * Returns a pointer to the node that contains the specified object
  * or NIL( hp ) if the object is not found
+ *
+ * THREADS: REENTRANT
  */
 PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
 {
@@ -79,6 +88,8 @@ PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
 
 /*
  * Create a tree (either simple or red-black)
+ *
+ * THREADS: MT_SAFE (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
 {
@@ -86,14 +97,25 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
   unsigned		tnode_size ;
   bool_int 		balanced_tree	= flags & DICT_BALANCED_TREE ;
   char			*id = "bst_create" ;
+  int			fsm_flags = 0;
 
-  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED ) )
+  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED, &fsm_flags ) )
     return( NULL_HANDLE ) ;
 
   hp = THP( malloc( sizeof( header_s ) ) ) ;
   if ( hp == NULL_HEADER )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
-	
+
+#ifdef HAVE_PTHREADS
+  hp->flags = flags;
+
+  if (pthread_mutex_init(&(hp->lock), NULL) != 0)
+  {
+    free( (char *)hp ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
+#endif /* HAVE_PTHREADS */
+
   /*
    * Create an allocator
    */
@@ -101,8 +123,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
   if ( balanced_tree )
     tnode_size = sizeof( struct balanced_tree_node ) ;
 
-  hp->alloc = fsm_create( tnode_size, 0,
-			  ( flags & DICT_NOCOALESCE ) ? FSM_NOCOALESCE : FSM_NOFLAGS ) ;
+  hp->alloc = fsm_create( tnode_size, 0, fsm_flags ) ;
   if ( hp->alloc == NULL )
   {
     free( (char *)hp ) ;
@@ -127,10 +148,15 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
   HINT_CLEAR( hp, last_successor ) ;
   HINT_CLEAR( hp, last_predecessor ) ;
 
+#ifdef HAVE_PTHREADS
+  hp->tip_cnt = 0;
+  hp->tip = NULL;
+#else /* HAVE_PTHREADS */
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
   /* Make sure iteration stuff is initialized too. */
   bst_iterate(hp, DICT_FROM_START);
-#endif
+#endif /* SAVE_ITERATE || FAST_ACTIONS */
+#endif /* HAVE_PTHREADS */
   return( (dict_h) hp ) ;
 }
 
@@ -139,6 +165,8 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
 #ifdef COALESCE
 /*
  * recursive delete
+ *
+ * THREADS: REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 static void bst_redelete(header_s *hp, tnode_s *np)
 {
@@ -158,6 +186,8 @@ static void bst_redelete(header_s *hp, tnode_s *np)
 
 /*
  * Destroy a tree
+ *
+ * THREADS: REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 void bst_destroy(dict_h handle)
 {
@@ -170,6 +200,13 @@ void bst_destroy(dict_h handle)
 #endif /* COALESCE */
 
   fsm_destroy( hp->alloc ) ;
+
+#ifdef HAVE_PTHREADS
+  pthread_mutex_destroy(&hp->lock);
+  if (hp->tip)
+    free(hp->tip);
+#endif /* HAVE_PTHREADS */
+
   free( (char *)hp ) ;
 }
 
@@ -177,17 +214,27 @@ void bst_destroy(dict_h handle)
 
 /*
  * Common code for tree insertions
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_obj *objectp)
 {
   dheader_s		*dhp	= DHP( hp ) ;
-  register tnode_s	*x	= ROOT( hp ) ;
+  register tnode_s	*x;
   register tnode_s	*px	= ANCHOR( hp ) ;
   tnode_s		*newnode ;
   register int 		v ;
+  int			ret = DICT_OK;
 
   if ( object == NULL_OBJ )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  x = ROOT( hp ) ;
 
   /*
    * On exit from this loop, 'px' will point to a leaf node
@@ -209,7 +256,8 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
 	if ( objectp != NULL )
 	  *objectp = OBJ( x ) ;
 	ERRNO( dhp ) = DICT_EEXISTS ;
-	return( DICT_ERR ) ;
+	ret = DICT_ERR;
+	goto done;
       }
       else
 	v = -1 ;			/* i.e. LESS THAN */
@@ -226,7 +274,8 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
   if ( newnode == NULL_NODE )
   {
     ERRNO( dhp ) = DICT_ENOMEM ;
-    return( DICT_ERR ) ;
+    ret = DICT_ERR;
+    goto done;
   }
   LEFT( newnode ) = RIGHT( newnode ) = NIL( hp ) ;
   OBJ( newnode ) = object ;
@@ -243,24 +292,34 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
   if ( objectp != NULL )
     *objectp = object ;
 
-  return( DICT_OK ) ;
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+  return( ret ) ;
 }
+
 
 
 /*
  * Insert the specified object in the tree
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 int bst_insert(dict_h handle, dict_obj object)
 {
   header_s *hp = THP( handle ) ;
 
-  return( tree_insert( hp,
-		       hp->dh.flags & DICT_UNIQUE_KEYS, object, (dict_obj *)NULL ) ) ;
+  return( tree_insert( hp, hp->dh.flags & DICT_UNIQUE_KEYS, object, (dict_obj *)NULL ) ) ;
 }
+
 
 
 /*
  * Insert the specified object in the tree only if it is unique
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 int bst_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
@@ -268,8 +327,11 @@ int bst_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 }
 
 
+
 /*
  * Delete the specified object
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 int bst_delete(dict_h handle, dict_obj object)
 {
@@ -279,12 +341,14 @@ int bst_delete(dict_h handle, dict_obj object)
   tnode_s		*delnp	= NULL ;
   register tnode_s	*y, *x ;
   tnode_s		*py ;
+  int			ret = DICT_OK;
+#ifdef HAVE_PTHREADS
+  int			tipcnt;
+#else /* HAVE_PTHREADS */
 #ifdef SAFE_ITERATE
-  struct tree_iterator	*tip		= &THP( handle )->iter ;
-#ifdef PARANOID_ITERATE
-  dict_obj		safe_nextobj	= NULL;
-#endif /* PARANOID_ITERATE */
+  struct tree_iterator	*tip = &hp->iter ;
 #endif /* SAFE_ITERATE */
+#endif /* HAVE_PTHREADS */
 #ifdef FAST_ACTIONS
   tnode_s *tmp=NULL;
 #endif /* FAST_ACTIONS */
@@ -292,14 +356,43 @@ int bst_delete(dict_h handle, dict_obj object)
   if ( object == NULL_OBJ )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
 #ifdef FAST_ACTIONS
+#ifdef HAVE_PTHREADS
+  /* See if the interator contains a hint as to where obj might be */
+  for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
+  {
+    if (hp->tip[tipcnt] && hp->tip[tipcnt]->next && hp->tip[tipcnt]->next != ANCHOR(hp))
+    {
+      if (hp->tip[tipcnt]->direction == DICT_FROM_START && (tmp = previous_node(hp, hp->tip[tipcnt]->next)) && OBJ(tmp) == object)
+      {
+	delnp = tmp;
+	break;
+      }
+      if (hp->tip[tipcnt]->direction == DICT_FROM_END && (tmp = next_node(hp, hp->tip[tipcnt]->next)) && OBJ(tmp) == object)
+      {
+	delnp = tmp;
+	break;
+      }
+    }
+  }
+  if (delnp)
+    ; // Naught
+  else
+#else /* HAVE_PTHREADS */
   if ( tip->next && tip->next != ANCHOR(hp) && tip->next != NIL(hp) &&
        (tmp=previous_node(hp, tip->next)) &&
        (OBJ(tmp)==object))
   {
     delnp = tmp;
   }
-  else  if ( HINT_MATCH( hp, last_predecessor, object ) )
+  else
+#endif /* HAVE_PTHREADS */
+   if ( HINT_MATCH( hp, last_predecessor, object ) )
     delnp = HINT_GET( hp, last_predecessor ) ;
   else if ( HINT_MATCH( hp, last_successor, object ) )
     delnp = HINT_GET( hp, last_successor ) ;
@@ -313,22 +406,32 @@ int bst_delete(dict_h handle, dict_obj object)
       if ( delnp == null )
       {
 	ERRNO( dhp ) = DICT_ENOTFOUND ;
-	return( DICT_ERR ) ;
+	ret = DICT_ERR;
+	goto done;
       }
     }
 
 #ifdef SAFE_ITERATE	
+#ifdef HAVE_PTHREADS
+  for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
+  {
+    if (hp->tip[tipcnt] && hp->tip[tipcnt]->next && OBJ(hp->tip[tipcnt]->next) == object)
+    {
+      if ( hp->tip[tipcnt]->direction == DICT_FROM_START )
+	hp->tip[tipcnt]->next = next_node( hp, hp->tip[tipcnt]->next ) ;
+      else
+	hp->tip[tipcnt]->next = previous_node( hp, hp->tip[tipcnt]->next ) ;
+    }
+  }
+#else /* HAVE_PTHREADS */
   if (tip->next)
   {
     if (OBJ(tip->next) == object)
     {
       bst_nextobj(handle, tip);
     }
-#ifdef PARANOID_ITERATE
-    if (tip->next)
-      safe_nextobj = OBJ(tip->next);
-#endif /* PARANOID_ITERATE */
   }
+#endif /* HAVE_PTHREADS */
 #endif /* SAFE_IITERATE */
 
   HINT_CLEAR( hp, last_search ) ;
@@ -353,13 +456,23 @@ int bst_delete(dict_h handle, dict_obj object)
     FIND_MINIMUM( hp, RIGHT( delnp ), y ) ;
     OBJ( delnp ) = OBJ( y ) ;
 #ifdef SAFE_ITERATE
+#ifdef HAVE_PTHREADS
+    /* Update the iterator if it is pointing at the moved object */
+    for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
+    {
+      if ( hp->tip[tipcnt]->next == y )
+      {
+	hp->tip[tipcnt]->next = delnp;
+      }
+    }
+#else /* HAVE_PTHREADS */
     /* Update the iterator if it is pointing at the moved object */
     if ( tip->next == y )
     {
       tip->next = delnp;
     }
+#endif /* HAVE_PTHREADS */
 #endif /* SAFE_ITERATE */
-
   }
 
   /*
@@ -383,30 +496,6 @@ int bst_delete(dict_h handle, dict_obj object)
   else
     RIGHT( py ) = x ;
 
-#ifdef PARANOID_ITERATE
-  if (tip->next)
-  {
-    // These errors should not happen
-    if ((OBJ(tip->next) != safe_nextobj) || tip->next == y)
-    {
-      // Find bloody object
-
-      if (!safe_nextobj)
-	tip->next = NULL;
-      else
-      {
-	// Search for safeobj
-	while ( tip->next != null )
-	{
-	  if (OBJ( tip->next ) == safe_nextobj)
-	    break;
-	  tip->next = ( (*dhp->oo_comp)( safe_nextobj, OBJ( tip->next ) ) < 0 ) ? LEFT( tip->next ) : RIGHT( tip->next ) ;
-	}
-      }
-    }
-  }
-#endif /* PARANOID_ITERATE */
-
   /*
    * If this is a balanced tree and we unbalanced it, do the necessary repairs
    */
@@ -415,21 +504,36 @@ int bst_delete(dict_h handle, dict_obj object)
 
   NODE_FREE( hp, y ) ;
 
-  return( DICT_OK ) ;
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+  return( ret ) ;
 }
 
 
 
 /*
  * Find an object with the specified key
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj bst_search(dict_h handle, dict_key key)
 {
   header_s		*hp	= THP( handle ) ;
   dheader_s		*dhp	= DHP( hp ) ;
-  register tnode_s	*np	= ROOT( hp ) ;
+  register tnode_s	*np;
   register tnode_s	*null = NIL( hp ) ;
   register int 		v ;
+  dict_obj		ret = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  np = ROOT(hp);
 
   while ( np != null )
   {
@@ -440,7 +544,15 @@ dict_obj bst_search(dict_h handle, dict_key key)
       np = ( v < 0 ) ? LEFT( np ) : RIGHT( np ) ;
   }
   HINT_SET( hp, last_search, np ) ; 		/* update search hint */
-  return( OBJ( np ) ) ;
+
+  ret = OBJ( np );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return( ret ) ;
 }
 
 
@@ -448,17 +560,35 @@ dict_obj bst_search(dict_h handle, dict_key key)
 /*
  * Returns a pointer to the object with the smallest key value or
  * NULL_OBJ if the tree is empty.
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj bst_minimum(dict_h handle)
 {
   register header_s	*hp = THP( handle ) ;
   register tnode_s	*np ;
+  dict_obj		ret = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( TREE_EMPTY( hp ) )
-    return( NULL_OBJ ) ;
+    goto done;
+
   FIND_MINIMUM( hp, ROOT( hp ), np ) ;
   HINT_SET( hp, last_successor, np ) ;
-  return( OBJ( np ) ) ;
+
+  ret = OBJ(np);
+
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
@@ -466,23 +596,43 @@ dict_obj bst_minimum(dict_h handle)
 /*
  * Returns a pointer to the object with the greatest key value or
  * NULL_OBJ if the tree is empty.
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj bst_maximum(dict_h handle)
 {
   register header_s	*hp = THP( handle ) ;
   register tnode_s	*np ;
+  dict_obj		ret = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( TREE_EMPTY( hp ) )
-    return( NULL_OBJ ) ;
+    goto done;
+
   FIND_MAXIMUM( hp, ROOT( hp ), np ) ;
   HINT_SET( hp, last_predecessor, np ) ;
-  return( OBJ( np ) ) ;
+
+  ret = OBJ(np);
+
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
 
 /*
  * When there is no next node, this function returns ANCHOR( hp )
+ *
+ * THREADS: REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x)
 {
@@ -516,6 +666,8 @@ PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x)
  * Returns a pointer to the object with the next >= key value or
  * NULL_OBJ if the given object is the last one on the tree.
  * It is an error to apply this function to an empty tree.
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj bst_successor(dict_h handle, dict_obj object)
 {
@@ -523,12 +675,25 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   register tnode_s	*x ;
   register tnode_s	*successor ;
+  dict_obj		ret = NULL;
+  int			errmsg = 0;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  {
+    errmsg = DICT_ENULLOBJECT;
+    goto error;
+  }
 
   if ( TREE_EMPTY( hp ) )
-    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+  {
+    errmsg = DICT_EBADOBJECT;
+    goto error;
+  }
 
   if ( HINT_MATCH( hp, last_successor, object ) )
     x = HINT_GET( hp, last_successor ) ;
@@ -536,20 +701,41 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
   {
     x = find_object( hp, object ) ;
     if ( x == NIL( hp ) )
-      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+    {
+      errmsg = DICT_EBADOBJECT;
+      goto error;
+    }
   }
 
   successor = next_node( hp, x ) ;
 
   HINT_SET( hp, last_successor, successor ) ;
   ERRNO( DHP( hp ) ) = DICT_ENOERROR ;		/* in case we return NULL_OBJ */
-  return( OBJ( successor ) ) ;
+
+  ret = OBJ( successor );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return( ret ) ;
+
+ error:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, errmsg, NULL_OBJ ) ;
 }
 
 
 
 /*
  * When there is no next node, this function returns ANCHOR( hp )
+ *
+ * THREADS: REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
 {
@@ -583,6 +769,8 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
  * Returns a pointer to the object with the next <= key value or
  * NULL if the given object is the first one on the tree.
  * It is an error to apply this function to an empty tree.
+ *
+ * THREADS: THREAD_REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 dict_obj bst_predecessor(dict_h handle, dict_obj object)
 {
@@ -590,12 +778,25 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
   dheader_s		*dhp	= DHP( hp ) ;
   tnode_s		*predecessor ;
   register tnode_s	*x ;
+  dict_obj		ret = NULL;
+  int			errmsg = 0;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( object == NULL_OBJ )
-    HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  {
+    errmsg = DICT_ENULLOBJECT;
+    goto error;
+  }
 
   if ( TREE_EMPTY( hp ) )
-    HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+  {
+    errmsg = DICT_EBADOBJECT;
+    goto error;
+  }
 
   if ( HINT_MATCH( hp, last_predecessor, object ) )
     x = HINT_GET( hp, last_predecessor ) ;
@@ -603,25 +804,67 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
   {
     x = find_object( hp, object ) ;
     if ( x == NIL( hp ) )
-      HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;
+    {
+      errmsg = DICT_EBADOBJECT;
+      goto error;
+    }
   }
 
   predecessor = previous_node( hp, x ) ;
 
   HINT_SET( hp, last_predecessor, predecessor ) ;
   ERRNO( DHP( hp ) ) = DICT_ENOERROR ;
-  return( OBJ( predecessor ) ) ;
+
+  ret = OBJ( predecessor );
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return( ret ) ;
+
+ error:
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( dhp, errmsg, NULL_OBJ ) ;
 }
 
 
 
+/*
+ * Returns a new iterator for the user, initialized to the
+ * beginning/end of the list.
+ *
+ * THREADS: THREAD_REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
 {
   register header_s	*hp	= THP( handle ) ;
-  struct tree_iterator	*tip	= &hp->iter ;
+  struct tree_iterator	*tip	= NULL ;
   tnode_s		*np ;
+#ifdef HAVE_PTHREADS
+  dheader_s		*dhp	= DHP( hp ) ;
+  int			tipcnt;
+
+  if (!(tip = malloc(sizeof(*tip))))
+    HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
+#else /* HAVE_PTHREADS */
+
+  tip = &hp->iter;
+#endif /* HAVE_PTHREADS */
 
   tip->direction = direction ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   if ( TREE_EMPTY( hp ) )
     tip->next = NULL ;
   else
@@ -637,27 +880,105 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
     tip->next = np ;
   }
 
+#ifdef HAVE_PTHREADS
+  for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
+  {
+    if (!hp->tip[tipcnt])
+    {
+      hp->tip[tipcnt] = tip;
+      goto done;
+    }
+  }
+
+  if (tip)
+  {
+    struct tree_iterator **new;
+    if (!(new = realloc(hp->tip, sizeof(struct tree_iterator *)*(hp->tip_cnt+1))))
+    {
+      free(tip);
+      goto error;
+    }
+    hp->tip = new;
+    hp->tip[hp->tip_cnt] = tip;
+    hp->tip_cnt++;
+  }
+
+ done:
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return(tip);
+
+#ifdef HAVE_PTHREADS
+ error:
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+
+  HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
+#endif /* HAVE_PTHREADS */
 }
 
 
 
+/*
+ * Delete a previously created iterator
+ *
+ * THREADS: THREAD_REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 void bst_iterate_done(dict_h handle, dict_iter iter)
 {
-  /* TODO -- delete dynamically allocated iterator */
+#ifdef HAVE_PTHREADS
+  register header_s	*hp	= THP( handle ) ;
+  int			tipcnt;
+
+  if (iter)
+  {
+    if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+      abort();
+
+    for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
+    {
+      if (hp->tip[tipcnt] == iter)
+      {
+	hp->tip[tipcnt] = NULL;
+	break;
+      }
+    }
+
+    if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+      abort();
+
+    free(iter);
+  }
+#endif /* HAVE_PTHREADS */
 
   return;
 }
 
 
+
+/*
+ * Returns the object next on the list
+ *
+ * THREADS: THREAD_REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 dict_obj bst_nextobj(dict_h handle, dict_iter iter)
 {
   register header_s	*hp		= THP( handle ) ;
   struct tree_iterator	*tip		= iter ;
-  tnode_s		*current	= tip->next ;
+  tnode_s		*current;
+  dict_obj		ret = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  current = tip->next ;
 
   if ( current == NULL )
-    return( NULL_OBJ ) ;
+    goto done;
 
   if ( tip->direction == DICT_FROM_START )
     tip->next = next_node( hp, current ) ;
@@ -666,11 +987,27 @@ dict_obj bst_nextobj(dict_h handle, dict_iter iter)
 
   if ( tip->next == ANCHOR( hp ) )
     tip->next = NULL ;
-  return( OBJ( current ) ) ;
+
+  ret = OBJ(current);
+
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
 
+/*
+ * Return the most recent error message on this CLC.  Note this is NOT
+ * thread-private, multiple threads getting errors at the same time
+ * may trash each others error number.
+ *
+ * THREADS: REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
 char *bst_error_reason(dict_h handle, int *errnop)
 {
   header_s	*hp		= THP( handle ) ;

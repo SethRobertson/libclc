@@ -9,7 +9,7 @@
 #define __DICTIMPL_H
 
 /*
- * $Id: dictimpl.h,v 1.4 2002/02/22 07:21:56 dupuy Exp $
+ * $Id: dictimpl.h,v 1.5 2003/04/01 04:40:57 seth Exp $
  */
 
 #include "dict.h"
@@ -28,17 +28,16 @@ typedef struct dict_header dheader_s ;
 
 typedef int bool_int ;
 
-#define ERRNO( dhp )					((dhp)->dicterrno)
+#define ERRNO( dhp )			((dhp)->dicterrno)
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-#define INT_NULL							((int *)0)
-
-#define NULL_OBJ							((dict_obj)NULL)
-#define NULL_HANDLE						((dict_h)NULL)
-#define NULL_FUNC							((dict_function)NULL)
+#define INT_NULL			((int *)NULL)
+#define NULL_OBJ			((dict_obj)NULL)
+#define NULL_HANDLE			((dict_h)NULL)
+#define NULL_FUNC			((dict_function)NULL)
 
 #define PRIVATE                     static
 
@@ -47,9 +46,9 @@ typedef int bool_int ;
 #define TRUE                        1
 #endif
 
-#define ORDER_FLAGS						( DICT_ORDERED + DICT_UNORDERED )
+#define ORDER_FLAGS		( DICT_ORDERED + DICT_UNORDERED )
 
-#define BAD_ORDER( flags )				( ( flags & ORDER_FLAGS ) == ORDER_FLAGS )
+#define BAD_ORDER( flags )	( ( flags & ORDER_FLAGS ) == ORDER_FLAGS )
 
 
 #define HANDLE_ERROR( dhp, errval, retval )		\
@@ -58,7 +57,7 @@ typedef int bool_int ;
 	  return( retval ) ;				\
 	} while (0)
 
-int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders);
+int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders, int *fsmaflags);
 void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags) ;
 dict_h __dict_create_error(char *caller, int flags, int error_code) ;
 char *__dict_error_reason(int dicterrno) ;

@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.4 2001/11/05 19:31:45 seth Exp $
+ * $Id: ht.h,v 1.5 2003/04/01 04:40:56 seth Exp $
  */
 
 #include "dict.h"
@@ -30,6 +30,8 @@ dict_h		ht_create	 (dict_function oo_compare, dict_function ko_compare, int flag
 void 		ht_destroy	 ( dict_h hh )  ;
 int 		ht_insert 	 ( dict_h hh, dict_obj obj )  ;
 int 		ht_insert_uniq	 ( dict_h hh, dict_obj, dict_obj *objp )  ;
+#define		ht_append ht_insert
+#define		ht_append_uniq ht_insert_uniq
 int 		ht_delete	 ( dict_h hh, dict_obj obj )  ;
 dict_obj	ht_search	 ( dict_h hh, dict_key key )  ;
 dict_obj	ht_minimum	 ( dict_h hh )  ;
@@ -40,10 +42,6 @@ dict_iter	ht_iterate	 ( dict_h hh, enum dict_direction direction )  ;
 void		ht_iterate_done	 ( dict_h hh, dict_iter )  ;
 dict_obj	ht_nextobj	 ( dict_h hh, dict_iter )  ;
 char *	 	ht_error_reason	 ( dict_h hh, int *errnop )  ;
-
-extern int ht_num_table_entries;
-extern int ht_num_bucket_entries;
-
 
 #endif	/* __HT_H */
 

@@ -3,10 +3,14 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.19 2003/05/10 08:29:06 dupuy Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.20 2003/05/12 15:43:44 jtt Exp $";
 
 #define CUR_MIN_PERF_HACK
-#define HASH_STATS
+
+/* 
+ * Define this for some interesting hash table tidbits
+ */
+/* #define HASH_STATS */
 
 #if defined(DEBUG) || defined(HASH_STATS)
 #include <stdio.h>

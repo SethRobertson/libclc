@@ -8,7 +8,7 @@
 #define __PQ_H
 
 /*
- * $Id: pq.h,v 1.3 2001/07/07 02:58:21 seth Exp $
+ * $Id: pq.h,v 1.4 2001/09/29 03:17:54 seth Exp $
  */
 
 
@@ -37,7 +37,6 @@
  * flag values
  */
 #define PQ_NOFLAGS		0x0
-#define PQ_RETURN_ERROR		0x1
 
 typedef void *pq_h ;
 typedef void *pq_obj ;

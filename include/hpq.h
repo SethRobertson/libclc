@@ -8,7 +8,7 @@
 #define __HPQ_H
 
 /*
- * $Id: hpq.h,v 1.5 2001/07/07 13:41:15 seth Exp $
+ * $Id: hpq.h,v 1.6 2001/10/01 02:36:14 seth Exp $
  */
 
 /*
@@ -25,6 +25,8 @@
 #define pq_nextobj		__hpq_nextobj
 
 
+typedef int (*pq_compfun)(void *, void *);
+
 
 /*
  * The is_better function takes 2 arguments which are pointers to objects
@@ -34,7 +36,7 @@
  */
 struct __hpq_header
 {
-  int (*is_better)(void *, void *) ;
+  pq_compfun is_better;
   int dicterrno ;
   int flags ;
   pq_obj *objects ;				/* array of objects */

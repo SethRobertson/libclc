@@ -1,3 +1,7 @@
+2001-09-30  Seth Robertson  <seth@yeah.baka.org>
+
+	* include/hpq.h: Create typedef for pq comparison function
+
 2001-09-17  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* include/fsma.h: avoid Linux gcc warnings about signed vs. unsigned

@@ -2,7 +2,6 @@
 #define _CLCHACK_H
 
 #ifdef BK_USING_PTHREADS
-#define _REENTRANT
 #include <pthread.h>
 #endif /* BK_USING_PTHREADS */
 

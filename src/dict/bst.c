@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.5 2001/11/02 22:47:49 dupuy Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.6 2001/11/02 23:01:39 dupuy Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -51,7 +51,7 @@ PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 	 */
 	tnode_s *rp = find_object_in_tree( hp, RIGHT( np ), object ); 
 
-	if ( rp )
+	if ( rp != null )
 	  return ( rp );
 
 	v = -1 ;

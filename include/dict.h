@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.5 2001/11/05 19:31:45 seth Exp $
+ * $Id: dict.h,v 1.6 2001/11/28 18:24:09 seth Exp $
  */
 
 /*
@@ -53,17 +53,26 @@ enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
 
 
 
-#define DICT_NUKE_CONTENTS(Q, prefix, ptr, errcode, code) do \
- { \
-   if (!Q) break; \
-   while ((ptr) = prefix##_minimum(Q)) \
-   { \
-     if (prefix##_delete(Q, (ptr)) != DICT_OK) \
-     { \
-       errcode; \
-     } \
-     code; \
-   } \
+/*
+ * Delete all of the elements in a CLC dict datastructure (of type "prefix").
+ * User supplies the code the actually free the object and any embedded space.
+ * Errcode is unlikely to do anything very useful--just log messages--but is
+ * also not likely to ever execute.
+ *
+ * <TRICKY>Do not change this macro, you will surely regret it.</TRICKY>
+ */
+#define DICT_NUKE_CONTENTS(Q, prefix, ptr, errcode, code)	\
+ do								\
+ {								\
+   if (!(Q)) break;						\
+   while ((ptr) = prefix##_minimum(Q))				\
+   {								\
+     if (prefix##_delete((Q), (ptr)) != DICT_OK)		\
+     {								\
+       errcode;							\
+     }								\
+     code;							\
+   }								\
  } while (0)
 
 #endif	/* __DICT_H */

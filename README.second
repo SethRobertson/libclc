@@ -1,0 +1,38 @@
+My quick numbers reveal:
+
+DLL
+        Within 4% of HT search speeds at 10 entries
+        Within 51% of HT search speeds at 100 entries
+
+BST
+        Same speed as HT at 10 entries (search)
+        Within 10% of HT at 100 entries (search)
+        Within 19% of HT at 1000 entries (search)
+        Within 23% of HT at 10000 entries (search)
+        7% search performance penalty w/o balanced tree (random insert)
+        Decently fast at modest table sizes
+        Decent overhead
+
+HT
+        Fast in general
+        Slow at iterating
+        Large memory overhead
+        Tuned table sizes key important
+        Good hash important
+
+CLC threading support
+
+27% insert/delete performance penalty, THREADED_MEMORY (coalesce + thread safe)
+    You may use NOCOALESCE, but that trades memory for time
+33% insert/delete penalty, THREADED_SAFE (includes THREADED_MEMORY)
+11% search penalty, THREADED_SAFE
+
+Threaded memory allows you to have a shared memory space for multiple
+fsma allocators of the same type.  In other words, different CLCs may
+have allocation and deallocation in multiple threads, however, any
+given CLC must not appear in multiple threads.
+
+Threaded safe allows the same CLC to appear in multiple threads.
+
+                                        -Seth Robertson
+                                         seth@sysd.com

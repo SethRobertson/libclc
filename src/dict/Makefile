@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.3 2001/06/18 21:59:44 seth Exp $
+# $Id: Makefile,v 1.4 2001/06/18 22:41:47 seth Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -14,7 +14,7 @@
 #
 # libbk Makefile
 #
-BK_SIMPLE_PROGS=dlltest htest bsttest bstcomp dlltest2
+BK_SIMPLE_INTERNALPROGS=dlltest htest bsttest bstcomp dlltest2
 
 BK_LARGE_LIB=../libdict.a
 BK_LARGE_LIBSRC=dll.c ht.c bst.c rbt.c dict.c

@@ -1,3 +1,35 @@
+2002-12-10  James Tanis  <jtt@stevedore.sysdetect.com>
+
+	* src/pq/Makefile: move -lpq to -lpqueue so as not to conflict
+	with postgres
+
+2002-11-11  James Tanis  <jtt@stevedore.sysdetect.com>
+
+	* src/fsma/fsma.c, include/dict.h: opx_rollup_3 merge
+
+2002-11-09  James Tanis  <jtt@stevedore.sysdetect.com>
+
+	* include/dict.h, src/fsma/fsma.c: trheads merge
+
+2002-11-06  Seth Robertson  <seth@stevedore.sysdetect.com>
+
+	* src/fsma/fsma.c: Compile problems when using dmalloc
+
+2002-11-05  Seth Robertson  <seth@stevedore.sysdetect.com>
+
+	* include/dict.h: Define symbol for NOCOALESCE which makes it
+	clear the only reason we are using it is because we are too lazy
+	to make CLC thread-safe
+
+2002-09-09  James Tanis  <jtt@stevedore.sysdetect.com>
+
+	* src/dict/ht.c: insight nits
+
+2002-09-05  Seth Robertson  <seth@stevedore.sysdetect.com>
+
+	* src/dict/dll.c, ChangeLog: Do not create dlls w/o UNORDERED and
+	w/o OOCMP function--coredump otherwise sometimes
+
 2002-09-05  Seth Robertson  <seth@winwood.sysdetect.com>
 
 	* src/dict/dll.c (dll_create): Default order is ordered.

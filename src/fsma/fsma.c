@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.9 2002/07/18 22:52:47 dupuy Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.10 2002/08/30 03:18:16 seth Exp $";
 static const char version[] = VERSION;
 
 #include <stdlib.h>
@@ -258,24 +258,16 @@ void fsm_destroy(register fsma_h fp)
     int cnt;
     fsma_h *tmp;
 
-    for (cnt = 0; cnt < coalesce_size-1; cnt++)
+    for (cnt = 0; cnt < coalesce_size; cnt++)
     {
       if (coalesce[cnt] == fp)
+      {
 	coalesce[cnt] = coalesce[coalesce_size-1];
-      break;
+	break;
+      }
     }
+    assert(cnt < coalesce_size);		// Or fsma ds are really messed up
     coalesce_size--;
-    //jtt_printf("Shrinking coalesce_size: %d\n", coalesce_size);
-    if (!(tmp = realloc(coalesce, coalesce_size * sizeof(fsma_h))))
-    {
-#ifdef DEBUG      
-      fprintf(stderr,"Could not realloc coalesce array: %s", strerror(errno));
-#endif /* DEBUG */
-    }
-    else
-    {
-      coalesce = tmp;
-    }
   }
 #endif /* COALESCE */
 

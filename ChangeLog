@@ -1,3 +1,18 @@
+2002-08-29  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* include/fsma.h (struct __fsma_header): AHHHHH-HHHHAAAAAAAA!
+	The reference counter was previously a short.  Worker, for reasons
+	too complicated to get into, can have more than 2^16th lists.
+	If we happen (not unlikely) to destroy down to 2^16 (e.g. zero)
+	fsma thinks all allocators are free and promptly proceeds to return
+	the memory to the system.  Memory was free'd but still in use.
+	BAKA BAKA BAKA BAKA BAKA BAKA BAKA BAKA BAKA BAKA BAKA BAKA.
+
+	* src/fsma/fsma.c (fsm_destroy): Perform assertion to verify we
+	actually found the fsma allocator in the coalesce list.  Don't
+	bother to realloc the coalesce list size down--it won't do no good
+	nohow.
+
 2002-08-27  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/dict/ht.c (ht_minimum): Serious and quite possibly

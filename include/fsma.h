@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.4 2001/09/17 22:36:33 dupuy Exp $
+ * $Id: fsma.h,v 1.5 2002/08/30 03:18:16 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -30,8 +30,8 @@ struct __fsma_header
   unsigned slot_size ;
   unsigned chunk_size ;
   unsigned short flags;
-  unsigned short references;
-  int is_inlined ;						/* header is inlined (boolean)	*/
+  unsigned short is_inlined;			/* header is inlined (boolean) (should be converted to a flag) */
+  unsigned int references;			// Number of people using this allocator.  Yes, Virginia, we can have more than 2^16.
 } ;
 
 typedef struct __fsma_header *fsma_h ;

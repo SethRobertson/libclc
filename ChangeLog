@@ -1,3 +1,11 @@
+2002-01-09  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* src/fsma/fsma.c: INSIGHT->INSURE
+
+	* src/dict/ht.c: disable SWITCH_HT_TO_DLL hack - probably not needed
+
+	* include/clchack.h: get rid of obsolete insure/bsdos2 -specific hacks
+
 2001-11-05  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/dict/*: Change _iterate/nextobj interface to be re-entrant.

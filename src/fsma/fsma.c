@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.6 2001/11/29 17:39:56 jtt Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.7 2002/01/09 06:26:38 dupuy Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -24,7 +24,7 @@ static char *version = VERSION ;
  * users of memory, not fsma itself.
  */
 #ifndef DEBUG_FSMA_ITSELF
-#if defined (__INSIGHT__) || defined (__INSURE__) || defined(USING_DMALLOC) || defined(USING_INSIGHT)
+#if defined (__INSURE__) || defined(USING_DMALLOC)
 #	ifdef COALESCE
 #		undef COALESCE
 #	endif /* COALESCE */

@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.7 2001/11/29 17:39:56 jtt Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.8 2002/01/09 06:26:38 dupuy Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -13,11 +13,6 @@ static char RCSid[] = "$Id: ht.c,v 1.7 2001/11/29 17:39:56 jtt Exp $" ;
 #include <string.h>
 #include "htimpl.h"
 #include "clchack.h"
-
-
-#ifdef __INSIGHT__
-#define SWITCH_HT_TO_DLL
-#endif /* __INSIGHT__ */
 
 
 int ht_num_table_entries = DEFAULT_TABLE_ENTRIES;
@@ -677,6 +672,9 @@ char *ht_error_reason(dict_h handle, int *errnop)
 #include "dll.h"
 
 /*
+ * <TODO>This is probably obsolete and unnecessary; if Insure is working ok,
+ * this can be eliminated.</TODO>
+ *
  * Hash tables confuse Insight and cause it to get fatal internal errors,
  * especially when destroying hash tables (probably a bug in the leak-detection
  * code dealing with that array full of pointers to allocated memory).  This

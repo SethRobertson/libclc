@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.21 2003/07/16 07:47:38 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.22 2003/09/09 10:46:29 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -24,7 +24,9 @@ static const char version[] = VERSION;
 #	define FSMA_USE_MALLOC
 #endif /* memory debuggers */
 #endif /* DEBUG_FSMA_ITSELF */
-
+#ifdef FSMA_USE_MALLOC
+#undef COALESCE
+#endif /* FSMA_USE_MALLOC */
 
 unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.16 2003/04/16 09:33:25 dupuy Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.17 2003/04/16 21:25:53 jtt Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -30,7 +30,18 @@ unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 #ifdef COALESCE
 static fsma_h *coalesce = NULL;
 static int coalesce_size = 0;
+
+/*
+ * <TRICKY>
+ * This variable appears like it should only be defined if
+ * BK_USING_PTHREADS, but it makes the code simpler if it always exposed
+ * and only the function which alters its value is dependent on
+ * BK_USING_PTHREADS. If BK_USING_PTHREADS is not set, thread_override will
+ * *always* be 0.
+ * </TRICKY>
+ */
 static int thread_override = 0;
+
 #ifdef BK_USING_PTHREADS
 static pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif /* BK_USING_PTHREADS */
@@ -610,5 +621,8 @@ void _fsm_free(fsma_h fp, void *object)
 
 void fsm_threaded_makeready(int preference)
 {
+#ifdef BK_USING_PTHREADS
   thread_override = preference;
+#endif // BK_USING_PTHREADS
+  return;
 }

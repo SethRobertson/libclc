@@ -1,3 +1,9 @@
+2003-04-16  James Tanis  <jtt@saint.sysdetect.com>
+
+	* src/fsma/fsma.c (fsm_threaded_makeready): Only allow users to
+	actually alter the value of thread_overried if we are compiled
+	with threads.
+
 2003-04-08  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/fsma/fsma.c (fsm_threaded_makeready): Provide interface for

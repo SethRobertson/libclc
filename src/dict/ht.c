@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.12 2002/08/27 11:17:39 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.13 2002/09/09 16:42:31 jtt Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -92,9 +92,10 @@ PRIVATE unsigned find_good_size(register unsigned int hint)
 
     for ( j = 0 ; j < sizeof( primes ) / sizeof( unsigned ) ; j++ )
       if ( size % primes[j] == 0 )
-	goto next ;
+	goto next;
     return( size ) ;
-  next: ;
+  next: 
+    continue; // Stupid insight complaints
   }
 }
 

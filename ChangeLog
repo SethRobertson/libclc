@@ -1,3 +1,8 @@
+2002-05-13  James Tanis  <jtt@saint.sysdetect.com>
+
+	* src/fsma/Makefile (BK_LARGE_LIB): Shared libfsma no longer
+	breaks with libtool (on both linux and bsd). 
+
 2002-05-10  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* src/fsma/Makefile (BK_LARGE_LIB): back out shared libfsma;

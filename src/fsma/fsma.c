@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.13 2003/04/01 04:40:57 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.14 2003/04/04 01:59:46 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -127,10 +127,10 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   if (!(flags & FSM_NOCOALESCE))
   {
     int cnt;
-    
+
     for (cnt = 0; cnt < coalesce_size; cnt++)
     {
-      if (coalesce[cnt]->slot_size == slot_size && 
+      if (coalesce[cnt]->slot_size == slot_size &&
 	  coalesce[cnt]->flags == flags)
       {
 	coalesce[cnt]->references++;
@@ -215,7 +215,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   {
     fp = (fsma_h) malloc( sizeof( struct __fsma_header ) ) ;
 #ifdef DEBUG
-    fprintf(stderr,"Mallocing a new fsma header: %d\n", 
+    fprintf(stderr,"Mallocing a new fsma header: %d\n",
 	    sizeof(struct __fsma_header));
 #endif /* DEBUG */
     if ( fp == NULL )
@@ -248,7 +248,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 #ifdef COALESCE
   fp->references = 1;
 #endif /* COALESCE */
-	
+
 #ifdef DEBUG
   fprintf( stderr, "fp = %p, Slots/chunk = %d, flags = %x\n", fp, nslots, fp->flags ) ;
   fprintf( stderr, "Allocating chunk %p\n", chp ) ;
@@ -271,7 +271,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     //jtt_printf("Expanding coalesce: %d\n", coalesce_size);
     if (!(tmp = realloc(coalesce, coalesce_size * sizeof(fsma_h))))
     {
-#ifdef DEBUG      
+#ifdef DEBUG
       perror("Could not realloc coalesce array\n");
 #endif /* DEBUG */
     }
@@ -287,7 +287,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
       // Error message, somehow
       goto bypass_coalesce;
     }
-  bypass_coalesce:
+  bypass_coalesce:;
 #endif /* HAVE_PTHREADS */
   }
 #endif /* COALESCE */
@@ -542,7 +542,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   fp->references = 1;
 #endif /* COALESCE */
   fp->is_inlined = FALSE ;
-	
+
   return( (fsma_h) fp ) ;
 }
 

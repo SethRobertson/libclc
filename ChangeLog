@@ -1,3 +1,7 @@
+2003-04-03  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/pq/hpq.c: Make thread-safe, through PQ_THREADED_SAFE
+
 2003-03-31  Seth Robertson  <seth@winwood.sysdetect.com>
 
 	* src/dict/*.c src/fsma/*.c: Make thread-safe, through

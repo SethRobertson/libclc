@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: hpq.c,v 1.7 2002/07/18 22:52:49 dupuy Exp $";
+static const char RCSid[] = "$Id: hpq.c,v 1.8 2003/04/04 01:59:46 seth Exp $";
 static char const version[] = VERSION;
 
 #include <stdlib.h>
@@ -59,15 +59,17 @@ int pq_errno ;
 
 
 PRIVATE int grow(header_s *);
-PRIVATE void restore_heap(register header_s *, unsigned start);
-PRIVATE void restore_heap_up(register header_s *, unsigned start);
-PRIVATE void restore_heap_down(register header_s *, unsigned start);
-int __hpq_verify(header_s *hp, unsigned int current);
+PRIVATE void restore_heap(register header_s *, int start);
+PRIVATE void restore_heap_up(register header_s *, int start);
+PRIVATE void restore_heap_down(register header_s *, int start);
+int __hpq_verify(header_s *hp, int current);
 
 
 
 /*
  * Create the priority queue
+ *
+ * THREADS: MT_SAFE
  */
 pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
 {
@@ -84,7 +86,20 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
   if ( hp == NULL )
     HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
 		  "HPQ __hpq_create: malloc failed\n" ) ;
-	
+
+#ifdef HAVE_PTHREADS
+  hp->flags = flags;
+  hp->iter_cnt = 0;
+  hp->iter = NULL;
+
+  if (pthread_mutex_init(&(hp->lock), NULL) != 0)
+  {
+    free( (char *)hp ) ;
+    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
+		  "HPQ __hpq_create: malloc failed\n" ) ;
+  }
+#endif /* HAVE_PTHREADS */
+
   /*
    * Allocate object array
    */
@@ -92,7 +107,7 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
   if ( hp->objects == NULL )
   {
     free( hp ) ;
-    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM, 
+    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
 		  "HPQ __hpq_create: malloc failed\n" ) ;
   }
 
@@ -111,10 +126,18 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
 
 /*
  * Destroy the priority queue and the object table (but not the objects)
+ *
+ * THREADS: MT-SAFE
  */
 void __hpq_destroy(pq_h handle)
 {
   header_s *hp = HHP( handle ) ;
+
+#ifdef HAVE_PTHREADS
+  if (hp->iter)
+    free(hp->iter);
+  pthread_mutex_destroy(&hp->lock);
+#endif /* HAVE_PTHREADS */
 
   free( (char *) hp->objects ) ;
   free( (char *)hp ) ;
@@ -124,26 +147,34 @@ void __hpq_destroy(pq_h handle)
 
 /*
  * Insert a node onto the priority queue
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 int __hpq_insert(pq_h handle, pq_obj object)
 {
   register header_s *hp = HHP( handle ) ;
   register unsigned i, parent ;
+  int ret = PQ_ERR;
 
   if ( object == NULL )
     HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_insert: NULL object\n" ) ;
 
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   /*
    * Make sure there is room to store the object
    */
   if ( hp->cur_size >= hp->max_size && grow( hp ) == PQ_ERR )
-    return( PQ_ERR ) ;
+    goto done;
 
   /*
    * Put the node on the end and trickle it up the priority queue
    * until it reaches the correct place.
-   * 
+   *
    * Should we really call trickle_up?  This version is more efficient
    * since you do not copy in the new object until you know where it
    * is going.
@@ -166,8 +197,14 @@ int __hpq_insert(pq_h handle, pq_obj object)
   restore_heap_up(hp,i);
 #endif /* WANT_TRICKLEUP */
 
+  ret = PQ_OK;
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
-  return( PQ_OK ) ;
+  return(PQ_OK);
 }
 
 
@@ -176,8 +213,10 @@ int __hpq_insert(pq_h handle, pq_obj object)
  * Grow the table.
  * Algorithm:
  *		while the table_size is less than CUTOFF, double the size.
- * 		if it grows greater than CUTOFF, increase the size by INCREMENT
+ *		if it grows greater than CUTOFF, increase the size by INCREMENT
  *		(these number are in entries, not bytes)
+ *
+ * THREADS: UNSAFE
  */
 PRIVATE int grow(header_s *hp)
 {
@@ -193,7 +232,7 @@ PRIVATE int grow(header_s *hp)
   if ( new_objects == NULL )
     HANDLE_ERROR( hp, PQ_ERR, PQ_ENOMEM,
 		  "HPQ grow: out of memory\n" ) ;
-	
+
   hp->max_size = new_size ;
   hp->objects = (pq_obj *) new_objects ;
   return( PQ_OK ) ;
@@ -209,14 +248,26 @@ PRIVATE int grow(header_s *hp)
 pq_obj __hpq_extract_head(pq_h handle)
 {
   register header_s *hp = HHP( handle ) ;
-  pq_obj object ;
+  pq_obj object = NULL;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if ( hp->cur_size == 0 )
-    return( NULL ) ;
-	
+    goto done;
+
   object = hp->objects[ 0 ] ;
   hp->objects[ 0 ] = hp->objects[ --hp->cur_size ] ;
   restore_heap_down( hp, 0 ) ;
+
+ done:
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return( object ) ;
 }
 
@@ -225,8 +276,10 @@ pq_obj __hpq_extract_head(pq_h handle)
 /*
  * Restore the heap when we don't know whether the damage will
  * require the change to be propagated upward or downward
+ *
+ * THREADS: UNSAFE
  */
-PRIVATE void restore_heap(register header_s *hp, unsigned int start)
+PRIVATE void restore_heap(register header_s *hp, int start)
 {
   register unsigned parent = PARENT( start ) ;
 
@@ -245,16 +298,18 @@ PRIVATE void restore_heap(register header_s *hp, unsigned int start)
 /*
  * Trickle an object down through the tree until it is back in
  * correct order
+ *
+ * THREADS: UNSAFE
  */
-PRIVATE void restore_heap_down(register header_s *hp, unsigned int start)
+PRIVATE void restore_heap_down(register header_s *hp, int start)
 {
-  register unsigned current = start ;
-  register unsigned better = current ;
+  register int current = start ;
+  register int better = current ;
 
   for ( ;; )
   {
-    register unsigned left = LEFT( current ) ;
-    register unsigned right = RIGHT( current ) ;
+    register int left = LEFT( current ) ;
+    register int right = RIGHT( current ) ;
 
     /*
      * Meaning of variables:
@@ -262,7 +317,7 @@ PRIVATE void restore_heap_down(register header_s *hp, unsigned int start)
      *		current:		the current tree node
      *		left:			its left child
      *		right:			its right child
-     *		better: 		the best of current,left,right
+     *		better:		the best of current,left,right
      *
      * We start the loop with better == current
      *
@@ -278,7 +333,7 @@ PRIVATE void restore_heap_down(register header_s *hp, unsigned int start)
 
     if ( better == current || IS_BETTER( hp, current, better ) )
       break ;
-    else 
+    else
     {
       SWAP( hp, current, better ) ;
       current = better ;
@@ -291,10 +346,12 @@ PRIVATE void restore_heap_down(register header_s *hp, unsigned int start)
 /*
  * Restore the heap to correctness, propagating the current node up
  * the tree until it reaches the correct place.
+ *
+ * THREADS: UNSAFE
  */
-PRIVATE void restore_heap_up(register header_s *hp, unsigned int start)
+PRIVATE void restore_heap_up(register header_s *hp, int start)
 {
-  register unsigned current = start ;
+  register int current = start ;
 
   /* Check for trivial case */
   if ( !EXISTS( hp, start ) )
@@ -302,7 +359,7 @@ PRIVATE void restore_heap_up(register header_s *hp, unsigned int start)
 
   for ( ;; )
   {
-    register unsigned parent = PARENT( current ) ;
+    register int parent = PARENT( current ) ;
 
     if ( IS_BETTER( hp, current, parent ) )
     {
@@ -328,15 +385,22 @@ PRIVATE void restore_heap_up(register header_s *hp, unsigned int start)
  * Delete an arbitrary node
  *
  * Move the last node into its place and fix up the tree
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
 int __hpq_delete(pq_h handle, register pq_obj object)
 {
   register header_s *hp = HHP( handle ) ;
-  register unsigned i ;
+  register int i ;
 
   if ( object == NULL )
     HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_delete: NULL object\n" ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   /*
    * First find it
@@ -349,25 +413,81 @@ int __hpq_delete(pq_h handle, register pq_obj object)
       else
 	continue ;
     else
-      HANDLE_ERROR( hp, PQ_ERR, PQ_ENOTFOUND,
-		    "HPQ __hpq_delete: object not found\n" ) ;
+      goto error;
   }
 
   hp->objects[ i ] = hp->objects[ --hp->cur_size ] ;
   restore_heap( hp, i ) ;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
   return( PQ_OK ) ;
+
+ error:
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  HANDLE_ERROR( hp, PQ_ERR, PQ_ENOTFOUND, "HPQ __hpq_delete: object not found\n" ) ;
 }
 
 
 
 /*
  * Iterate the tree (back to front)
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
-void __hpq_iterate(pq_h handle)
+pq_iter __hpq_iterate(pq_h handle)
 {
   header_s *hp = HHP( handle ) ;
+  pq_iter iter = NULL;
+#ifdef HAVE_PTHREADS
+  int itercnt = 0;
+#endif /* HAVE_PTHREADS */
 
-  hp->iter = hp->cur_size;
+  if (!(iter = malloc(sizeof(*iter))))
+    HANDLE_ERROR( hp, NULL, PQ_ENOMEM, "HPQ __hpq_iterate: Out of Memory\n" );
+  *iter = hp->cur_size;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+
+  for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+  {
+    if (!hp->iter[itercnt])
+    {
+      hp->iter[itercnt] = iter;
+      goto done;
+    }
+  }
+
+  if (iter)
+  {
+    pq_iter *new;
+    if (!(new = realloc(hp->iter, sizeof(int *)*(hp->iter_cnt+1))))
+   {
+      free(iter);
+      iter = NULL;
+      goto done;
+    }
+    hp->iter = new;
+    hp->iter[hp->iter_cnt] = iter;
+    hp->iter_cnt++;
+  }
+
+ done:
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(iter);
 }
 
 
@@ -376,20 +496,73 @@ void __hpq_iterate(pq_h handle)
  * Return the elements, back to front
  *
  * N.B. Not too much protection (any?) against damage done to the
- * priority queue in *front* of the current node, and you certainly
- * can have damage of one form or another.
+ * priority queue while you are iterating.
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
-pq_obj __hpq_nextobj(pq_h handle)
+pq_obj __hpq_nextobj(pq_h handle, pq_iter iter)
 {
   register header_s *hp = HHP( handle ) ;
+  pq_obj obj = NULL;
 
-  if ( hp->iter > hp->cur_size )
-    hp->iter = hp->cur_size;
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
-  if ( hp->iter == 0 )
-    return( NULL ) ;
-	
-  return( hp->objects[ --hp->iter ] ) ;
+  if ( *iter > hp->cur_size )
+    *iter = hp->cur_size;
+
+  if ( *iter == 0 )
+    goto done;
+
+  obj = hp->objects[*iter];
+
+ done:
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(obj);
+}
+
+
+
+/*
+ * Clean up a no-longer-used iterator
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
+ */
+void __hpq_iterate_done(pq_h handle, pq_iter iter)
+{
+#ifdef HAVE_PTHREADS
+  register header_s *hp = HHP( handle ) ;
+  int			itercnt;
+
+  if (iter)
+  {
+    if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+      abort();
+
+    for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)
+    {
+      if (hp->iter[itercnt] == iter)
+      {
+	hp->iter[itercnt] = NULL;
+	break;
+      }
+    }
+
+    if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+      abort();
+
+    free(iter);
+  }
+#endif /* HAVE_PTHREADS */
+
+  return;
 }
 
 
@@ -400,27 +573,38 @@ pq_obj __hpq_nextobj(pq_h handle)
  *
  * Returns the object count of the first node which is incorrect
  * (or -2 if the node in error is zero)
+ *
+ * THREADS: THREAD-REENTRANT (assuming DICT_NOCOALESCE or DICT_THREADED_*)
  */
-int __hpq_verify(header_s *hp, unsigned int current)
+int __hpq_verify(header_s *hp, int current)
 {
-  register unsigned left = LEFT( current ) ;
-  register unsigned right = RIGHT( current ) ;
-  int ret;
+  register int left = LEFT( current ) ;
+  register int right = RIGHT( current ) ;
+  int ret = 0;
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
 
   if (hp->cur_size == 0 && current == 0)
-    return(0);
+    goto done;
 
   if (!EXISTS(hp, current))
-    return(-1);
+  {
+    ret = -1;
+    goto done;
+  }
 
   if (EXISTS(hp, right))
   {
     if (IS_BETTER(hp,right,current))
     {
-      return(current||-2);
+      ret = current||-2;
+      goto done;
     }
     if ((ret = __hpq_verify(hp,right)))
-      return(ret);
+      goto done;
   }
   if (EXISTS(hp, left)
 #ifndef CORRECT_TREE
@@ -430,23 +614,38 @@ int __hpq_verify(header_s *hp, unsigned int current)
   {
     if (IS_BETTER(hp,left,current))
     {
-      return(current||-2);
+      ret = current||-2;
+      goto done;
     }
-    if ((ret = __hpq_verify(hp,left)))
-      return(ret);
+    if (ret = __hpq_verify(hp,left))
+      goto done;
   }
-  return(0);
+ done:
+
+#ifdef HAVE_PTHREADS
+  if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
+    abort();
+#endif /* HAVE_PTHREADS */
+
+  return(ret);
 }
 
 
 
+/**
+ * Provide errno to name conversion
+ */
 struct name_value
 {
   int nv_value ;
   char *nv_name ;
-} ;
+};
 
 
+
+/**
+ * Actually convert errnos to text strings
+ */
 static struct name_value error_codes[] =
 {
   {	PQ_ENOFUNC,		"User Supplied Comparison Function Missing"	},
@@ -460,6 +659,11 @@ static struct name_value error_codes[] =
 
 
 
+/**
+ * Function to decode error numbers to strings
+ *
+ * THREADS: MT-SAFE
+ */
 char *__hpq_error_reason(int dicterrno)
 {
   int ctr;
@@ -475,6 +679,12 @@ char *__hpq_error_reason(int dicterrno)
 
 
 
+/**
+ * Function to return error string and (optionally) error number
+ * for the current error for this CLC
+ *
+ * THREADS: UNSAFE (since error in handle is not thread-private
+ */
 char *pq_error_reason(pq_h handle, int *errnop)
 {
   header_s *hp = HHP( handle ) ;

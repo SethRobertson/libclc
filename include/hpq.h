@@ -8,7 +8,7 @@
 #define __HPQ_H
 
 /*
- * $Id: hpq.h,v 1.7 2003/04/01 04:40:56 seth Exp $
+ * $Id: hpq.h,v 1.8 2003/04/04 01:59:46 seth Exp $
  */
 
 /*
@@ -23,9 +23,12 @@
 #define pq_extract_head		__hpq_extract_head
 #define pq_iterate		__hpq_iterate
 #define pq_nextobj		__hpq_nextobj
+#define pq_iterate_done		__hpq_iterate_done
+#define pq_verify		__hpq_verify
 
 
 typedef int (*pq_compfun)(void *, void *);
+typedef int *pq_iter;
 
 
 /*
@@ -40,11 +43,14 @@ struct __hpq_header
   int dicterrno ;
   int flags ;
   pq_obj *objects ;				/* array of objects */
-  unsigned cur_size ;				/* # of objects in array */
-  unsigned max_size ;				/* max # of objects that can fit in array */
-  unsigned int iter ;				/* current iteration index */
+  int cur_size ;				/* # of objects in array */
+  int max_size ;				/* max # of objects that can fit in array */
 #ifdef HAVE_PTHREADS
+  int iter_cnt;					/* Number of iterators allocated */
+  pq_iter *iter;				/* iterator list */
   pthread_mutex_t lock;				/* Threading lock */
+#else /* HAVE_PTHREADS */
+  unsigned int iter ;				/* current iteration index */
 #endif /* HAVE_PTHREADS */
 } ;
 typedef struct __hpq_header header_s ;
@@ -55,9 +61,10 @@ void __hpq_destroy		( pq_h handle )  ;
 int  __hpq_insert		( pq_h handle, pq_obj object )  ;
 pq_obj __hpq_extract_head	( pq_h handle )  ;
 int  __hpq_delete 		( pq_h handle, pq_obj object )  ;
-void __hpq_iterate		( pq_h handle )  ;
-pq_obj __hpq_nextobj		( pq_h handle )  ;
-int __hpq_verify		(header_s *hp, unsigned int current)  ;
+pq_iter __hpq_iterate		( pq_h handle )  ;
+pq_obj __hpq_nextobj		( pq_h handle, pq_iter iter )  ;
+void __hpq_iterate_done		( pq_h handle, pq_iter iter ) ;
+int __hpq_verify		(header_s *hp, int current)  ;
 char *__hpq_error_reason	( int dicterrno ) ;
 char *pq_error_reason		( pq_h handle, int *errnop ) ;
 

@@ -1,3 +1,14 @@
+2004-08-21  Seth Robertson  <seth@sampson.sysdetect.com>
+
+	* src/dict/bst.c (rbvalidate): Add some potentially useful
+	functions which can be used if anyone feels the need to blame
+	errors on BST again.
+
+	* src/dict/rbt.c (__dict_rbt_insfix): Fix bug which could cause
+	improper balancing due to grandparent's node pointer cache not
+	being updated when the defintion of "me" changes.  This could not
+	cause an invalid binary tree, though, only an unbalanced tree.
+
 2003-09-19  Seth Robertson  <seth@buscemi.sysdetect.com>
 
 	* src/fsma/fsma.c (fsm_create): Try to adjust for MALLOC overhead.

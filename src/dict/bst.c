@@ -10,7 +10,7 @@
 #define NODE_ALLOC( hp )               TNP( fsm_alloc( (hp)->alloc ) )
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
 
-UNUSED static const char RCSid[] = "$Id: bst.c,v 1.20 2004/07/08 04:40:20 lindauer Exp $";
+UNUSED static const char RCSid[] = "$Id: bst.c,v 1.21 2004/08/21 04:50:43 seth Exp $";
 
 
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
@@ -40,9 +40,9 @@ PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x);
  */
 PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 {
-  dheader_s 		*dhp 	= DHP( hp ) ;
+  dheader_s		*dhp	= DHP( hp ) ;
   register tnode_s	*null	= NIL( hp ) ;
-  register int 		v ;
+  register int		v ;
 
   while ( np != null )
   {
@@ -96,7 +96,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
 {
   register header_s	*hp ;
   unsigned		tnode_size ;
-  bool_int 		balanced_tree	= flags & DICT_BALANCED_TREE ;
+  bool_int		balanced_tree	= flags & DICT_BALANCED_TREE ;
   char			*id = "bst_create" ;
   int			fsm_flags = 0;
 
@@ -224,7 +224,7 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
   register tnode_s	*x;
   register tnode_s	*px	= ANCHOR( hp ) ;
   tnode_s		*newnode ;
-  register int 		v ;
+  register int		v ;
   int			ret = DICT_OK;
 
   if ( object == NULL_OBJ )
@@ -526,7 +526,7 @@ dict_obj bst_search(dict_h handle, dict_key key)
   dheader_s		*dhp	= DHP( hp ) ;
   register tnode_s	*np;
   register tnode_s	*null = NIL( hp ) ;
-  register int 		v ;
+  register int		v ;
   dict_obj		ret = NULL;
 
 #ifdef BK_USING_PTHREADS
@@ -544,7 +544,7 @@ dict_obj bst_search(dict_h handle, dict_key key)
     else
       np = ( v < 0 ) ? LEFT( np ) : RIGHT( np ) ;
   }
-  HINT_SET( hp, last_search, np ) ; 		/* update search hint */
+  HINT_SET( hp, last_search, np ) ;		/* update search hint */
 
   ret = OBJ( np );
 
@@ -751,7 +751,7 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x)
   {
     /*
      * XXX:	To avoid testing against the ANCHOR we can temporarily make the
-     * 		root of the tree the *right* child of the anchor
+     *		root of the tree the *right* child of the anchor
      */
     px = PARENT( x ) ;
     while ( px != ANCHOR( hp ) && x == LEFT( px ) )
@@ -1031,6 +1031,138 @@ char *bst_error_reason(dict_h handle, int *errnop)
 #include <stdio.h>
 
 
+#ifdef BST_SUPERDEBUG
+static void rbdebug( header_s *hp, tnode_s *np)
+{
+  return;
+  int foo = 0;
+  if (!np)
+  {
+    np = ANCHOR(hp);
+    foo = 1;
+  }
+  if (np == NIL(hp))
+    return;
+  rbdebug(hp, LEFT(np));
+  if (np == ANCHOR(hp))
+    printf(" A");
+  else
+  {
+    if (np == LEFT(PARENT(np)))
+      printf(" L");
+    else
+      printf(" R");
+  }
+  printf("(%c,%p,%p)", COLOR(np)?'b':'r', OBJ(np), PARENT(np)?OBJ(PARENT(np)):(void *)0x1);
+  if (np == ROOT(hp))
+    printf("R");
+  rbdebug(hp, RIGHT(np));
+  if (foo)
+    printf("\n");
+}
+
+static void rbvalidate( header_s *hp, tnode_s *np, int flags)
+{
+  int bad=0;
+
+  if (np == NIL(hp))
+    return;
+
+  if (!np)
+  {
+    if (PARENT(LEFT(ANCHOR(hp))) != ANCHOR(hp))
+    {
+      fprintf(stderr, "************** Anchor parent violation\n");
+      bad++;
+    }
+    if (LEFT(ANCHOR(hp)) != ROOT(hp))
+    {
+      fprintf(stderr, "************** Anchor root violation\n");
+      bad++;
+    }
+    if (COLOR(ANCHOR(hp)) != BLACK)
+    {
+      fprintf(stderr, "************** Anchor color violation\n");
+      bad++;
+    }
+    if (!flags)
+      if (COLOR(LEFT(ANCHOR(hp))) != BLACK)
+      {
+	fprintf(stderr, "************** Root color violation\n");
+	bad++;
+      }
+    if (COLOR(NIL(hp)) != BLACK)
+    {
+      fprintf(stderr, "************** NIL color violation\n");
+      bad++;
+    }
+    rbvalidate(hp,LEFT(ANCHOR(hp)), flags);
+    if (bad)
+      abort();
+    return;
+  }
+
+  if (LEFT(np) != NIL(hp) && PARENT(LEFT(np)) != np)
+  {
+    fprintf(stderr, "************** Parent-child left relationship violation\n");
+    bad++;
+  }
+
+  if (RIGHT(np) != NIL(hp) && PARENT(RIGHT(np)) != np)
+  {
+    fprintf(stderr, "************** Parent-child right relationship violation\n");
+    bad++;
+  }
+
+  if (!flags)
+  {
+    if (COLOR(np) == RED && COLOR(LEFT(np)) == RED)
+    {
+      fprintf(stderr, "************** Parent-child left color violation\n");
+      bad++;
+    }
+
+    if (COLOR(np) == RED && COLOR(RIGHT(np)) == RED)
+    {
+      fprintf(stderr, "************** Parent-child right color violation\n");
+      bad++;
+    }
+  }
+
+  if (LEFT(np) != NIL(hp))
+  {
+    dheader_s		*dhp	= DHP( hp ) ;
+    int v = (*dhp->oo_comp)( OBJ(LEFT(np)), OBJ( np ) ) ;
+
+    if (v >= 0)
+    {
+      fprintf(stderr, "************** Parent-child left sort violation (%d %p<=>%p )\n", v, OBJ(LEFT(np)), OBJ( np ));
+      bad++;
+    }
+  }
+
+  if (RIGHT(np) != NIL(hp))
+  {
+    dheader_s		*dhp	= DHP( hp ) ;
+    int v = (*dhp->oo_comp)( OBJ(RIGHT(np)), OBJ( np ) ) ;
+
+    if (v <= 0)
+    {
+      fprintf(stderr, "************** Parent-child right sort violation (%d %p<=>%p)\n", v, OBJ(RIGHT(np)), OBJ( np ));
+      bad++;
+    }
+  }
+
+  if (bad)
+    abort();
+  rbvalidate(hp,LEFT(np), flags);
+  rbvalidate(hp,RIGHT(np), flags);
+}
+
+#endif /* BSD_SUPERDEBUG */
+
+
+
 PRIVATE void preorder( hp, np, action )
      header_s	*hp ;
      tnode_s		*np ;
@@ -1089,7 +1221,7 @@ void bst_traverse( handle, order, action )
   case BST_PREORDER:
     preorder( hp, ROOT( hp ), action ) ;
     break ;
-	
+
   case BST_POSTORDER:
     postorder( hp, ROOT( hp ), action ) ;
     break ;
@@ -1134,10 +1266,9 @@ void bst_getdepth( handle, dp )
      dict_h				handle ;
      struct bst_depth	*dp ;
 {
-  header_s 	*hp = THP( handle ) ;
+  header_s	*hp = THP( handle ) ;
 
   get_depth( hp, ROOT( hp ), dp ) ;
 }
 
 #endif	/* BST_DEBUG */
-

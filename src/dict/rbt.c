@@ -7,7 +7,7 @@
 #include "clchack.h"
 #include "bstimpl.h"
 
-UNUSED static const char RCSid[] = "$Id: rbt.c,v 1.6 2004/07/08 04:40:20 lindauer Exp $";
+UNUSED static const char RCSid[] = "$Id: rbt.c,v 1.7 2004/08/21 04:50:44 seth Exp $";
 
 /*
  * Transformation:
@@ -125,22 +125,26 @@ void __dict_rbt_insfix(header_s *hp, tnode_s *newnode)
 		if ( px == LEFT( ppx ) )
 		{
 			y = RIGHT( ppx ) ;					/* y is px's sibling and x's uncle */
-			if ( COLOR( y ) == RED )			/* both px and y are red */
+			if ( COLOR( y ) == RED )				/* both px and y are red */
 			{
 				COLOR( px ) = BLACK ;
 				COLOR( y ) = BLACK ;
 				COLOR( ppx ) = RED ;				/* grandparent of x gets red */
-				x = ppx ;							/* advance x to its grandparent */
+				x = ppx ;					/* advance x to its grandparent */
 			}
 			else
 			{
 				if ( x == RIGHT( px ) )
-					left_rotate( hp, x = px ) ;	/* notice the assignment */
+				{
+					left_rotate( hp, x = px ) ;		/* notice the assignment */
+					px = PARENT( x );
+					ppx = PARENT( px );
+				}
 				/*
 				 * px cannot be used anymore because of the possible left rotation
 				 * ppx however is still valid
 				 */
-				COLOR( PARENT( x ) ) = BLACK ;
+				COLOR( px ) = BLACK ;
 				COLOR( ppx ) = RED ;
 				right_rotate( hp, ppx ) ;
 			}
@@ -154,7 +158,7 @@ void __dict_rbt_insfix(header_s *hp, tnode_s *newnode)
 			 */
 			y = LEFT( ppx ) ;
 			if ( COLOR( y ) == RED )
-			{
+ 			{
 				COLOR( px ) = BLACK ;
 				COLOR( y ) = BLACK ;
 				COLOR( ppx ) = RED ;
@@ -163,8 +167,12 @@ void __dict_rbt_insfix(header_s *hp, tnode_s *newnode)
 			else
 			{
 				if ( x == LEFT( px ) )
+				{
 					right_rotate( hp, x = px ) ;
-				COLOR( PARENT( x ) ) = BLACK ;
+					px = PARENT( x );
+					ppx = PARENT( px );
+				}
+				COLOR( px ) = BLACK ;
 				COLOR( ppx ) = RED ;
 				left_rotate( hp, ppx ) ;
 			}
@@ -202,7 +210,7 @@ void __dict_rbt_delfix(header_s *hp, tnode_s *x)
 			if ( COLOR( LEFT( sx ) ) == BLACK && COLOR( RIGHT( sx ) ) == BLACK )
 			{
 				COLOR( sx ) = RED ;
-				x = px ;										/* move up the tree */
+				x = px ;					/* move up the tree */
 			}
 			else
 			{
@@ -221,7 +229,7 @@ void __dict_rbt_delfix(header_s *hp, tnode_s *x)
 				COLOR( px ) = BLACK ;
 				COLOR( RIGHT( sx ) ) = BLACK ;
 				left_rotate( hp, px ) ;
-				x = ROOT( hp ) ;						/* exit the loop */
+				x = ROOT( hp ) ;				/* exit the loop */
 			}
 		}
 		else

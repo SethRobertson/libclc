@@ -1,3 +1,8 @@
+2001-11-02  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* src/dict/bst.c (find_object_in_tree): fix bug in delete or nested
+	iteration of bst with non-unique keys
+
 2001-09-30  Seth Robertson  <seth@yeah.baka.org>
 
 	* include/hpq.h: Create typedef for pq comparison function

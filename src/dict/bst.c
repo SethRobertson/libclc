@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.4 2001/07/07 13:41:15 seth Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.5 2001/11/02 22:47:49 dupuy Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -28,12 +28,11 @@ PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
 
 /*
  * Returns a pointer to the node that contains the specified object
- * or NIL( hp ) if the object is not found
+ * or NIL( hp ) if the object is not found under the node
  */
-PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
+PRIVATE tnode_s *find_object_in_tree(header_s *hp, tnode_s *np, dict_obj object)
 {
   dheader_s 		*dhp 	= DHP( hp ) ;
-  register tnode_s	*np	= ROOT( hp ) ;
   register tnode_s	*null	= NIL( hp ) ;
   register int 		v ;
 	
@@ -45,11 +44,34 @@ PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
       if ( object == OBJ( np ) )
 	break ;
       else
+      {
+	/*
+	 * for equal (non-unique) must check both right and left
+	 * recurse on right, iterate on left
+	 */
+	tnode_s *rp = find_object_in_tree( hp, RIGHT( np ), object ); 
+
+	if ( rp )
+	  return ( rp );
+
 	v = -1 ;
+      }
     }
     np = ( v < 0 ) ? LEFT( np ) : RIGHT( np ) ;
   }
   return( np ) ;
+}
+
+
+/*
+ * Returns a pointer to the node that contains the specified object
+ * or NIL( hp ) if the object is not found
+ */
+PRIVATE tnode_s *find_object(header_s *hp, dict_obj object)
+{
+  register tnode_s	*np	= ROOT( hp ) ;
+	
+  return( find_object_in_tree( hp, np, object ) ) ;
 }
 
 

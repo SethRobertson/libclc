@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.13 2003/09/08 19:41:17 dupuy Exp $
+ * $Id: fsma.h,v 1.14 2004/04/08 21:03:48 jtt Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -76,6 +76,7 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
 #ifdef BK_USING_PTHREADS
 #ifdef __GNUC__
+#if 0
 #define fsm_alloc( fsma )									\
     ({												\
        void *_fsm_ret = NULL;									\
@@ -107,6 +108,39 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
        }											\
        _fsm_ret;										\
     })
+#endif
+static __inline__ void *fsm_alloc(fsma_h fsma);
+static __inline__ void *fsm_alloc(fsma_h fsma)
+{
+  void *_fsm_ret = NULL;
+
+  if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_lock(&(fsma)->lock) != 0))
+  {
+    /* Complain, somehow--locking failed */
+    _fsm_ret = NULL;
+  }
+  else
+  {
+    if (!(fsma)->next_free)
+    { /* No fast path available */
+      _fsm_ret = _fsm_alloc(fsma, FSM_LOCKED);
+    }
+    else
+    {
+      _fsm_ret = (fsma)->next_free;
+      (fsma)->next_free = *(__fsma_pointer *)(fsma)->next_free;
+
+      if ((fsma)->flags & FSM_ZERO_ALLOC)
+	memset(_fsm_ret, 0, (fsma)->slot_size);
+    }
+
+    if (((fsma)->flags & FSM_THREADED) && (pthread_mutex_unlock(&(fsma)->lock) != 0))
+    {
+      /* Complain, somehow--locking failed */
+    }
+  }
+  return(_fsm_ret);
+}
 
 #else /* GNUC */
 

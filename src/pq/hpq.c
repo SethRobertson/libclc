@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: hpq.c,v 1.10 2003/04/13 20:53:18 seth Exp $";
+static const char RCSid[] = "$Id: hpq.c,v 1.11 2004/04/08 21:03:48 jtt Exp $";
 static char const version[] = VERSION;
 
 #include <stdlib.h>
@@ -204,7 +204,7 @@ int __hpq_insert(pq_h handle, pq_obj object)
     abort();
 #endif /* BK_USING_PTHREADS */
 
-  return(PQ_OK);
+  return(ret);
 }
 
 

@@ -1,3 +1,8 @@
+2003-06-07  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/dict/ht.c (ht_create): argsp may change size between
+	external and internal users due to HASH_STATS define.
+
 2003-05-16  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/dict/ht.c (ht_destroy): Allow clean up of all memory when
@@ -17,7 +22,7 @@
 
 	* src/dict/ht.c (ht_delete): microscopic performance tweak
 	[Seth got the big win already]
-	
+
 2003-04-16  James Tanis  <jtt@saint.sysdetect.com>
 
 	* src/fsma/fsma.c (fsm_threaded_makeready): Only allow users to
@@ -116,7 +121,7 @@
 2002-05-13  James Tanis  <jtt@saint.sysdetect.com>
 
 	* src/fsma/Makefile (BK_LARGE_LIB): Shared libfsma no longer
-	breaks with libtool (on both linux and bsd). 
+	breaks with libtool (on both linux and bsd).
 
 2002-05-10  Alexander Dupuy  <dupuy@sysdetect.com>
 
@@ -194,7 +199,7 @@
 	Add DICT_NOCOALESCE to allow reentrancy.
 
 	Delete DICT_RETURN_ERROR -- never exit.
-	
+
 	Change indention to BAKA style.
 
 2001-07-05  Seth Robertson  <seth@yeah.baka.org>
@@ -205,4 +210,3 @@
 
 	* include/ bst.h dict.h dll.h fsma.h hpq.h ht.h pq.h: Sanify indention style.
 	Nuke __ARGS() -- all compilers are ANSI compatible && need function prototypes
-

@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.10 2002/07/18 22:52:46 dupuy Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.11 2002/08/15 04:16:28 jtt Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -166,6 +166,18 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
   (void) memset( hp->table, 0, (int) table_size ) ;
 
   hp->args = *argsp ;
+
+  /*
+   * Set cur_min to zero. This is a little bogus since 0 is a valid slot
+   * (but not the valid minimum) and, furthermore, inserts will *not*
+   * change this until the first call to ht_miniumum. but what this means
+   * is that we check for the special case of the cur_min being unset
+   * (which, BTW, would take a new field in the header as well at the cost
+   * of 4 bytes per ht) with each insert. And after all, in theory,
+   * ht_minimum might never be called.
+   */
+  hp->cur_min = 0;
+  hp->obj_cnt = 0;
   return( (dict_h) hp ) ;
 }
 
@@ -231,7 +243,7 @@ PRIVATE dict_obj *bc_reverse_lookup(bucket_s *bp, unsigned int entries, bucket_s
  *		Return a pointer to the first NULL (if type is EMPTY) or non-NULL
  *		(if type is FULL) dict_obj in the bucket chain.
  */
-PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_type type)
+PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_type type, int *indexp)
 {
   register bucket_s	*bp ;
   register int		look_for_empty = ( type == EMPTY ) ;
@@ -243,7 +255,10 @@ PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_t
 
     for ( j = 0 ; j < entries ; j++ )
       if ( ( bucket_list[j] == NULL ) == look_for_empty )
+      {
+	if (indexp) *indexp = j;
 	return( &bucket_list[j] ) ;
+      }
   }
   return( NULL ) ;
 }
@@ -302,6 +317,7 @@ PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
    * Update entry info
    */
   tep->n_free += hp->args.ht_bucket_entries ;
+  tep->n_free_max += hp->args.ht_bucket_entries ;
   return( BUCKET_OBJECTS( bp ) ) ;
 }
 
@@ -339,6 +355,7 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   dheader_s		*dhp = DHP( hp ) ;
   tabent_s		*tep ;
   dict_obj		*object_slot ;
+  unsigned int		min_index;
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
@@ -370,8 +387,13 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
       return( DICT_ERR ) ;
   }
   else
-    object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY ) ;
+    object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY, &min_index ) ;
   tep->n_free-- ;
+
+  if (min_index < hp->cur_min)
+    hp->cur_min = min_index;
+  
+  hp->obj_cnt++;
 
   *object_slot = object ;
   if ( objectp != NULL )
@@ -413,7 +435,7 @@ int ht_delete(dict_h handle, dict_obj object)
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
   tep = HASH_OBJECT( hp, object ) ;
-  if ( ! ENTRY_HAS_CHAIN( tep ) )
+  if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep) )
   {
     ERRNO( dhp ) = DICT_ENOTFOUND ;
     return( DICT_ERR ) ;
@@ -425,10 +447,39 @@ int ht_delete(dict_h handle, dict_obj object)
   {
     BUCKET_OBJECTS( bp )[ bucket_index ] = NULL ;
     tep->n_free++ ;
+
+    hp->obj_cnt--;
+
+    if (bucket_index == (int)hp->cur_min)
+    {
+      unsigned int i;
+
+      if (hp->obj_cnt)
+      {
+	// Look for new minimum
+	for ( i = hp->cur_min ; i < hp->args.ht_table_entries ; i++ )
+	{
+	  tabent_s *ltep = &hp->table[i] ;
+
+	  if ( ENTRY_HAS_CHAIN( ltep ) &&  ! ENTRY_IS_EMPTY( ltep ) )
+	    break;
+	}
+
+	// If we don't find a new min, then reset min to initial state.
+	hp->cur_min = (i == hp->args.ht_table_entries)?0:i;
+      }
+      else
+      {
+	hp->cur_min = 0;
+      }
+    }
+
+
     return( DICT_OK ) ;
   }
   else
   {
+    // This should no longer happen, but just in case
     ERRNO( dhp ) = DICT_ENOTFOUND ;
     return( DICT_ERR ) ;
   }
@@ -451,17 +502,26 @@ dict_obj ht_minimum(dict_h handle)
   header_s		*hp		= HHP( handle ) ;
   unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
   unsigned int		i ;
+  unsigned int		min_index;
 
-  for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
+  if (hp->obj_cnt)
   {
-    tabent_s *tep = &hp->table[i] ;
-    dict_obj *found ;
+    for ( i = hp->cur_min ; i < hp->args.ht_table_entries ; i++ )
+    {
+      tabent_s *tep = &hp->table[i] ;
+      dict_obj *found ;
 
-    if ( ! ENTRY_HAS_CHAIN( tep ) )
-      continue ;
-    found = bc_lookup( tep->head_bucket, bucket_entries, FULL ) ;
-    if ( found )
-      return( *found ) ;
+      if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY(tep) )
+	continue ;
+      found = bc_lookup( tep->head_bucket, bucket_entries, FULL, &min_index ) ;
+      if ( found )
+      {
+	hp->cur_min = min_index;
+	return( *found ) ;
+      }
+    }
+    // We should never get here, but whatever...
+    hp->cur_min = 0;
   }
   return( NULL_OBJ ) ;
 }
@@ -478,8 +538,9 @@ dict_obj ht_maximum(dict_h handle)
     tabent_s *tep = &hp->table[i] ;
     dict_obj *found ;
 
-    if ( ! ENTRY_HAS_CHAIN( tep ) )
+    if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep) )
       continue ;
+
     found = bc_reverse_lookup( tep->head_bucket,
 			       bucket_entries, BUCKET_NULL ) ;
     if ( found )
@@ -517,7 +578,7 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
 
   for ( bp = bp->next ;; )
   {
-    dict_obj *found = bc_lookup( bp, bucket_entries, FULL ) ;
+    dict_obj *found = bc_lookup( bp, bucket_entries, FULL, NULL ) ;
 
     if ( found )
       return( *found ) ;

@@ -1,3 +1,12 @@
+2002-08-14  James Tanis  <jtt@saint.sysdetect.com>
+
+	* src/dict/ht.c (ht_minimum): Use cached minimum index as search start.
+	(ht_do_insert): Update minimum index if less the current minimum.
+	(ht_delete): Search for new minimum index if the index of the
+	deleted node equals the current minimum.
+	In addition add and obj_cnt so we don't try to perform expensive
+	operations on empty hashes.
+
 2002-05-13  James Tanis  <jtt@saint.sysdetect.com>
 
 	* src/fsma/Makefile (BK_LARGE_LIB): Shared libfsma no longer

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.3 2001/07/06 00:57:31 seth Exp $
+ * $Id: htimpl.h,v 1.4 2002/08/15 04:16:28 jtt Exp $
  */
 
 #include "dictimpl.h"
@@ -57,6 +57,7 @@ struct table_entry
 {
 	bucket_s		*head_bucket ;
 	unsigned		n_free ;
+	unsigned		n_free_max ;
 } ;
 
 typedef struct table_entry tabent_s ;
@@ -66,6 +67,7 @@ typedef struct table_entry tabent_s ;
 
 #define ENTRY_HAS_CHAIN( tep )		( (tep)->head_bucket != NULL )
 #define ENTRY_IS_FULL( tep )		( (tep)->n_free == 0 )
+#define ENTRY_IS_EMPTY( tep )		( (tep)->n_free == (tep)->n_free_max)
 
 
 struct ht_iter
@@ -87,6 +89,8 @@ struct ht_header
 	struct table_entry	*table ;
 	struct ht_args 		args ;
 	struct ht_iter 		iter ;
+  unsigned int		cur_min;
+  unsigned int		obj_cnt;
 } ;
 
 typedef struct ht_header header_s ;

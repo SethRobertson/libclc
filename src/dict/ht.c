@@ -3,18 +3,19 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.24 2003/06/05 06:54:04 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.25 2003/06/06 14:06:57 dupuy Exp $";
 
 #define CUR_MIN_PERF_HACK
 
 /*
- * Define this for some interesting hash table tidbits
+ * Enable/disable hash table statistics gathering (also requires DICT_STATS
+ * flag set on ht_create() call).
  */
-/* #define HASH_STATS */
+#define HASH_STATS
 
 #if defined(DEBUG) || defined(HASH_STATS)
-#endif
 #include <stdio.h>
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -246,10 +247,12 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
 
 #ifdef HASH_STATS
   if (flags & DICT_STATS)
-    hp->args.ht_stats = NULL;
-  else
+  {
     // <TODO>update and use argsp->ht_stats to accumulate stats by type</TODO>
     hp->args.ht_stats = HSP( calloc( 1, sizeof( stats_s ) ) ) ;
+  }
+  else
+    hp->args.ht_stats = NULL;
 #endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
@@ -668,7 +671,9 @@ int ht_delete(dict_h handle, dict_obj object)
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   errret = (*(hp)->args.ht_objvalue)(object);
+#ifdef DEBUG
   //  fprintf(stderr, "ht_delete: %d %d %d\n", junkptr, errret%hp->args.ht_table_entries, errret);
+#endif
   if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep ) )
   {
     errret = DICT_ENOTFOUND;

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: hpq.c,v 1.4 2001/07/07 13:41:16 seth Exp $" ;
+static char RCSid[] = "$Id: hpq.c,v 1.5 2001/11/29 17:39:56 jtt Exp $" ;
 static char version[] = VERSION ;
 
 #include <stdlib.h>
@@ -47,11 +47,11 @@ unsigned PARENTTMP;		/* Required for macro so PARENT(root) == root */
 #define EXISTS( hp, i )		( i < hp->cur_size )
 #define IS_BETTER( hp, i, j )	( (*hp->is_better)( hp->objects[ i ], hp->objects[ j ] ) )
 #define SWAP( hp, i, j )					\
-		{						\
+		do{						\
 		  pq_obj t = hp->objects[ i ] ;		\
 		  hp->objects[ i ] = hp->objects[ j ] ;	\
 		  hp->objects[ j ] = t ;			\
-		}
+		}while(0)
 
 
 

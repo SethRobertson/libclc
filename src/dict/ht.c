@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.6 2001/11/05 19:31:45 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.7 2001/11/29 17:39:56 jtt Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -690,7 +690,7 @@ char *ht_error_reason(dict_h handle, int *errnop)
 dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, int *errnop, struct ht_args *argsp)
 {
   argsp = argsp;
-  return dll_create( oo_comp, ko_comp, flags, errnop);
+  return dll_create( oo_comp, ko_comp, flags);
 }
 
 void ht_destroy(dict_h handle)

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.5 2001/09/17 22:36:33 dupuy Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.6 2001/11/29 17:39:56 jtt Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -24,11 +24,13 @@ static char *version = VERSION ;
  * users of memory, not fsma itself.
  */
 #ifndef DEBUG_FSMA_ITSELF
-#if defined (__INSIGHT__) || defined(USING_DMALLOC)
-#define FSMA_USE_MALLOC
+#if defined (__INSIGHT__) || defined (__INSURE__) || defined(USING_DMALLOC) || defined(USING_INSIGHT)
+#	ifdef COALESCE
+#		undef COALESCE
+#	endif /* COALESCE */
+#	define FSMA_USE_MALLOC
 #endif /* memory debuggers */
 #endif /* DEBUG_FSMA_ITSELF */
-
 
 
 unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
@@ -37,7 +39,6 @@ int fsma_coalesce = TRUE;
 static fsma_h *coalesce = NULL;
 static int coalesce_size = 1;
 #endif /* COALESCE */
-
 
 PRIVATE void init_free_list  ( unsigned, unsigned, void * )  ;
 

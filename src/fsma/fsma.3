@@ -2,7 +2,7 @@
 .\"All rights reserved.  The file named COPYRIGHT specifies the terms 
 .\"and conditions for redistribution.
 .\"
-.\" $Id: fsma.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.\" $Id: fsma.3,v 1.2 2003/04/17 23:59:53 jtt Exp $
 .TH FSMA 3X "10 October 1992"
 .SH NAME
 fsm_create, fsm_destroy, fsm_alloc, fsm_free, fsm_size - fixed size memory allocator
@@ -56,16 +56,6 @@ because it defines how many objects should fit in a chunk. If
 The \fIflags\fR argument is formed by ORing one or more of the following
 constants:
 .TP 20
-.SB FSM_RETURN_ERROR
-determines the behavior of the particular allocator
-in case of a \fBmalloc()\fR failure. When used, the call that
-failed will return a value that indicates failure
-(the default behavior is to terminate the process)
-.TP
-.SB FSM_ZERO_ALLOC
-will cause memory blocks returned from the specified allocator
-by \fBfsm_alloc()\fR to be zeroed.
-.TP
 .SB FSM_ZERO_FREE
 will cause memory blocks returned to the specified allocator by 
 \fBfsm_free()\fR to be zeroed.

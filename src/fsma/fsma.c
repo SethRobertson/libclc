@@ -4,12 +4,13 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.10 2002/08/30 03:18:16 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.11 2002/08/30 03:23:11 seth Exp $";
 static const char version[] = VERSION;
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 #include "fsma.h"
 #include "impl.h"
 #ifdef DEBUG
@@ -256,7 +257,6 @@ void fsm_destroy(register fsma_h fp)
   if (!(fp->flags & FSM_NOCOALESCE) && coalesce_size)
   {
     int cnt;
-    fsma_h *tmp;
 
     for (cnt = 0; cnt < coalesce_size; cnt++)
     {

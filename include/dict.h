@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.3 2001/07/07 02:58:20 seth Exp $
+ * $Id: dict.h,v 1.4 2001/08/17 04:12:54 seth Exp $
  */
 
 /*
@@ -49,6 +49,21 @@ typedef void *dict_key ;
 typedef void *dict_h ;
 
 enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
+
+
+
+#define DICT_NUKE_CONTENTS(Q, prefix, ptr, errcode, code) do \
+ { \
+   if (!Q) break; \
+   while ((ptr) = prefix##_minimum(Q)) \
+   { \
+     if (prefix##_delete(Q, (ptr)) != DICT_OK) \
+     { \
+       errcode; \
+     } \
+     code; \
+   } \
+ } while (0)
 
 #endif	/* __DICT_H */
 

@@ -1,3 +1,8 @@
+2001-08-16  Seth Robertson  <seth@yeah.baka.org>
+
+	* include/dict.h (DICT_NUKE_CONTENTS): Generic macro to spin through
+	CLC using user code to nuke each item.
+
 2001-07-07  Seth Robertson  <seth@yeah.baka.org>
 
 	* (ERRNO): errno shadows global errno which is sometimes a manifest constant

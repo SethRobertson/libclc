@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.5 2002/01/31 17:35:09 dupuy Exp $
+# $Id: Makefile,v 1.6 2002/05/16 16:02:20 dupuy Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -23,6 +23,8 @@ BK_MAN=bst.3 dict.3 dll.3 ht.3
 LOCAL_DEFINES=-DFAST_ACTIONS -DSAFE_ITERATE
 LOCAL_LDS=-L..
 LOCAL_LIBS=-ldict -lfsma
+
+LT_LDLIBS=-lfsma
 
 GROUPTOP=../..
 GROUPSUBDIR=src/dict

@@ -8,7 +8,7 @@
 #define __DLL_H
 
 /*
- * $Id: dll.h,v 1.3 2001/07/07 02:58:20 seth Exp $
+ * $Id: dll.h,v 1.4 2001/11/05 19:31:45 seth Exp $
  */
 
 #include "dict.h"
@@ -25,8 +25,9 @@ dict_obj dll_minimum 		 ( dict_h lh )  ;
 dict_obj dll_maximum 		 ( dict_h lh )  ;
 dict_obj dll_successor 		 ( dict_h lh, dict_obj obj )  ;
 dict_obj dll_predecessor 	 ( dict_h lh, dict_obj obj )  ;
-void	 dll_iterate		 ( dict_h lh, enum dict_direction )  ;
-dict_obj dll_nextobj		 ( dict_h lh )  ;
+dict_iter dll_iterate		 ( dict_h lh, enum dict_direction )  ;
+void	 dll_iterate_done	 ( dict_h lh, dict_iter iter )  ;
+dict_obj dll_nextobj		 ( dict_h lh, dict_iter iter )  ;
 char *	 dll_error_reason	 ( dict_h lh, int *errnop )  ;
 
 #endif 	/* __DLL_H */

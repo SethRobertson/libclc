@@ -1,3 +1,10 @@
+2001-11-05  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/dict/*: Change _iterate/nextobj interface to be re-entrant.
+	NOTE THIS IS ONLY AN INTERFACE CHANGE--IT IS STILL NOT RE-ENTRANT.
+	However, at least it can be pretty easily converted to re-entrant
+	without affecting anyone else.
+
 2001-11-02  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* src/dict/bst.c (find_object_in_tree): fix bug in delete or nested

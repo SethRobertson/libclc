@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dlltest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
+static char RCSid[] = "$Id: dlltest.c,v 1.4 2001/11/05 19:31:45 seth Exp $" ;
 
 
 #ifndef NULL
@@ -12,6 +12,7 @@ static char RCSid[] = "$Id: dlltest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "dll.h"
 #include "clchack.h"
 
@@ -55,7 +56,9 @@ int nums[ N ] ;
 
 int main(void)
 {
+
 	dict_h lh ;
+	dict_iter iter ;
 	int i ;
 	int *ip ;
 
@@ -98,8 +101,8 @@ int main(void)
 		printf( "%d\n", *ip ) ;
 
 	printf( "Iteration test\n" ) ;
-	dll_iterate( lh, DICT_FROM_START ) ;
-	while (( ip = INTP( dll_nextobj( lh ) ) ))
+	iter = dll_iterate( lh, DICT_FROM_START ) ;
+	while (( ip = INTP( dll_nextobj( lh, iter ) ) ))
 		if ( *ip == 5 )
 			(void) dll_delete( lh, ip ) ;
 		else

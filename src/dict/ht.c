@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.5 2001/07/07 13:41:16 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.6 2001/11/05 19:31:45 seth Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -598,7 +598,7 @@ PRIVATE void iter_next(header_s *hp)
 /*
  * We don't make any use of 'direction'
  */
-void ht_iterate(dict_h handle, enum dict_direction direction)
+dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
 {
   header_s					*hp = HHP( handle ) ;
 
@@ -607,13 +607,24 @@ void ht_iterate(dict_h handle, enum dict_direction direction)
 #endif
   hp->iter.current_table_entry = 0 ;
   iter_next( hp ) ;
+
+  /* TODO - create dynamically allocated iterator */
+  return(&hp->iter);
 }
 
 
-dict_obj ht_nextobj(dict_h handle)
+void ht_iterate_done(dict_h handle, dict_iter iter)
+{
+  /* TODO -- delete dynamically allocated iterator */
+
+  return;
+}
+
+
+dict_obj ht_nextobj(dict_h handle, dict_iter iter)
 {
   header_s		*hp = HHP( handle ) ;
-  struct ht_iter	*ip = &hp->iter ;
+  struct ht_iter	*ip = iter;
   unsigned int		i ;
 
   while ( ip->current_table_entry < hp->args.ht_table_entries )
@@ -641,6 +652,25 @@ dict_obj ht_nextobj(dict_h handle)
   }
   return( NULL_OBJ ) ;
 }
+
+
+
+char *ht_error_reason(dict_h handle, int *errnop)
+{
+  header_s	*hp		= HHP( handle ) ;
+  int		dicterrno;
+
+  if (handle)
+    dicterrno = ERRNO(DHP(hp));
+  else
+    dicterrno = dict_errno;
+
+  if (errnop) *errnop = dicterrno;
+
+  return(__dict_error_reason(dicterrno));
+}
+
+
 
 #else  /* SWITCH_HT_TO_DLL */
 
@@ -708,31 +738,24 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   return dll_predecessor( handle, object );
 }
 
-void ht_iterate(dict_h handle, enum dict_direction direction)
+dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
 {
-  dll_iterate( handle, direction );
+  return dll_iterate( handle, direction );
 }
 
-dict_obj ht_nextobj(dict_h handle)
+void ht_iterate_done(dict_h handle, dict_iter iter)
 {
-  return dll_nextobj( handle );
+  dll_iterate_done(handle, iter);
 }
 
-#endif /* SWITCH_HT_TO_DLL */
-
-
+dict_obj ht_nextobj(dict_h handle, dict_iter iter)
+{
+  return dll_nextobj( handle, iter );
+}
 
 char *ht_error_reason(dict_h handle, int *errnop)
 {
-  header_s	*hp		= HHP( handle ) ;
-  int		dicterrno;
-
-  if (handle)
-    dicterrno = ERRNO(DHP(hp));
-  else
-    dicterrno = dict_errno;
-
-  if (errnop) *errnop = dicterrno;
-
-  return(__dict_error_reason(dicterrno));
+  return dll_error_reason( handle, errnop );
 }
+
+#endif /* SWITCH_HT_TO_DLL */

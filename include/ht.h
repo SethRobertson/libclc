@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.3 2001/07/07 02:58:21 seth Exp $
+ * $Id: ht.h,v 1.4 2001/11/05 19:31:45 seth Exp $
  */
 
 #include "dict.h"
@@ -36,8 +36,9 @@ dict_obj	ht_minimum	 ( dict_h hh )  ;
 dict_obj	ht_maximum	 ( dict_h hh )  ;
 dict_obj	ht_successor	 ( dict_h hh, dict_obj )  ;
 dict_obj	ht_predecessor	 ( dict_h hh, dict_obj )  ;
-void		ht_iterate	 ( dict_h hh, enum dict_direction direction )  ;
-dict_obj	ht_nextobj	 ( dict_h hh )  ;
+dict_iter	ht_iterate	 ( dict_h hh, enum dict_direction direction )  ;
+void		ht_iterate_done	 ( dict_h hh, dict_iter )  ;
+dict_obj	ht_nextobj	 ( dict_h hh, dict_iter )  ;
 char *	 	ht_error_reason	 ( dict_h hh, int *errnop )  ;
 
 extern int ht_num_table_entries;

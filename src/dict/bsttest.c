@@ -4,13 +4,14 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bsttest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
+static char RCSid[] = "$Id: bsttest.c,v 1.4 2001/11/05 19:31:45 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "bst.h"
 #include "clchack.h"
 

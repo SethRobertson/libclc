@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: bst.c,v 1.6 2001/11/02 23:01:39 dupuy Exp $" ;
+static char RCSid[] = "$Id: bst.c,v 1.7 2001/11/05 19:31:45 seth Exp $" ;
 
 #include <stdlib.h>
 #include "bstimpl.h"
@@ -320,7 +320,7 @@ int bst_delete(dict_h handle, dict_obj object)
   {
     if (OBJ(tip->next) == object)
     {
-      bst_nextobj(handle);
+      bst_nextobj(handle, tip);
     }
     if (tip->next)
       safe_nextobj = OBJ(tip->next);
@@ -393,7 +393,7 @@ int bst_delete(dict_h handle, dict_obj object)
   /* This should not be possible due to previous protections, but... */
   if (tip->next == y)
   {
-    bst_nextobj(handle);
+    bst_nextobj(handle, tip);
   }
 #endif /* SAFE_ITERATE */
 
@@ -607,7 +607,7 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
 
 
 
-void bst_iterate(dict_h handle, enum dict_direction direction)
+dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
 {
   register header_s	*hp	= THP( handle ) ;
   struct tree_iterator	*tip	= &hp->iter ;
@@ -628,14 +628,24 @@ void bst_iterate(dict_h handle, enum dict_direction direction)
     }
     tip->next = np ;
   }
+
+  return(tip);
 }
 
 
 
-dict_obj bst_nextobj(dict_h handle)
+void bst_iterate_done(dict_h handle, dict_iter iter)
+{
+  /* TODO -- delete dynamically allocated iterator */
+
+  return;
+}
+
+
+dict_obj bst_nextobj(dict_h handle, dict_iter iter)
 {
   register header_s	*hp		= THP( handle ) ;
-  struct tree_iterator	*tip		= &hp->iter ;
+  struct tree_iterator	*tip		= iter ;
   tnode_s		*current	= tip->next ;
 
   if ( current == NULL )

@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.4 2001/08/17 04:12:54 seth Exp $
+ * $Id: dict.h,v 1.5 2001/11/05 19:31:45 seth Exp $
  */
 
 /*
@@ -45,6 +45,7 @@
 
 typedef int (*dict_function)(void *, void *) ;
 typedef void *dict_obj ;
+typedef void *dict_iter ;
 typedef void *dict_key ;
 typedef void *dict_h ;
 

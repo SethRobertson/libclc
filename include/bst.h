@@ -8,7 +8,7 @@
 #define __BST_H
 
 /*
- * $Id: bst.h,v 1.3 2001/07/07 02:58:20 seth Exp $
+ * $Id: bst.h,v 1.4 2001/11/05 19:31:45 seth Exp $
  */
 
 #include "dict.h"
@@ -23,8 +23,9 @@ dict_obj bst_minimum		 ( dict_h bh )  ;
 dict_obj bst_maximum		 ( dict_h bh )  ;
 dict_obj bst_successor		 ( dict_h bh, dict_obj obj )  ;
 dict_obj bst_predecessor	 ( dict_h bh, dict_obj obj )  ;
-void	 bst_iterate		 ( dict_h bh, enum dict_direction )  ;
-dict_obj bst_nextobj		 ( dict_h bh )  ;
+dict_iter bst_iterate		 ( dict_h bh, enum dict_direction )  ;
+void bst_iterate_done		 ( dict_h bh, dict_iter iter )  ;
+dict_obj bst_nextobj		 ( dict_h bh, dict_iter iter )  ;
 char *	 bst_error_reason	 ( dict_h bh, int *errnop )  ;
 
 

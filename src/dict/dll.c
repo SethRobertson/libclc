@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dll.c,v 1.4 2001/07/07 13:41:15 seth Exp $" ;
+static char RCSid[] = "$Id: dll.c,v 1.5 2001/11/05 19:31:45 seth Exp $" ;
 
 #include <stdlib.h>
 #include "dllimpl.h"
@@ -244,7 +244,7 @@ int dll_delete(dict_h handle, register dict_obj object)
 #ifdef SAFE_ITERATE	
   if (dip->next && (OBJ(dip->next) == object) )
   {
-    dll_nextobj(handle);
+    dll_nextobj(handle, dip);
   }
 #endif
 
@@ -416,11 +416,13 @@ dict_obj dll_predecessor(dict_h handle, register dict_obj object)
 }
 
 
-void dll_iterate(dict_h handle, enum dict_direction direction)
+dict_iter dll_iterate(dict_h handle, enum dict_direction direction)
 {
   register header_s	*hp	= LHP( handle ) ;
   dheader_s		*dhp	= DHP( hp ) ;
   struct dll_iterator	*dip	= &hp->iter ;
+
+  /* TODO -- create dynamically allocated iterator */
 
   if ( dhp->flags & DICT_UNORDERED )
     dip->direction = DICT_FROM_START ;
@@ -431,12 +433,22 @@ void dll_iterate(dict_h handle, enum dict_direction direction)
     dip->next = NEXT( hp->head ) ;
   else
     dip->next = PREV( hp->head ) ;
+
+  return(dip);
 }
 
 
-dict_obj dll_nextobj(dict_h handle)
+void dll_iterate_done(dict_h handle, dict_iter iter)
 {
-  struct dll_iterator	*dip		= &LHP( handle )->iter ;
+  /* TODO -- delete dynamically allocated iterator */
+
+  return;
+}
+
+
+dict_obj dll_nextobj(dict_h handle, dict_iter iter)
+{
+  struct dll_iterator	*dip		= iter ;
   node_s		*current	= dip->next ;
 
   if ( dip->direction == DICT_FROM_START )

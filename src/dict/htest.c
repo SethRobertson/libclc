@@ -4,13 +4,14 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: htest.c,v 1.3 2001/08/18 18:15:56 jtt Exp $" ;
+static char RCSid[] = "$Id: htest.c,v 1.4 2001/11/05 19:31:45 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "dict.h"
 #include "ht.h"
 #include "clchack.h"
@@ -51,6 +52,7 @@ int nums[ N ] ;
 int main(void)
 {
 	dict_h lh ;
+	dict_iter iter ;
 	int i ;
 	int *ip ;
 	struct ht_args args ;
@@ -90,8 +92,8 @@ int main(void)
 		else
 			printf( "%d not found\n", nums[ i ] ) ;
 		
-	ht_iterate( lh , DICT_FROM_START ) ;
-	while (( ip = INTP( ht_nextobj( lh ) ) ))
+	iter = ht_iterate( lh , DICT_FROM_START ) ;
+	while (( ip = INTP( ht_nextobj( lh, iter ) ) ))
 		printf( "Object = %d\n", *ip ) ;
 	
 	for ( ip = INTP(ht_minimum( lh )) ; ip ; ip = INTP(ht_successor( lh, ip )) )

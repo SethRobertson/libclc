@@ -2,7 +2,7 @@
 .\"All rights reserved.  The file named COPYRIGHT specifies the terms 
 .\"and conditions for redistribution.
 .\"
-.\" $Id: dict.3,v 1.3 2001/11/05 19:31:45 seth Exp $
+.\" $Id: dict.3,v 1.4 2003/05/07 19:39:59 dupuy Exp $
 .TH DICT 3X "23 April 1993"
 .SH NAME
 dictionary management functions
@@ -350,9 +350,7 @@ if there are no objects in the particular library instance.
 returns an object, or
 .SM NULL
 if the specified object has no successor (predecessor),
-or when the specified object does not exist (assuming the
-.SB DICT_RETURN_ERROR
-flag was used when the specific library instance was created).
+or when the specified object does not exist.
 In order to discriminate between these two cases, in the former case
 the error variable 
 (\fIdict_errno\fP or the one specified when the 
@@ -370,22 +368,19 @@ if there are no more objects.
 The following error codes are placed in
 .I dict_errno
 or in the user-specified error variable.
-Error codes marked with "*" cause program termination if the
-.B DICT_RETURN_ERROR
-flag is not used.
 .IP DICT_ENOERROR 20
 No error.
-.IP "DICT_ENOMEM *"
+.IP "DICT_ENOMEM"
 Operation failed because of lack of memory.
 .IP DICT_ENOTFOUND
 Object not found.
-.IP "DICT_ENOOOCOMP *"
+.IP "DICT_ENOOOCOMP"
 Object-to-object comparator function is missing.
 .\"
-.\" .IP "DICT_ENOKOCOMP *"
+.\" .IP "DICT_ENOKOCOMP"
 .\" Key-to-object comparator function is missing.
 .\"
-.IP "DICT_ENULLOBJECT *"
+.IP "DICT_ENULLOBJECT"
 Object is
 .SM NULL.
 .IP DICT_EEXISTS
@@ -396,9 +391,9 @@ The object used in a
 or 
 .I "<lib>_predecessor"
 operation does not exist.
-.IP "DICT_ENOHVFUNC *"
+.IP "DICT_ENOHVFUNC"
 The function to convert a key or object to a hash value is missing.
-.IP "DICT_EBADORDER *"
+.IP "DICT_EBADORDER"
 Both the
 .SM DICT_ORDERED
 and

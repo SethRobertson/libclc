@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.7 2003/04/09 19:51:56 seth Exp $
+ * $Id: htimpl.h,v 1.8 2003/05/07 19:39:59 dupuy Exp $
  */
 
 #include "dictimpl.h"
@@ -96,7 +96,9 @@ struct ht_header
 #else /* BK_USING_PTHREADS */
 	struct ht_iter 		iter ;
 #endif /* BK_USING_PTHREADS */
+#ifdef CUR_MIN_PERF_HACK
         unsigned int		cur_min;
+#endif /* CUR_MIN_PERF_HACK */
   	unsigned int		obj_cnt;
 } ;
 

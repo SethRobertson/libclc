@@ -3,11 +3,13 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.17 2003/04/22 03:18:11 jtt Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.18 2003/05/07 19:39:59 dupuy Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
 #endif
+
+#define CUR_MIN_PERF_HACK
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +27,7 @@ enum lookup_type { EMPTY, FULL } ;
 
 
 
-#define CUR_MIN_PERHACK
-#ifdef CUR_MIN_PERHACK
+#ifdef CUR_MIN_PERF_HACK
 
 #define HASH( hp, func, arg, save )	( &(hp)->table[ (save) = ((*(func))( arg ) % (hp)->args.ht_table_entries) ] )
 #define HASH_OBJECT( hp, obj, save )  HASH( hp, (hp)->args.ht_objvalue, obj, save )
@@ -34,13 +35,13 @@ enum lookup_type { EMPTY, FULL } ;
 
 static int junkptr = 0;
 
-#else // CUR_MIN_PERHACK
+#else /* !CUR_MIN_PERF_HACK */
 
 #define HASH( hp, func, arg, save )	( &(hp)->table[ (*(func))( arg ) % (hp)->args.ht_table_entries ] )
 #define HASH_OBJECT( hp, obj, save )  HASH( hp, (hp)->args.ht_objvalue, obj, save )
 #define HASH_KEY( hp, key, save )     HASH( hp, (hp)->args.ht_keyvalue, key, save )
 
-#endif // CUR_MIN_PERHACK
+#endif /* !CUR_MIN_PERF_HACK */
 
 
 #define N_PRIMES		( sizeof( primes ) / sizeof( unsigned ) )
@@ -199,6 +200,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
   hp->iter = NULL;
 #endif /* BK_USING_PTHREADS */
 
+#ifdef CUR_MIN_PERF_HACK
   /*
    * Set cur_min to zero. This is a little bogus since 0 is a valid
    * slot (but not the valid minimum) but the first insert will fix
@@ -206,6 +208,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
    * in the hash table.
    */
   hp->cur_min = 0;
+#endif /* CUR_MIN_PERF_HACK */
   hp->obj_cnt = 0;
   return( (dict_h) hp ) ;
 }
@@ -463,10 +466,10 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
     object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY ) ;
   tep->n_free-- ;
 
-#ifdef CUR_MIN_PERHACK
+#ifdef CUR_MIN_PERF_HACK
   if (min_index < hp->cur_min || hp->obj_cnt == 0)
     hp->cur_min = min_index;
-#endif // CUR_MIN_PERHACK
+#endif /* CUR_MIN_PERF_HACK */
 
   hp->obj_cnt++;
 
@@ -548,7 +551,7 @@ int ht_delete(dict_h handle, dict_obj object)
 #endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
-  if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep) )
+  if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep ) )
   {
     errret = DICT_ENOTFOUND;
     goto error;
@@ -565,11 +568,14 @@ int ht_delete(dict_h handle, dict_obj object)
 
   hp->obj_cnt--;
 
-#ifdef CUR_MIN_PERHACK
-  // Note that cur_min may be too low, but we perform lazy evaluation on the minimum
+#ifdef CUR_MIN_PERF_HACK
+  // cur_min is always 0 for an empty hash table, though it doesn't much matter
   if (!hp->obj_cnt)
     hp->cur_min = 0;
-#endif // CUR_MIN_PERHACK
+  // this helps (a little) if most ht_delete's are in loop preceding ht_minimum
+  else if (&hp->table[hp->cur_min] == tep && ENTRY_IS_EMPTY( tep ) )
+    hp->cur_min++;
+#endif // CUR_MIN_PERF_HACK
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
@@ -637,7 +643,12 @@ dict_obj ht_minimum(dict_h handle)
 
   if (hp->obj_cnt)
   {
-    for ( i = hp->cur_min ; i < hp->args.ht_table_entries ; i++ )
+#ifdef CUR_MIN_PERF_HACK
+    i = hp->cur_min;
+#else /* !CUR_MIN_PERF_HACK */
+    i = 0;
+#endif /* !CUR_MIN_PERF_HACK */
+    for ( ; i < hp->args.ht_table_entries ; i++ )
     {
       tabent_s *tep = &hp->table[i] ;
       dict_obj *found ;
@@ -647,17 +658,19 @@ dict_obj ht_minimum(dict_h handle)
       found = bc_lookup( tep->head_bucket, bucket_entries, FULL ) ;
       if ( found )
       {
-#ifdef CUR_MIN_PERHACK
+#ifdef CUR_MIN_PERF_HACK
 	hp->cur_min = i;
-#endif // CUR_MIN_PERHACK
+#endif /* CUR_MIN_PERF_HACK */
 
 	obj = *found;
 	goto done;
       }
     }
-    // We should never get here, but whatever...
-    hp->cur_min = 0;
   }
+
+#ifdef CUR_MIN_PERF_HACK
+  hp->cur_min = 0;
+#endif /* CUR_MIN_PERF_HACK */
 
  done:
 #ifdef BK_USING_PTHREADS

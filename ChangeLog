@@ -1,3 +1,8 @@
+2003-04-28  Alexander Dupuy  <dupuy@sysdetect.com>
+
+	* src/dict/ht.c (ht_delete): microscopic performance tweak
+	[Seth got the big win already]
+	
 2003-04-16  James Tanis  <jtt@saint.sysdetect.com>
 
 	* src/fsma/fsma.c (fsm_threaded_makeready): Only allow users to

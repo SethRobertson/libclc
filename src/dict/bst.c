@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.14 2003/04/24 18:30:23 jtt Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.15 2003/05/07 19:39:58 dupuy Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -432,7 +432,7 @@ int bst_delete(dict_h handle, dict_obj object)
     }
   }
 #endif /* BK_USING_PTHREADS */
-#endif /* SAFE_IITERATE */
+#endif /* SAFE_ITERATE */
 
   HINT_CLEAR( hp, last_search ) ;
   HINT_CLEAR( hp, last_successor ) ;

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.3 2001/07/06 00:57:31 seth Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -98,7 +98,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   unsigned			chunk_size ;
   unsigned			slot_size ;
   int				header_inlined ;
-  int				tmp1;
+  unsigned			tmp1;
 
   nslots = ( slots_per_chunk == 0 ) ? fsma_slots_per_chunk : slots_per_chunk ;
   slot_size = ( object_size < MINSIZE ) ? MINSIZE : object_size ;
@@ -384,7 +384,7 @@ void _fsm_free(fsma_h fp, char *object)
  */
 PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, char *slots)
 {
-  register int i ;
+  register unsigned int i ;
   register char *next ;
   register POINTER current ;
 

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.2 2001/07/05 15:19:13 seth Exp $
+ * $Id: htimpl.h,v 1.3 2001/07/06 00:57:31 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -70,7 +70,7 @@ typedef struct table_entry tabent_s ;
 
 struct ht_iter
 {
-	int 			current_table_entry ;
+	unsigned int 		current_table_entry ;
 	bucket_s		*current_bucket ;
 	int 			next_bucket_offset ;
 } ;

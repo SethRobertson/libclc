@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.3 2001/07/06 00:57:31 seth Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -57,8 +57,8 @@ static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29 } ;
  */ 
 PRIVATE unsigned find_good_size(register unsigned int hint)
 {
-	register int			k ;
-	unsigned					starting_point ;
+	register unsigned int		k ;
+	unsigned			starting_point ;
 	register unsigned		size ;
 
 
@@ -69,7 +69,7 @@ PRIVATE unsigned find_good_size(register unsigned int hint)
 	 *			weird behavior
 	 */
 	for ( k = 0 ; ; k++ )
-		if ( hint < ( 1 << k ) - 1 )
+		if ( hint < (unsigned int)( 1 << k ) - 1 )
 			break ;
 	
 	starting_point  = ( 1 << (k-1) ) - 1 ;
@@ -80,7 +80,7 @@ PRIVATE unsigned find_good_size(register unsigned int hint)
 	 */
 	for ( size = starting_point ;; size += 2 )
 	{
-		register int j ;
+		register unsigned int j ;
 
 		for ( j = 0 ; j < sizeof( primes ) / sizeof( unsigned ) ; j++ )
 			if ( size % primes[j] == 0 )
@@ -184,7 +184,7 @@ void ht_destroy(dict_h handle)
 
 #ifdef COALESCE
    bucket_s *bp,*np;
-   int i;
+   unsigned int i;
 
    for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
      {
@@ -245,7 +245,7 @@ PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_t
 
 	for ( bp = start ; bp != NULL ; bp = bp->next )
 	{
-		int j ;
+		unsigned int j ;
 		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
 
 		for ( j = 0 ; j < entries ; j++ )
@@ -268,7 +268,7 @@ PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj obje
 	for ( bp = chain ; bp ; bp = bp->next )
 	{
 		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
-		int i ;
+		unsigned int i ;
 
 		for ( i = 0 ; i < entries ; i++ )
 			if ( bucket_list[ i ] == object )
@@ -323,7 +323,7 @@ PRIVATE dict_obj *te_search(tabent_s *tep, header_s *hp, search_e type, dict_h a
 
 	for ( bp = tep->head_bucket ; bp != NULL ; bp = bp->next )
 	{
-		int i ;
+		unsigned int i ;
 		int result ;
 		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
 
@@ -458,7 +458,7 @@ dict_obj ht_minimum(dict_h handle)
 {
 	header_s		*hp				= HHP( handle ) ;
 	unsigned		bucket_entries = hp->args.ht_bucket_entries ;
-	int			i ;
+	unsigned int		i ;
 
 	for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
 	{
@@ -506,7 +506,7 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
 	tabent_s		*tep ;
 	bucket_s		*bp = NULL ;
 	int			bucket_index ;
-	int			i ;
+	unsigned int		i ;
 	char			*id = "ht_successor" ;
 
 	if ( object == NULL )
@@ -584,7 +584,7 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
  */
 PRIVATE void iter_next(header_s *hp)
 {
-	register int	i ;
+	register unsigned int	i ;
 	struct ht_iter *ip = &hp->iter ;
 
 	for ( i = ip->current_table_entry ; i < hp->args.ht_table_entries ; i++ )
@@ -615,9 +615,9 @@ void ht_iterate(dict_h handle, enum dict_direction direction)
 
 dict_obj ht_nextobj(dict_h handle)
 {
-	header_s			*hp = HHP( handle ) ;
+	header_s	*hp = HHP( handle ) ;
 	struct ht_iter *ip = &hp->iter ;
-	int 				i ;
+	unsigned int	i ;
 
 	while ( ip->current_table_entry < hp->args.ht_table_entries )
 	{

@@ -8,7 +8,7 @@
 #define __HPQ_H
 
 /*
- * $Id: hpq.h,v 1.2 2001/07/05 15:19:12 seth Exp $
+ * $Id: hpq.h,v 1.3 2001/07/06 00:57:30 seth Exp $
  */
 
 /*
@@ -39,7 +39,7 @@ struct __hpq_header
 	pq_obj *objects ;			/* array of objects */
 	unsigned cur_size ;			/* # of objects in array */
 	unsigned max_size ;			/* max # of objects that can fit in array */
-	int iter ;				/* current iteration index */
+	unsigned int iter ;			/* current iteration index */
 } ;
 typedef struct __hpq_header header_s ;
 

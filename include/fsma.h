@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.11 2003/06/13 02:27:59 seth Exp $
+ * $Id: fsma.h,v 1.12 2003/08/26 00:52:23 dupuy Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -64,7 +64,7 @@ extern void fsm_threaded_makeready(int preference);
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
 void	fsm_destroy	( fsma_h handle )  ;
-void	*_fsm_alloc	( fsma_h handle, u_int flags )  ;
+void	*_fsm_alloc	( fsma_h handle, u_int flags ) __attribute__((malloc));
 #define FSM_LOCKED	1
 void	_fsm_free	( fsma_h handle, void *ptr )  ;
 

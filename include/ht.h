@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.5 2003/04/01 04:40:56 seth Exp $
+ * $Id: ht.h,v 1.6 2003/05/10 08:29:06 dupuy Exp $
  */
 
 #include "dict.h"
@@ -22,6 +22,9 @@ struct ht_args
   unsigned ht_bucket_entries ;
   ht_func ht_objvalue ;
   ht_func ht_keyvalue ;
+#ifdef HASH_STATS
+  void *ht_stats ;
+#endif
 } ;
 
 

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.8 2003/05/07 19:39:59 dupuy Exp $
+ * $Id: htimpl.h,v 1.9 2003/05/10 08:29:06 dupuy Exp $
  */
 
 #include "dictimpl.h"
@@ -66,9 +66,21 @@ typedef struct table_entry tabent_s ;
 
 
 #define ENTRY_HAS_CHAIN( tep )		( (tep)->head_bucket != NULL )
-#define ENTRY_IS_FULL( tep )		( (tep)->n_free == 0 )
 #define ENTRY_IS_EMPTY( tep )		( (tep)->n_free == (tep)->n_free_max)
 
+/*
+ * <KLUDGE>In order to count how many buckets had hash collisions, we always
+ * expand on second clashing insert, regardless of bucket size.</KLUDGE>
+ */
+#ifdef HASH_STATS
+
+#define ENTRY_IS_FULL( tep, hp )	( (tep)->n_free == 0 || ( (hp)->args.ht_stats && (tep)->n_free_max == (hp)->args.ht_bucket_entries && ! ENTRY_IS_EMPTY( tep ) ) )
+
+#else  /* !HASH_STATS */
+
+#define ENTRY_IS_FULL( tep, hp )	( (tep)->n_free == 0 )
+
+#endif /* !HASH_STATS */
 
 struct ht_iter
 {
@@ -89,21 +101,46 @@ struct ht_header
 	struct table_entry	*table ;
 	struct ht_args 		args ;
 #ifdef BK_USING_PTHREADS
-	u_int			flags;
-        pthread_mutex_t		lock;
-	int			iter_cnt;
+	unsigned int		flags ;
+        pthread_mutex_t		lock ;
+	int			iter_cnt ;
 	struct ht_iter		**iter ;
 #else /* BK_USING_PTHREADS */
 	struct ht_iter 		iter ;
 #endif /* BK_USING_PTHREADS */
 #ifdef CUR_MIN_PERF_HACK
-        unsigned int		cur_min;
+        unsigned int		cur_min ;
 #endif /* CUR_MIN_PERF_HACK */
-  	unsigned int		obj_cnt;
+  	unsigned int		obj_cnt ;
 } ;
 
 typedef struct ht_header header_s ;
 
+
+/*
+ * Statistics on hash table performance
+ */
+struct ht_stats
+{
+  	unsigned int		max_cnt ;
+  	unsigned int		max_chain ;
+	unsigned int		inserts ;
+	unsigned int		deletes ;
+	unsigned int		clashes ;
+	unsigned int		searches ;
+	unsigned int		failures ;
+	unsigned int		minmaxes ;
+	unsigned int		succ_steps ;
+	unsigned int		iterations ;
+	unsigned int		iter_steps ;
+	unsigned int		errors ;
+	unsigned int		used ;
+	unsigned int		overused ;
+} ;
+
+typedef struct ht_stats stats_s ;
+
+#define HSP( p )		((stats_s *)(p))
 
 #define HHP( p )		((header_s *)p)
 #define DHP( hp )		(&(hp->dh))

@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.11 2003/04/22 03:18:11 jtt Exp $
+ * $Id: dict.h,v 1.12 2003/05/10 08:29:06 dupuy Exp $
  */
 
 
@@ -34,7 +34,7 @@
 #define DICT_HT_STRICT_HINTS			0x20
 #define DICT_THREADED_SAFE			0x40 // protect against multiple threads on same CLC
 #define DICT_THREADED_MEMORY			0x80 // protect against multiple threads on different CLC
-#define DICT_NOTE_CLASHES			0x100 // Take note of hash clashes
+#define DICT_STATS				0x100 // keep performance stats
 
 
 

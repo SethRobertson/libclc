@@ -3,13 +3,14 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.18 2003/05/07 19:39:59 dupuy Exp $";
-
-#ifdef DEBUG
-#include <stdio.h>
-#endif
+static const char RCSid[] = "$Id: ht.c,v 1.19 2003/05/10 08:29:06 dupuy Exp $";
 
 #define CUR_MIN_PERF_HACK
+#define HASH_STATS
+
+#if defined(DEBUG) || defined(HASH_STATS)
+#include <stdio.h>
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,16 @@ static int junkptr = 0;
 
 #endif /* !CUR_MIN_PERF_HACK */
 
+#ifdef HASH_STATS
+
+#define HASH_ERROR(hs)	( (hs) ? (hs)->errors++ : 0 )
+
+#else /* !HASH_STATS */
+
+#define HASH_ERROR(hs)	( 0 )
+
+#endif /* !HASH_STATS */
+
 
 #define N_PRIMES		( sizeof( primes ) / sizeof( unsigned ) )
 
@@ -51,6 +62,39 @@ static int junkptr = 0;
  * Used for the selection of a good array size
  */
 static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29 } ;
+
+
+
+#ifdef HASH_STATS
+/*
+ * Output performance statistics for a hash table.
+ *
+ * This is a function mostly so that you can make it a debugger breakpoint,
+ * so you can figure out which particular hash table the stats are for.
+ *
+ * THREADS: MT-SAFE
+ */ 
+PRIVATE void print_hashstats(stats_s *hs, header_s *hp)
+{
+  printf("HT=%p\t(%u!+%u)/%u buckets[%u/%u] (%.0f%% coll %.0f%% used)\n",
+	 hp, hs->overused, hs->used, hp->args.ht_table_entries,
+	 hs->max_chain, hp->args.ht_bucket_entries,
+	 (100.0 * hs->overused) / hp->args.ht_table_entries,
+	 (100.0 * (hs->used + hs->overused)) / hp->args.ht_table_entries);
+  printf("oh=%p\t%u!/%u insert (%.0f%% clash) - %u delete = %u max\n",
+	 hp->args.ht_objvalue,
+	 hs->clashes, hs->inserts, (100.0 * hs->clashes) / hs->inserts,
+	 hs->deletes, hs->max_cnt); 
+  printf("kh=%p\t%u-/%u search (%.0f%% fail) %.5g hits/insert %u errors\n",
+	 hp->args.ht_keyvalue,
+	 hs->failures, hs->searches, (100.0 * hs->failures) / hs->searches,
+	 (100.0 * (hs->searches - hs->failures)) / hs->inserts, hs->errors);
+  printf("\t\t%u pred|succ, %u min|max, %u step / %u iterate (%.0f avg)\n\n",
+	 hs->succ_steps,  hs->minmaxes, hs->iter_steps, hs->iterations, 
+	 hs->iter_steps / (double) hs->iterations); 
+}
+#endif /* HASH_STATS */
+
 
 
 /*
@@ -146,7 +190,8 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
     argsp->ht_table_entries = ht_num_table_entries ;
   else
   {
-    if (!(flags & DICT_HT_STRICT_HINTS))
+    // only fix up even sizes, since this can be somewhat expensive to do
+    if (!(flags & DICT_HT_STRICT_HINTS) && !(argsp->ht_table_entries % 2))
       argsp->ht_table_entries = find_good_size( argsp->ht_table_entries ) ;
   }
 
@@ -195,6 +240,14 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
 
   hp->args = *argsp ;
 
+#ifdef HASH_STATS
+  if (flags & DICT_STATS)
+    hp->args.ht_stats = NULL;
+  else
+    // <TODO>update and use argsp->ht_stats to accumulate stats by type</TODO>
+    hp->args.ht_stats = HSP( calloc( 1, sizeof( stats_s ) ) ) ;
+#endif /* HASH_STATS */
+
 #ifdef BK_USING_PTHREADS
   hp->iter_cnt = 0;
   hp->iter = NULL;
@@ -223,24 +276,52 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
 void ht_destroy(dict_h handle)
 {
   header_s		*hp = HHP( handle ) ;
-
+  unsigned int i;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 #ifdef COALESCE
   bucket_s *bp,*np;
-  unsigned int i;
+#endif
 
-  for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
-  {
-    tabent_s *tep = &hp->table[i] ;
-    if (ENTRY_HAS_CHAIN(tep))
+  if (
+#ifdef HASH_STATS
+      hs
+#else
+      0
+#endif /* HASH_STATS */
+#ifdef COALESCE
+      || !(hp->flags & DICT_NOCOALESCE)
+#endif /* COALESCE */
+      )
+    for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
     {
-      for(bp=tep->head_bucket;bp;bp=np)
+      tabent_s *tep = &hp->table[i] ;
+      if (ENTRY_HAS_CHAIN(tep))
       {
-	np = bp->next;
-	fsm_free(hp->alloc, bp);
+#ifdef HASH_STATS
+	if (hs)
+	{
+	  if (tep->n_free_max > hp->args.ht_bucket_entries)
+	    hs->overused++;
+	  else
+	    hs->used++;
+	}
+#endif /* HASH_STATS */
+#ifdef COALESCE
+	for(bp=tep->head_bucket;bp;bp=np)
+	{
+	  np = bp->next;
+	  fsm_free(hp->alloc, bp);
+	}
+#endif /* COALESCE */
       }
     }
-  }
-#endif /* COALESCE */
+
+#ifdef HASH_STATS
+  if (hs)
+    print_hashstats(hs, hp);
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if (hp->iter)
@@ -418,9 +499,15 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   dict_obj		*object_slot ;
   unsigned int		min_index = 0;
   int			errret;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
   if ( object == NULL )
+  {
+    HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
+  }
 	
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
@@ -429,12 +516,6 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
 
   tep = HASH_OBJECT( hp, object, min_index ) ;
 
-#if 0
-  if (hp->flags & DICT_NOTE_CLASHES && ENTRY_HAS_CHAIN(tep))
-  {
-    write(2, "CLASH\n", 6);
-  }
-#endif
   /*
    * We search the entry chain only if it exists and uniqueness is required.
    */
@@ -453,7 +534,7 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   /*
    * If the entry chain is full, expand it
    */
-  if ( ENTRY_IS_FULL( tep ) )
+  if ( ENTRY_IS_FULL( tep, hp ) )
   {
     object_slot = te_expand( tep, hp ) ;
     if ( object_slot == NULL )
@@ -473,6 +554,19 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
 
   hp->obj_cnt++;
 
+#ifdef HASH_STATS
+  if (hs)
+  {
+    hs->inserts++;
+    if (tep->n_free_max - tep->n_free > 1)
+      hs->clashes++;
+    if (tep->n_free_max - tep->n_free > hs->max_chain)
+      hs->max_chain = tep->n_free_max - tep->n_free;
+    if (hp->obj_cnt > hs->max_cnt)
+      hs->max_cnt = hp->obj_cnt;
+  }
+#endif /* HASH_STATS */
+
   *object_slot = object ;
   if ( objectp != NULL )
     *objectp = *object_slot ;
@@ -485,6 +579,8 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   return( DICT_OK ) ;
 
  error:
+
+  HASH_ERROR( hs ) ;
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
@@ -520,9 +616,15 @@ int ht_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
   header_s    *hp = HHP( handle ) ;
   dheader_s	*dhp = DHP( hp ) ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
   if ( dhp->oo_comp == NULL_FUNC )
+  {
+    HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENOOOCOMP, DICT_ERR ) ;
+  }
   return( ht_do_insert( hp, TRUE, object, objectp ) ) ;
 }
 
@@ -541,9 +643,15 @@ int ht_delete(dict_h handle, dict_obj object)
   int			bucket_index ;
   bucket_s		*bp ;
   int			errret;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
   if ( object == NULL )
+  {
+    HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
+  }
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
@@ -568,6 +676,11 @@ int ht_delete(dict_h handle, dict_obj object)
 
   hp->obj_cnt--;
 
+#ifdef HASH_STATS
+  if (hs)
+    hs->deletes++;
+#endif /* HASH_STATS */
+
 #ifdef CUR_MIN_PERF_HACK
   // cur_min is always 0 for an empty hash table, though it doesn't much matter
   if (!hp->obj_cnt)
@@ -585,6 +698,8 @@ int ht_delete(dict_h handle, dict_obj object)
   return( DICT_OK ) ;
 
  error:
+    HASH_ERROR( hs ) ;
+
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
@@ -605,6 +720,9 @@ dict_obj ht_search(dict_h handle, dict_key key)
   header_s		*hp	= HHP( handle ) ;
   tabent_s		*tep;
   dict_obj		*objp;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
@@ -613,6 +731,15 @@ dict_obj ht_search(dict_h handle, dict_key key)
 
   tep = HASH_KEY( hp, key, junkptr ) ;
   objp = te_search( tep, hp, KEY_SEARCH, (dict_h) key ) ;
+
+#ifdef HASH_STATS
+  if (hs)
+  {
+    hs->searches++;
+    if (!objp)
+      hs->failures++;
+  }
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
@@ -635,11 +762,19 @@ dict_obj ht_minimum(dict_h handle)
   unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
   unsigned int		i ;
   dict_obj		obj = NULL_OBJ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 #endif /* BK_USING_PTHREADS */
+
+#ifdef HASH_STATS
+  if (hs)
+    hs->minmaxes++;
+#endif /* HASH_STATS */
 
   if (hp->obj_cnt)
   {
@@ -694,11 +829,19 @@ dict_obj ht_maximum(dict_h handle)
   unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
   dict_obj obj = NULL_OBJ;
   int i ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 #endif /* BK_USING_PTHREADS */
+
+#ifdef HASH_STATS
+  if (hs)
+    hs->minmaxes++;
+#endif /* HASH_STATS */
 
   for ( i = hp->args.ht_table_entries-1 ; i >= 0 ; i-- )
   {
@@ -743,14 +886,25 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   unsigned int		i ;
   int			errret;
   dict_obj		ret = NULL_OBJ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
   if ( object == NULL )
+  {
+    HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  }
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 #endif /* BK_USING_PTHREADS */
+
+#ifdef HASH_STATS
+  if (hs)
+    hs->succ_steps++;
+#endif /* HASH_STATS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) ||
@@ -793,6 +947,8 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   return(ret);
 
  error:
+  HASH_ERROR( hs ) ;
+
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
@@ -819,14 +975,25 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   int			i ;
   int			errret;
   dict_obj		ret = NULL_OBJ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
   if ( object == NULL )
+  {
+    HASH_ERROR( hs ) ;
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  }
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 #endif /* BK_USING_PTHREADS */
+
+#ifdef HASH_STATS
+  if (hs)
+    hs->succ_steps++;
+#endif /* HASH_STATS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
@@ -867,6 +1034,8 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   return(ret);
 
  error:
+  HASH_ERROR( hs ) ;
+
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
@@ -880,7 +1049,7 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
  * Sets the iterator to the beginning of the next used entry.
  * The current table entry *is* included in the search.
  *
- * THREADS: MT-SAFE
+ * THREADS: MT-SAFE (as long as iterators are not shared between threads)
  */
 PRIVATE void iter_next(header_s *hp, struct ht_iter *ip)
 {
@@ -912,6 +1081,9 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
 #else /* BK_USING_PTHREADS */
   struct ht_iter	*iter	= &hp->iter ;
 #endif /* BK_USING_PTHREADS */
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if (!(iter = malloc(sizeof(*iter))))
@@ -921,6 +1093,9 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
   iter->current_table_entry = 0 ;
   iter_next( hp, iter ) ;
 
+  /*
+   * <TODO>Should support multiple iterators in non-threaded case.</TODO>
+   */
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
@@ -952,6 +1127,11 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
     abort();
 #endif /* BK_USING_PTHREADS */
 
+#ifdef HASH_STATS
+  if (hs)
+    hs->iterations++;
+#endif /* HASH_STATS */
+
   return(iter);
 
 #ifdef BK_USING_PTHREADS
@@ -972,6 +1152,9 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
  */
 void ht_iterate_done(dict_h handle, dict_iter iter)
 {
+  /*
+   * <TODO>Should support multiple iterators in non-threaded case.</TODO>
+   */
 #ifdef BK_USING_PTHREADS
   header_s		*hp = HHP( handle ) ;
   int			itercnt;
@@ -1013,6 +1196,14 @@ dict_obj ht_nextobj(dict_h handle, dict_iter iter)
   struct ht_iter	*ip = iter;
   unsigned int		i ;
   dict_obj		obj = NULL_OBJ;
+#ifdef HASH_STATS
+  stats_s *hs = HSP( hp->args.ht_stats );
+#endif /* HASH_STATS */
+
+#ifdef HASH_STATS
+  if (hs)
+    hs->iter_steps++;
+#endif /* HASH_STATS */
 
 #ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)

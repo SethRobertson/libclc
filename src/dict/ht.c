@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.21 2003/05/12 15:47:06 jtt Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.22 2003/05/16 21:30:16 seth Exp $";
 
 #define CUR_MIN_PERF_HACK
 
@@ -297,6 +297,10 @@ void ht_destroy(dict_h handle)
 #ifdef COALESCE
       || !(hp->flags & DICT_NOCOALESCE)
 #endif /* COALESCE */
+#if defined (__INSURE__) || defined(USING_DMALLOC)
+      || 1
+#endif /* __INSURE__ USING_DMALLOC */
+
       )
     for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
     {

@@ -1,3 +1,8 @@
+2003-05-16  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/dict/ht.c (ht_destroy): Allow clean up of all memory when
+	insure is in use and fsma is replaced by malloc
+
 2003-05-10  Alexander Dupuy  <dupuy@sysdetect.com>
 
 	* include/dict.h (DICT_STATS): keep performance stats for hash tables

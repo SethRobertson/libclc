@@ -5,29 +5,20 @@
  */
 
 /*
- * $Id: hpqimpl.h,v 1.1 2001/05/26 22:04:50 seth Exp $
+ * $Id: hpqimpl.h,v 1.2 2001/07/07 02:58:24 seth Exp $
  */
 
 #include "hpq.h"
 
 #define HHP( p )			((header_s *)p)
 
-#define HANDLE_ERROR( flags, retval, errp, errval, msg )		\
-			do { \
-				if ( flags & PQ_RETURN_ERROR )						\
-				{																\
-					*errp = errval ;										\
-					return( retval ) ;									\
-				}																\
-				else															\
-				{																\
-					char *s = msg ;										\
-																				\
-					(void) write( 2, s, strlen( s ) ) ;				\
-					abort() ;												\
-					_exit( 1 ) ; 											\
-					/* NOTREACHED */										\
-				} \
-			} while (0)
+#define HANDLE_ERROR( header, retval, errval, msg )	\
+		do {					\
+		  if (header)				\
+		    (header)->errno = errval ;		\
+                  else					\
+		    pq_errno = errval ;			\
+		  return( retval ) ;			\
+		} while (0)
 
 

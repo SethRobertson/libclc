@@ -8,7 +8,7 @@
 #define __DICT_H
 
 /*
- * $Id: dict.h,v 1.2 2001/07/05 15:19:12 seth Exp $
+ * $Id: dict.h,v 1.3 2001/07/07 02:58:20 seth Exp $
  */
 
 /*
@@ -21,7 +21,7 @@
  * Flags
  */
 #define DICT_NOFLAGS				0x0
-#define DICT_RETURN_ERROR			0x1
+#define DICT_NOCOALESCE				0x1
 #define DICT_UNIQUE_KEYS			0x2
 #define DICT_UNORDERED				0x4
 #define DICT_ORDERED				0x8
@@ -49,8 +49,6 @@ typedef void *dict_key ;
 typedef void *dict_h ;
 
 enum dict_direction { DICT_FROM_START, DICT_FROM_END } ;
-
-extern int dict_errno ;
 
 #endif	/* __DICT_H */
 

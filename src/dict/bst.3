@@ -2,10 +2,10 @@
 .\"All rights reserved.  The file named COPYRIGHT specifies the terms 
 .\"and conditions for redistribution.
 .\"
-.\" $Id: bst.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.\" $Id: bst.3,v 1.2 2001/07/07 02:58:21 seth Exp $
 .TH BST 3X "23 April 1993"
 .SH NAME
-bst_create, bst_destroy, bst_insert, bst_insert_uniq, bst_delete, bst_search, bst_minimum, bst_maximum, bst_successor, bst_predecessor, bst_iterate, bst_nextobj - binary search tree management functions
+bst_create, bst_destroy, bst_insert, bst_insert_uniq, bst_delete, bst_search, bst_minimum, bst_maximum, bst_successor, bst_predecessor, bst_iterate, bst_nextobj, bst_error_reason - binary search tree management functions
 .SH SYNOPSIS
 .LP
 .nf
@@ -70,6 +70,11 @@ enum dict_direction direction ;
 .ft B
 dict_obj bst_nextobj( handle )
 dict_h handle ;
+.LP
+.ft B
+char *bst_error_reason( handle, errnop )
+dict_h handle ;
+int *errnop ;
 .SH DESCRIPTION
 .LP
 This library supports dictionary functions using binary search trees.

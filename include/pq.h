@@ -8,8 +8,10 @@
 #define __PQ_H
 
 /*
- * $Id: pq.h,v 1.2 2001/07/05 15:19:12 seth Exp $
+ * $Id: pq.h,v 1.3 2001/07/07 02:58:21 seth Exp $
  */
+
+
 
 /*
  * Return values
@@ -17,7 +19,7 @@
 #define PQ_OK			0
 #define PQ_ERR			(-1)
 
-extern int pq_errno ;
+
 
 /*
  * pq_errno values
@@ -28,6 +30,8 @@ extern int pq_errno ;
 #define PQ_ENULLOBJECT		3
 #define PQ_ENOTFOUND		4
 #define PQ_ENOTSUPPORTED	5
+
+
 
 /*
  * flag values

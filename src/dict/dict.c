@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dict.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: dict.c,v 1.2 2001/07/07 02:58:22 seth Exp $" ;
 static char version[] = VERSION ;
 
 #include <unistd.h>
@@ -12,138 +12,114 @@ static char version[] = VERSION ;
 #include "dictimpl.h"
 #include "clchack.h"
 
-int dict_errno ;
+int dict_errno ;				/* Only for errors before we have a context */
 
 struct name_value
 {
-	int nv_value ;
-	char *nv_name ;
+  int nv_value ;
+  char *nv_name ;
 } ;
 
 
 static struct name_value error_codes[] =
-	{
-		{	DICT_ENOMEM,			"out of memory"											},
-		{	DICT_ENOTFOUND,		"object not found"										},
-		{	DICT_ENOOOCOMP,		"object-object comparison function is missing"	},
-		{	DICT_ENOKOCOMP,		"key-object comparison function is missing"		},
-		{	DICT_ENULLOBJECT,		"object is NULL"											},
-		{	DICT_EEXISTS,			"object exists"											},
-		{	DICT_ENOHVFUNC,		"hashvalue extraction function is missing"		},
-		{	DICT_EBADOBJECT,		"object does not exist"									},
-		{	DICT_EBADORDER,		"bad order flag"											},
-		{	DICT_EORDER,			"specified order not supported"						},
-		{	DICT_ENOERROR,			NULL															}
-	} ;
-
-
-void __dict_terminate(char *prefix, char *msg)
 {
-	static char buf[ 80 ] ;
-#ifndef __linux__				/* necessary kludge */
-	char *strcat(char *, const char *) ;
-	char *strcpy(char *, const char *) ;
-	void abort(void) ;
-#endif
+  {	DICT_ENOMEM,		"Out of Memory"					},
+  {	DICT_ENOTFOUND,		"Object Not Found"				},
+  {	DICT_ENOOOCOMP,		"Object-Object Comparison Function Missing"	},
+  {	DICT_ENOKOCOMP,		"Key-Object Comparison Function Missing"	},
+  {	DICT_ENULLOBJECT,	"Object is NULL"				},
+  {	DICT_EEXISTS,		"Object Exists"					},
+  {	DICT_ENOHVFUNC,		"Hashvalue Extraction Function Missing"	},
+  {	DICT_EBADOBJECT,	"Object Does Not Exist"				},
+  {	DICT_EBADORDER,		"Bad Order Flag"				},
+  {	DICT_EORDER,		"Specified Order Not Supported"			},
+  {	DICT_ENOERROR,		"No Error"					},
+  {	-1,			NULL						}
+} ;
 
-	(void) strcpy( buf, "DICT " ) ;
-	(void) strcat( buf, prefix ) ;
-	(void) strcat( buf, ": " ) ;
-	(void) strcat( buf, msg ) ;
-	(void) strcat( buf, "\n" ) ;
-	(void) write( 2, buf, strlen( buf ) ) ;
-	abort() ;
-	_exit( 1 ) ;
-	/* NOTREACHED */
+
+
+/*
+ * Errors before we have a context to HANDLE them directly
+ */
+dict_h __dict_create_error(char *caller, int flags, int error_code)
+{
+  dict_errno = error_code;
+  return(NULL);
 }
 
 
-void __dict_fatal_error(char *caller, int error_code)
+
+int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders)
 {
-	struct name_value *nvp ;
-	char *msg ;
+  int requested_order ;
 
-	/*
-	 * Lookup error message
-	 */
-	msg = "unknown error" ;
-	for ( nvp = error_codes ; nvp->nv_name ; nvp++ )
-		if ( nvp->nv_value == error_code )
-		{
-			msg = nvp->nv_name ;
-			break ;
-		}
-	__dict_terminate( caller, msg ) ;
-}
+  if ( BAD_ORDER( flags ) )
+  {
+    (void) __dict_create_error( caller, flags, DICT_EBADORDER ) ;
+    return( FALSE ) ;
+  }
 
+  /*
+   * If the user provided an object-object comparator, we can pretend
+   * that the library supports the DICT_UNORDERED flag.
+   */
+  if ( oo_comp )
+    allowed_orders |= DICT_UNORDERED ;
 
-dict_h __dict_create_error(char *caller, int flags, int *errp, int error_code)
-{
-	dheader_s dh ;
+  requested_order = ( flags & ORDER_FLAGS ) ;
+  if ( requested_order && ! ( allowed_orders & requested_order ) )
+  {
+    (void) __dict_create_error( caller, flags, DICT_EORDER ) ;
+    return( FALSE ) ;
+  }
 
-	dh.flags = flags ;
-	dh.errnop = ( errp == INT_NULL ) ? &dict_errno : errp ;
-	HANDLE_ERROR( &dh, caller, error_code, NULL_HANDLE ) ;
-	/* NOTREACHED */
-	return NULL;
-}
-
-
-int __dict_args_ok(char *caller, int flags, int *errp, dict_function oo_comp, dict_function ko_comp, int allowed_orders)
-{
-	int requested_order ;
-
-	if ( BAD_ORDER( flags ) )
-	{
-		(void) __dict_create_error( caller, flags, errp, DICT_EBADORDER ) ;
-		return( FALSE ) ;
-	}
-
-	/*
-	 * If the user provided an object-object comparator, we can pretend
-	 * that the library supports the DICT_UNORDERED flag.
-	 */
-	if ( oo_comp )
-		allowed_orders |= DICT_UNORDERED ;
-
-	requested_order = ( flags & ORDER_FLAGS ) ;
-	if ( requested_order && ! ( allowed_orders & requested_order ) )
-	{
-		(void) __dict_create_error( caller, flags, errp, DICT_EORDER ) ;
-		return( FALSE ) ;
-	}
-
-	/*
-	 * An object-object comparator is required if
-	 *		order is requested,
-	 * or
-	 *		key uniqueness is requested
-	 * or
-	 *		the library requires it.
-	 */
-	if ( oo_comp == NULL_FUNC && ( flags & (DICT_ORDERED | DICT_UNIQUE_KEYS) ) )
-	{
-		(void) __dict_create_error( caller, flags, errp, DICT_ENOOOCOMP ) ;
-		return( FALSE ) ;
-	}
+  /*
+   * An object-object comparator is required if
+   *		order is requested,
+   * or
+   *		key uniqueness is requested
+   * or
+   *		the library requires it.
+   */
+  if ( oo_comp == NULL_FUNC && ( flags & (DICT_ORDERED | DICT_UNIQUE_KEYS) ) )
+  {
+    (void) __dict_create_error( caller, flags, DICT_ENOOOCOMP ) ;
+    return( FALSE ) ;
+  }
 
 #ifdef notdef
-	if ( ko_comp == NULL )
-	{
-		(void) __dict_create_error( caller, flags, errp, DICT_ENOKOCOMP ) ;
-		return( FALSE ) ;
-	}
+  if ( ko_comp == NULL )
+  {
+    (void) __dict_create_error( caller, flags, DICT_ENOKOCOMP ) ;
+    return( FALSE ) ;
+  }
 #endif
 
-	return( TRUE ) ;
+  return( TRUE ) ;
 }
 
 
-void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags, int *errnop)
+
+void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags)
 {
 	dhp->oo_comp = oo_comp ;
 	dhp->ko_comp = ko_comp ;
 	dhp->flags = flags ;
-	dhp->errnop = ( errnop == INT_NULL ) ? &dict_errno : errnop ;
+	dhp->errno = DICT_ENOERROR ;
 }
 
+
+
+char *__dict_error_reason(int errno)
+{
+  int ctr;
+  char *ret;
+
+  for(ctr = 0; error_codes[ctr].nv_name && errno != error_codes[ctr].nv_value; ctr++) ;
+
+  if (ret = error_codes[ctr].nv_name)
+    return(ret);
+
+  return("Unknown CLC error");
+}

@@ -8,7 +8,7 @@
 #define __HT_H
 
 /*
- * $Id: ht.h,v 1.2 2001/07/05 15:19:12 seth Exp $
+ * $Id: ht.h,v 1.3 2001/07/07 02:58:21 seth Exp $
  */
 
 #include "dict.h"
@@ -18,15 +18,15 @@ typedef ht_val (*ht_func)(void *) ;
 
 struct ht_args
 {
-	unsigned ht_table_entries ;
-	unsigned ht_bucket_entries ;
-	ht_func ht_objvalue ;
-	ht_func ht_keyvalue ;
+  unsigned ht_table_entries ;
+  unsigned ht_bucket_entries ;
+  ht_func ht_objvalue ;
+  ht_func ht_keyvalue ;
 } ;
 
 
 
-dict_h		ht_create	 (dict_function oo_compare, dict_function ko_compare, int flags, int *errnop, struct ht_args *args )  ;
+dict_h		ht_create	 (dict_function oo_compare, dict_function ko_compare, int flags, struct ht_args *args )  ;
 void 		ht_destroy	 ( dict_h hh )  ;
 int 		ht_insert 	 ( dict_h hh, dict_obj obj )  ;
 int 		ht_insert_uniq	 ( dict_h hh, dict_obj, dict_obj *objp )  ;
@@ -38,6 +38,7 @@ dict_obj	ht_successor	 ( dict_h hh, dict_obj )  ;
 dict_obj	ht_predecessor	 ( dict_h hh, dict_obj )  ;
 void		ht_iterate	 ( dict_h hh, enum dict_direction direction )  ;
 dict_obj	ht_nextobj	 ( dict_h hh )  ;
+char *	 	ht_error_reason	 ( dict_h hh, int *errnop )  ;
 
 extern int ht_num_table_entries;
 extern int ht_num_bucket_entries;

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: fsma.c,v 1.3 2001/07/06 00:57:31 seth Exp $" ;
+static char RCSid[] = "$Id: fsma.c,v 1.4 2001/07/07 02:58:23 seth Exp $" ;
 static char *version = VERSION ;
 
 #include <stdlib.h>
@@ -39,7 +39,7 @@ static int coalesce_size = 1;
 #endif /* COALESCE */
 
 
-PRIVATE void init_free_list  ( unsigned, unsigned, char * )  ;
+PRIVATE void init_free_list  ( unsigned, unsigned, void * )  ;
 
 
 
@@ -93,7 +93,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 {
   register fsma_h		fp ;
   union __fsma_chunk_header	*chp ;
-  char				*slots ;
+  void				*slots ;
   unsigned			nslots ;
   unsigned			chunk_size ;
   unsigned			slot_size ;
@@ -121,21 +121,21 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
    * (same size, flags, etc)
    */
   fp = NULL;
-  if (fsma_coalesce)
+  if (fsma_coalesce && !(flags & FSM_NOCOALESCE))
+  {
+    fsma_h *fpp;
+    for (fpp = coalesce;fpp && *fpp;fpp++)
     {
-      fsma_h *fpp;
-      for (fpp = coalesce;fpp && *fpp;fpp++)
-	{
-	  if ((*fpp)->slot_size == slot_size &&
-	      flags == (*fpp)->flags)
-	    break;
-	}
-      if (fpp && *fpp)
-	{
-	  (*fpp)->references++;
-	  return(*fpp);
-	}
+      if ((*fpp)->slot_size == slot_size &&
+	  flags == (*fpp)->flags)
+	break;
     }
+    if (fpp && *fpp)
+    {
+      (*fpp)->references++;
+      return(*fpp);
+    }
+  }
 #endif /* COALESCE */
 
   /*
@@ -155,13 +155,13 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   fprintf(stderr,"Mallocing new chunk at FSM creation time: %d\n", chunk_size);
 #endif /* DEBUG */
   if ( chp == NULL )
-    {
-      return( NULL ) ;
-    }
+  {
+    return( NULL ) ;
+  }
 
   /* Set up free list starting after chunk list pointer */
   chp->next_chunk = NULL ;
-  slots = (char *) &chp[ 1 ] ;
+  slots = (void *) &chp[ 1 ] ;
   init_free_list( nslots, slot_size, slots ) ;
 
 #ifdef DEBUG
@@ -175,32 +175,29 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
    * Check if we can fit the header in an object slot
    */
   if ( slot_size >= sizeof( struct __fsma_header ) )
-    {
-      /*
-       * We can do it.
-       * Allocate the first slot
-       */
-      fp = (fsma_h) slots ;
-      slots = *(POINTER *) slots ;		/* same as slots++ */
-      header_inlined = TRUE ;
-    }
+  {
+    /*
+     * We can do it.
+     * Allocate the first slot
+     */
+    fp = (fsma_h) slots ;
+    slots = *(POINTER *) slots ;		/* same as slots++ */
+    header_inlined = TRUE ;
+  }
   else
-    {
-      fp = (fsma_h) malloc( sizeof( struct __fsma_header ) ) ;
+  {
+    fp = (fsma_h) malloc( sizeof( struct __fsma_header ) ) ;
 #ifdef DEBUG
-      fprintf(stderr,"Mallocing a new fsma header: %d\n", 
-	      sizeof(struct __fsma_header));
+    fprintf(stderr,"Mallocing a new fsma header: %d\n", 
+	    sizeof(struct __fsma_header));
 #endif /* DEBUG */
-      if ( fp == NULL )
-	{
-	  if ( flags & FSM_RETURN_ERROR )
-	    {
-	      free( (char *) chp ) ;
-	      return( NULL ) ;
-	    }
-	}
-      header_inlined = FALSE ;
+    if ( fp == NULL )
+    {
+      free( chp ) ;
+      return( NULL ) ;
     }
+    header_inlined = FALSE ;
+  }
 
 
   fp->next_free = (POINTER) slots ;
@@ -220,179 +217,179 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 #endif
 
 #ifdef COALESCE
-  if (fsma_coalesce)
-    {
-      /* Add memory to hold this fsma size/flags allocator */
-      if (!coalesce)
-	coalesce = (fsma_h *)malloc(sizeof(fsma_h)*2);
-      else
-	coalesce = (fsma_h *)realloc(coalesce,(coalesce_size+1)*sizeof(fsma_h));
+  if (fsma_coalesce && !(flags & FSM_NOCOALESCE))
+  {
+    /* Add memory to hold this fsma size/flags allocator */
+    if (!coalesce)
+      coalesce = (fsma_h *)malloc(sizeof(fsma_h)*2);
+    else
+      coalesce = (fsma_h *)realloc(coalesce,(coalesce_size+1)*sizeof(fsma_h));
 
-      if (!coalesce)
-	{
-	  /* Something drastic, but what? */
-	}
-      else
-	{
-	  coalesce[coalesce_size-1] = fp;
-	  coalesce[coalesce_size++] = NULL;
-	}
+    if (!coalesce)
+    {
+      /* Something drastic, but what? */
     }
+    else
+    {
+      coalesce[coalesce_size-1] = fp;
+      coalesce[coalesce_size++] = NULL;
+    }
+  }
 #endif /* COALESCE */
 
-  return( (fsma_h) fp ) ;
-}
+      return( (fsma_h) fp ) ;
+      }
 
 
 
-/*
+  /*
  * Done with allocator--if everyone done, destroy it.
  */
-void fsm_destroy(register fsma_h fp)
-{
-  int header_inlined = fp->is_inlined ;
-  register union __fsma_chunk_header *chp, *next_chunk ;
-  register int zero_memory = fp->flags & FSM_ZERO_DESTROY ;
-  register int chunk_size = fp->chunk_size ;
+  void fsm_destroy(register fsma_h fp)
+    {
+      int header_inlined = fp->is_inlined ;
+      register union __fsma_chunk_header *chp, *next_chunk ;
+      register int zero_memory = fp->flags & FSM_ZERO_DESTROY ;
+      register int chunk_size = fp->chunk_size ;
 
 #ifdef COALESCE
-  if (fp->references > 1)
-    {
-      fp->references--;
-      return;
-    }
+      if (fp->references > 1)
+      {
+	fp->references--;
+	return;
+      }
 
-  if (fsma_coalesce)
-    {
-      fsma_h *fpp;
-      int cntr = 0;
+      if (fsma_coalesce && !(fp->flags & FSM_NOCOALESCE))
+      {
+	fsma_h *fpp;
+	int cntr = 0;
 
-      /* Remove this allocator from coalesce list */
-      for(fpp = coalesce;fpp && *fpp && *fpp != fp;cntr++,fpp++) ;
-      if (fpp && *fpp == fp)
+	/* Remove this allocator from coalesce list */
+	for(fpp = coalesce;fpp && *fpp && *fpp != fp;cntr++,fpp++) ;
+	if (fpp && *fpp == fp)
 	{
 	  *fpp = coalesce[(--coalesce_size)-1];
 	  coalesce[coalesce_size-1] = NULL;
 	  coalesce = (fsma_h *)realloc(coalesce, coalesce_size * sizeof(fsma_h));
 	  if (!coalesce)
-	    {
-	      /* XXX - something drastic, but what? How can this fail anyway? */
-	    }
+	  {
+	    /* XXX - something drastic, but what? How can this fail anyway? */
+	  }
 	}
-    }
+      }
 #endif /* COALESCE */
 
-  /*
-   * Free all chunks in the chunk chain
-   */
-  for ( chp = fp->chunk_chain ; chp != NULL ; chp = next_chunk )
-    {
-      next_chunk = chp->next_chunk ;
-      if ( zero_memory )
-	(void) memset( (char *)chp, 0, chunk_size ) ;
+      /*
+       * Free all chunks in the chunk chain
+       */
+      for ( chp = fp->chunk_chain ; chp != NULL ; chp = next_chunk )
+      {
+	next_chunk = chp->next_chunk ;
+	if ( zero_memory )
+	  (void) memset( chp, 0, chunk_size ) ;
 
 #ifdef DEBUG
-      fprintf( stderr, "Freeing chunk %p\n", chp ) ;
+	fprintf( stderr, "Freeing chunk %p\n", chp ) ;
 #endif
-      free( (char *)chp ) ;
+	free( chp ) ;
+      }
+
+      /*
+       * If fp->inlined is NO, we have to free the handle.
+       * Note that we copied fp->inlined in case it is YES.
+       */
+      if ( ! header_inlined )
+	free( fp ) ;
     }
 
+
+
   /*
-   * If fp->inlined is NO, we have to free the handle.
-   * Note that we copied fp->inlined in case it is YES.
-   */
-  if ( ! header_inlined )
-    free( (char *)fp ) ;
-}
-
-
-
-/*
  * Slow case allocator -- handle memory clears, new
  * allocations, etc
  */
-char *_fsm_alloc(register fsma_h fp)
-{
-  register POINTER object ;
-
-  /*
-   * Check if there are any slots on the free list
-   */
-  if ( fp->next_free == NULL )
+  void *_fsm_alloc(register fsma_h fp)
     {
-      /*
-       * Free list exhausted; allocate a new chunk
-       */
-      char *slots ;
-      union __fsma_chunk_header *chp ;
+      register POINTER object ;
 
-      chp = CHUNK_HEADER( malloc( fp->chunk_size ) ) ;
+      /*
+       * Check if there are any slots on the free list
+       */
+      if ( fp->next_free == NULL )
+      {
+	/*
+	 * Free list exhausted; allocate a new chunk
+	 */
+	void *slots ;
+	union __fsma_chunk_header *chp ;
+
+	chp = CHUNK_HEADER( malloc( fp->chunk_size ) ) ;
 #ifdef DEBUG
-      fprintf(stderr,"Mallocing a new chunk: %d\n", fp->chunk_size);
+	fprintf(stderr,"Mallocing a new chunk: %d\n", fp->chunk_size);
 #endif /* DEBUG */
-      if ( chp == NULL )
+	if ( chp == NULL )
 	{
 	  return( NULL ) ;
 	}
 
 #ifdef DEBUG
-      fprintf( stderr, "Allocating chunk %p\n", chp ) ;
+	fprintf( stderr, "Allocating chunk %p\n", chp ) ;
 #endif
-      /*
-       * Put the slots in this chunk in a linked list
-       * and add this list to the free list
-       */
-      slots = (char *) &chp[ 1 ] ;
-      init_free_list( fp->slots_in_chunk, fp->slot_size, slots ) ;
-      fp->next_free = (POINTER) slots ;
+	/*
+	 * Put the slots in this chunk in a linked list
+	 * and add this list to the free list
+	 */
+	slots = (void *) &chp[ 1 ] ;
+	init_free_list( fp->slots_in_chunk, fp->slot_size, slots ) ;
+	fp->next_free = (POINTER) slots ;
 
-      /*
-       * Link this chunk in at the head of the chunk chain
-       */
-      chp->next_chunk = fp->chunk_chain ;
-      fp->chunk_chain = chp ;
+	/*
+	 * Link this chunk in at the head of the chunk chain
+	 */
+	chp->next_chunk = fp->chunk_chain ;
+	fp->chunk_chain = chp ;
+      }
+
+      object = fp->next_free ;
+      fp->next_free = *(POINTER *)object ;
+
+      if ( fp->flags & FSM_ZERO_ALLOC )
+	(void) memset( object, 0, fp->slot_size ) ;
+
+      return( object ) ;
     }
 
-  object = fp->next_free ;
-  fp->next_free = *(POINTER *)object ;
-
-  if ( fp->flags & FSM_ZERO_ALLOC )
-    (void) memset( object, 0, fp->slot_size ) ;
-
-  return( object ) ;
-}
 
 
-
-/*
+  /*
  * Done with slot slow case
  */
-void _fsm_free(fsma_h fp, char *object)
-{
-  if ( fp->flags & FSM_ZERO_FREE )
-    (void) memset( object, 0, fp->slot_size ) ;
+  void _fsm_free(fsma_h fp, void *object)
+    {
+      if ( fp->flags & FSM_ZERO_FREE )
+	(void) memset( object, 0, fp->slot_size ) ;
 
-  *(POINTER *)object = fp->next_free ;
-  fp->next_free = object ;
-}
+      *(POINTER *)object = fp->next_free ;
+      fp->next_free = object ;
+    }
 
 
 
-/*
+  /*
  * Ensure the free list is nice and initialized and that each element
  * points to the next.
  */
-PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, char *slots)
-{
-  register unsigned int i ;
-  register char *next ;
-  register POINTER current ;
+  PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, void *slots)
+    {
+      register unsigned int i ;
+      register void *next ;
+      register POINTER current ;
 
-  for ( i = 0, current = slots, next = slots + size ; i < nslots - 1 ;
-	i++, current = next, next += size )
-    *(POINTER *)current = next ;
-  *(POINTER *)current = NULL ;
-}
+      for ( i = 0, current = slots, next = (char *)slots + size ; i < nslots - 1 ;
+	    i++, current = next, next = (char *)next + size )
+	*(POINTER *)current = next ;
+      *(POINTER *)current = NULL ;
+    }
 
 
 
@@ -400,92 +397,92 @@ PRIVATE void init_free_list(unsigned int nslots, register unsigned int size, cha
 
 
 
-/*
+  /*
  * Trivial memory allocator--wrapper around malloc
  */
-fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int flags)
-{
-  register fsma_h		fp ;
-  unsigned			slot_size ;
-
-  fp = (fsma_h) malloc( sizeof( struct __fsma_header ) ) ;
-  if ( fp == NULL )
+  fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int flags)
     {
-      return( NULL ) ;
+      register fsma_h		fp ;
+      unsigned			slot_size ;
+
+      fp = (fsma_h) malloc( sizeof( struct __fsma_header ) ) ;
+      if ( fp == NULL )
+      {
+	return( NULL ) ;
+      }
+
+      /* force fsm_alloc macro to invoke _fsm_alloc function */
+      fp->next_free = NULL ;
+
+      /* FSM_ZERO_FREE forces fsm_free macro to invoke _fsm_free function */
+      fp->flags = flags | FSM_ZERO_FREE;
+
+      /*
+       * Make sure that the slot_size is a multiple of the pointer size
+       *
+       * XXX - should this be a multiple of __FSMA_ALIGNMENT?
+       */
+      slot_size = ( object_size < MINSIZE ) ? MINSIZE : object_size ;
+      if ( slot_size % sizeof( __fsma_pointer ) != 0 )
+	slot_size += sizeof( __fsma_pointer ) -
+	  slot_size % sizeof( __fsma_pointer ) ;
+
+      /* just in case some caller gets snoopy about these */
+      fp->slots_in_chunk = 1 ;
+      fp->slot_size = slot_size ;
+      fp->chunk_size = slot_size ;
+#ifdef COALESCE
+      fp->references = 1;
+#endif /* COALESCE */
+      fp->is_inlined = FALSE ;
+	
+      return( (fsma_h) fp ) ;
     }
 
-  /* force fsm_alloc macro to invoke _fsm_alloc function */
-  fp->next_free = NULL ;
 
-  /* FSM_ZERO_FREE forces fsm_free macro to invoke _fsm_free function */
-  fp->flags = flags | FSM_ZERO_FREE;
 
   /*
-   * Make sure that the slot_size is a multiple of the pointer size
-   *
-   * XXX - should this be a multiple of __FSMA_ALIGNMENT?
-   */
-  slot_size = ( object_size < MINSIZE ) ? MINSIZE : object_size ;
-  if ( slot_size % sizeof( __fsma_pointer ) != 0 )
-    slot_size += sizeof( __fsma_pointer ) -
-      slot_size % sizeof( __fsma_pointer ) ;
-
-  /* just in case some caller gets snoopy about these */
-  fp->slots_in_chunk = 1 ;
-  fp->slot_size = slot_size ;
-  fp->chunk_size = slot_size ;
-#ifdef COALESCE
-  fp->references = 1;
-#endif /* COALESCE */
-  fp->is_inlined = FALSE ;
-	
-  return( (fsma_h) fp ) ;
-}
-
-
-
-/*
  * Trivial memory allocator destruction function
  */
-void fsm_destroy(register fsma_h fp)
-{
-  /* may leak memory if people are lazy and use destroy to free each elem */
-  free( (char *)fp ) ;
-}
-
-
-
-/*
- * Trivial memory allocator - allocate memory via malloc
- */
-char *_fsm_alloc(register fsma_h fp)
-{
-  register POINTER object ;
-
-  object = malloc( fp->slot_size ) ;
-  if ( object == NULL )
+  void fsm_destroy(register fsma_h fp)
     {
-      return( NULL ) ;
+      /* may leak memory if people are lazy and use destroy to free each elem */
+      free( fp ) ;
     }
 
-  if ( fp->flags & FSM_ZERO_ALLOC )
-    (void) memset( object, 0, fp->slot_size ) ;
-
-  return( object ) ;
-}
 
 
+  /*
+ * Trivial memory allocator - allocate memory via malloc
+ */
+  void *_fsm_alloc(register fsma_h fp)
+    {
+      register POINTER object ;
 
-/*
+      object = malloc( fp->slot_size ) ;
+      if ( object == NULL )
+      {
+	return( NULL ) ;
+      }
+
+      if ( fp->flags & FSM_ZERO_ALLOC )
+	(void) memset( object, 0, fp->slot_size ) ;
+
+      return( object ) ;
+    }
+
+
+
+  /*
  * Trivial memory allocator -- free memory
  */
-void _fsm_free(fsma_h fp, char *object)
-{
+  void _fsm_free(fsma_h fp, void *object)
+    {
 #ifdef REALLY_WANT_FREE_ZERO
-  if ( fp->flags & FSM_ZERO_FREE )
-    (void) memset( object, 0, fp->slot_size ) ;
+      if ( fp->flags & FSM_ZERO_FREE )
+	(void) memset( object, 0, fp->slot_size ) ;
 #endif /* REALLY_WANT_FREE_ZERO */
 
-  free ( object ) ;
-}
+      free ( object ) ;
+    }
 #endif /* FSMA_USE_MALLOC */

@@ -2,7 +2,7 @@
 .\"All rights reserved.  The file named COPYRIGHT specifies the terms 
 .\"and conditions for redistribution.
 .\"
-.\" $Id: dict.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.\" $Id: dict.3,v 1.2 2001/07/07 02:58:21 seth Exp $
 .TH DICT 3X "23 April 1993"
 .SH NAME
 dictionary management functions
@@ -14,11 +14,10 @@ dictionary management functions
 #include "<lib>.h"
 .LP
 .ft B
-dict_h <lib>_create( oo_compare, ko_compare, flags, errnop )
+dict_h <lib>_create( oo_compare, ko_compare, flags )
 int (*oo_compare)( dict_obj, dict_obj ) ;
 int (*ko_compare)( dict_key, dict_obj ) ;
 int flags ;
-int *errnop ;
 .LP
 .ft B
 void <lib>_destroy( handle )
@@ -73,7 +72,11 @@ dict_obj <lib>_nextobj( handle )
 dict_h handle ;
 .LP
 .ft B
-extern int dict_errno ;
+char *<lib>_error_reason( handle, errnop )
+dict_h handle ;
+int *errnop ;
+.LP
+.ft B
 .SH DESCRIPTION
 This is a framework for libraries that solve the dictionary problem:
 insertion, location, deletion of objects from a set.
@@ -145,15 +148,10 @@ The
 argument is formed by ORing one or more of the following constants:
 .RS
 .TP
-.SB DICT_RETURN_ERROR
-If a call encounters an error condition, it will return a value that
-indicates that an error occurred. The default is to terminate the
-program with an appropriate error message. The errors that are
-handled this way are usually non-recoverable (for example, lack of
-memory), or they are programmer errors.
-Errors like searching for an object that is not in the library instance,
-or trying to insert an object with a non-unique key value,
-do not terminate the program.
+.SB DICT_NOCOALESCE
+This flag turns off the attempt to save memory by coalescing multiple
+memory allocators which require the same memory size.  This is mostly
+done to preserve re-entrancy or for debugging.
 .TP
 .SB DICT_UNIQUE_KEYS
 Objects with equal keys are allowed unless this flag is specified.
@@ -177,14 +175,6 @@ Such flags will be quietly ignored by implementations that don't support them.
 The constant
 .B DICT_NOFLAGS
 can be used to specify no flags.
-The
-.I errnop
-argument specifies a location to place error codes when a call fails.
-If it is specified as
-.I "(int *)0,"
-the integer variable
-.I dict_errno
-will be used for this purpose.
 .LP
 .B <lib>_destroy()
 destroys the library instance identified by the
@@ -210,10 +200,6 @@ will point to that object.
 .LP
 .B <lib>_delete()
 deletes an object from a library instance.
-It is not a programmer error if the object does not exist in the library
-instance (i.e. the program will not be terminated if the
-.SB DICT_RETURN_ERROR
-flag is not specified; an error code will always be returned instead).
 .LP
 .B <lib>_search()
 locates objects with a key equal to the specified key.
@@ -285,6 +271,11 @@ is that they are more convenient to use when it is desirable
 to optionally delete the object returned from
 .B "<lib>_nextobj()"
 and continue iterating.
+.LP
+.B "<lib>_error_reason()"
+returns the textual error message for the most recent error return by
+the dictionary.  If you wish the numerical reason, you may supply a
+integer for copyout.
 .SH "RETURN VALUES"
 .LP
 Functions returning handles or objects, return
@@ -296,12 +287,9 @@ Functions returning \fIint\fRs, return
 on success, and
 .B DICT_ERR
 on failure.
-When a call fails, it sets the error variable to an appropriate value.
-The error variable is either 
-.I dict_errno,
-or is the one specified in the call to 
-.B <lib>_create()
-which created the given library instance.
+When a call fails, the error message is available
+via
+.B <lib>_error_reason().
 .LP
 .B <lib>_create()
 returns a library instance handle if it succeeds, or
@@ -426,7 +414,7 @@ int strcmp() ;
 .sp 1
 word_set = bst_create( strcmp, strcmp,
 .RS
-DICT_UNIQUE_KEYS + DICT_BALANCED_TREE, (int *)0 ) ;
+DICT_UNIQUE_KEYS + DICT_BALANCED_TREE ) ;
 .RE
 while ( gets( buf ) )
 {

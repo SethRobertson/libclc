@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	if ( argc == 3 && argv[1][0] == 'b' )
 		flags |= DICT_BALANCED_TREE ;
 
-	bh = bst_create( int_comp, int_comp, flags, (int *)0 ) ;
+	bh = bst_create( int_comp, int_comp, flags ) ;
 
 	for ( i = 0 ; i < N ; i++ )
 	{

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: hpq.c,v 1.2 2001/07/05 15:19:14 seth Exp $" ;
+static char RCSid[] = "$Id: hpq.c,v 1.3 2001/07/07 02:58:24 seth Exp $" ;
 static char version[] = VERSION ;
 
 #include <stdlib.h>
@@ -48,9 +48,9 @@ unsigned PARENTTMP;		/* Required for macro so PARENT(root) == root */
 #define IS_BETTER( hp, i, j )	( (*hp->is_better)( hp->objects[ i ], hp->objects[ j ] ) )
 #define SWAP( hp, i, j )					\
 		{						\
-			pq_obj t = hp->objects[ i ] ;		\
-			hp->objects[ i ] = hp->objects[ j ] ;	\
-			hp->objects[ j ] = t ;			\
+		  pq_obj t = hp->objects[ i ] ;		\
+		  hp->objects[ i ] = hp->objects[ j ] ;	\
+		  hp->objects[ j ] = t ;			\
 		}
 
 
@@ -69,21 +69,20 @@ int __hpq_verify(header_s *hp, unsigned int current);
 /*
  * Create the priority queue
  */
-pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags, int *errnop)
+pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
 {
   register header_s *hp ;
-  int *errp = ( errnop == NULL ) ? &pq_errno : errnop ;
 
   /*
    * Check if the user has provided the necessary comparison functions
    */
   if ( func == NULL )
-    HANDLE_ERROR( flags, NULL, errp, PQ_ENOFUNC,
+    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOFUNC,
 		  "HPQ __hpq_create: missing object-object comparator\n" ) ;
 
   hp = HHP( malloc( sizeof( header_s ) ) ) ;
   if ( hp == NULL )
-    HANDLE_ERROR( flags, NULL, errp, PQ_ENOMEM,
+    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
 		  "HPQ __hpq_create: malloc failed\n" ) ;
 	
   /*
@@ -91,17 +90,17 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags, int *errnop)
    */
   hp->objects = (pq_obj *) malloc( INITIAL_ARRAY_SIZE * sizeof( pq_obj ) ) ;
   if ( hp->objects == NULL )
-    {
-      free( (char *)hp ) ;
-      HANDLE_ERROR( flags, NULL, errp, PQ_ENOMEM, 
-		    "HPQ __hpq_create: malloc failed\n" ) ;
-    }
+  {
+    free( hp ) ;
+    HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM, 
+		  "HPQ __hpq_create: malloc failed\n" ) ;
+  }
 
   /*
    * Initialize the header
    */
   hp->is_better = func ;
-  hp->errnop = errp ;
+  hp->errno = 0 ;
   hp->flags = flags ;
   hp->max_size = INITIAL_ARRAY_SIZE ;
   hp->cur_size = 0 ;
@@ -132,7 +131,7 @@ int __hpq_insert(pq_h handle, pq_obj object)
   register unsigned i, parent ;
 
   if ( object == NULL )
-    HANDLE_ERROR( hp->flags, PQ_ERR, hp->errnop, PQ_ENULLOBJECT,
+    HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_insert: NULL object\n" ) ;
 
   /*
@@ -154,11 +153,11 @@ int __hpq_insert(pq_h handle, pq_obj object)
 #ifndef WANT_TRICKLEUP
   parent = PARENT( i ) ;
   while ( i > 0 && (*hp->is_better)( object, hp->objects[ parent ] ) )
-    {
-      hp->objects[ i ] = hp->objects[ parent ] ;
-      i = parent ;
-      parent = PARENT( i ) ;
-    }
+  {
+    hp->objects[ i ] = hp->objects[ parent ] ;
+    i = parent ;
+    parent = PARENT( i ) ;
+  }
 #endif /* !WANT_TRICKLEUP */
 
   hp->objects[ i ] = object ;
@@ -192,7 +191,7 @@ PRIVATE int grow(header_s *hp)
 
   new_objects = (char *)realloc( (char *)hp->objects, new_size * sizeof( pq_obj ) ) ;
   if ( new_objects == NULL )
-    HANDLE_ERROR( hp->flags, PQ_ERR, hp->errnop, PQ_ENOMEM,
+    HANDLE_ERROR( hp, PQ_ERR, PQ_ENOMEM,
 		  "HPQ grow: out of memory\n" ) ;
 	
   hp->max_size = new_size ;
@@ -253,38 +252,38 @@ PRIVATE void restore_heap_down(register header_s *hp, unsigned int start)
   register unsigned better = current ;
 
   for ( ;; )
+  {
+    register unsigned left = LEFT( current ) ;
+    register unsigned right = RIGHT( current ) ;
+
+    /*
+     * Meaning of variables:
+     *
+     *		current:		the current tree node
+     *		left:			its left child
+     *		right:			its right child
+     *		better: 		the best of current,left,right
+     *
+     * We start the loop with better == current
+     *
+     * The code takes advantage of the fact that the existence of
+     * the right child implies the existence of the left child.
+     * It works by finding the better of the two children (and puts
+     * that in better) and comparing that against current.
+     */
+    if ( EXISTS( hp, right ) )
+      better = IS_BETTER( hp, left, right ) ? left : right ;
+    else if ( EXISTS( hp, left ) )
+      better = left ;
+
+    if ( better == current || IS_BETTER( hp, current, better ) )
+      break ;
+    else 
     {
-      register unsigned left = LEFT( current ) ;
-      register unsigned right = RIGHT( current ) ;
-
-      /*
-       * Meaning of variables:
-       *
-       *		current:		the current tree node
-       *		left:			its left child
-       *		right:			its right child
-       *		better: 		the best of current,left,right
-       *
-       * We start the loop with better == current
-       *
-       * The code takes advantage of the fact that the existence of
-       * the right child implies the existence of the left child.
-       * It works by finding the better of the two children (and puts
-       * that in better) and comparing that against current.
-       */
-      if ( EXISTS( hp, right ) )
-	better = IS_BETTER( hp, left, right ) ? left : right ;
-      else if ( EXISTS( hp, left ) )
-	better = left ;
-
-      if ( better == current || IS_BETTER( hp, current, better ) )
-	break ;
-      else 
-	{
-	  SWAP( hp, current, better ) ;
-	  current = better ;
-	}
+      SWAP( hp, current, better ) ;
+      current = better ;
     }
+  }
 }
 
 
@@ -302,25 +301,25 @@ PRIVATE void restore_heap_up(register header_s *hp, unsigned int start)
     return;
 
   for ( ;; )
-    {
-      register unsigned parent = PARENT( current ) ;
+  {
+    register unsigned parent = PARENT( current ) ;
 
-      if ( IS_BETTER( hp, current, parent ) )
-	{
-	  if (current == parent)
-	    {
-	      /* Stupid moron programmer -- the same node cannot be better than itself! */
-	      break;
-	    }
-	  SWAP( hp, current, parent ) ;
-	  current = parent ;
-	}
-      else
-	{
-	  /* We have risen to our level of incompetence :-) */
-	  break ;
-	}
+    if ( IS_BETTER( hp, current, parent ) )
+    {
+      if (current == parent)
+      {
+	/* Stupid moron programmer -- the same node cannot be better than itself! */
+	break;
+      }
+      SWAP( hp, current, parent ) ;
+      current = parent ;
     }
+    else
+    {
+      /* We have risen to our level of incompetence :-) */
+      break ;
+    }
+  }
 }
 
 
@@ -336,23 +335,23 @@ int __hpq_delete(pq_h handle, register pq_obj object)
   register unsigned i ;
 
   if ( object == NULL )
-    HANDLE_ERROR( hp->flags, PQ_ERR, hp->errnop, PQ_ENULLOBJECT,
+    HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_delete: NULL object\n" ) ;
 
   /*
    * First find it
    */
   for ( i = 0 ;; i++ )
-    {
-      if ( i < hp->cur_size )
-	if ( object == hp->objects[ i ] )
-	  break ;
-	else
-	  continue ;
+  {
+    if ( i < hp->cur_size )
+      if ( object == hp->objects[ i ] )
+	break ;
       else
-	HANDLE_ERROR( hp->flags, PQ_ERR, hp->errnop, PQ_ENOTFOUND,
-		      "HPQ __hpq_delete: object not found\n" ) ;
-    }
+	continue ;
+    else
+      HANDLE_ERROR( hp, PQ_ERR, PQ_ENOTFOUND,
+		    "HPQ __hpq_delete: object not found\n" ) ;
+  }
 
   hp->objects[ i ] = hp->objects[ --hp->cur_size ] ;
   restore_heap( hp, i ) ;
@@ -415,26 +414,77 @@ int __hpq_verify(header_s *hp, unsigned int current)
     return(-1);
 
   if (EXISTS(hp, right))
+  {
+    if (IS_BETTER(hp,right,current))
     {
-      if (IS_BETTER(hp,right,current))
-	{
-	  return(current||-2);
-	}
-      if ((ret = __hpq_verify(hp,right)))
-	return(ret);
+      return(current||-2);
     }
+    if ((ret = __hpq_verify(hp,right)))
+      return(ret);
+  }
   if (EXISTS(hp, left)
 #ifndef CORRECT_TREE
       && left != current
 #endif /* CORRECT_TREE */
       )
+  {
+    if (IS_BETTER(hp,left,current))
     {
-      if (IS_BETTER(hp,left,current))
-	{
-	  return(current||-2);
-	}
-      if ((ret = __hpq_verify(hp,left)))
-	return(ret);
+      return(current||-2);
     }
+    if ((ret = __hpq_verify(hp,left)))
+      return(ret);
+  }
   return(0);
+}
+
+
+
+struct name_value
+{
+  int nv_value ;
+  char *nv_name ;
+} ;
+
+
+static struct name_value error_codes[] =
+{
+  {	PQ_ENOFUNC,		"User Supplied Comparison Function Missing"	},
+  {	PQ_ENOMEM,		"Out of Memory"					},
+  {	PQ_ENULLOBJECT,		"Cannot Insert a NULL Object"			},
+  {	PQ_ENOTFOUND,		"Cannot Find Object"				},
+  {	PQ_ENOTSUPPORTED,	"Not Supported"					},
+  {	PQ_ENOERROR,		"No error"					},
+  {	-1,			NULL						}
+} ;
+
+
+
+char *__hpq_error_reason(int errno)
+{
+  int ctr;
+  char *ret;
+
+  for(ctr = 0; error_codes[ctr].nv_name && errno != error_codes[ctr].nv_value; ctr++) ;
+
+  if (ret = error_codes[ctr].nv_name)
+    return(ret);
+
+  return("Unknown CLC error");
+}
+
+
+
+char *pq_error_reason(pq_h handle, int *errnop)
+{
+  header_s *hp = HHP( handle ) ;
+  int errno;
+
+  if (hp)
+    errno = hp->errno;
+  else
+    errno = pq_errno;
+
+  if (errnop) *errnop = errno;
+  return(__hpq_error_reason(errno));
 }

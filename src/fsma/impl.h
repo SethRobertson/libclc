@@ -5,7 +5,7 @@
  */
 
 /*
- * $Id: impl.h,v 1.1 2001/05/26 22:04:49 seth Exp $
+ * $Id: impl.h,v 1.2 2001/07/07 02:58:23 seth Exp $
  */
 
 #ifndef NULL
@@ -17,12 +17,12 @@
 #define TRUE      1
 #endif
 
-#define PRIVATE                     static
+#define PRIVATE                 static
 
-#define SLOTS_PER_CHUNK             100
+#define SLOTS_PER_CHUNK         100
 
-#define POINTER							__fsma_pointer
-#define MINSIZE                     sizeof( POINTER )
+#define POINTER			__fsma_pointer
+#define MINSIZE                 sizeof( POINTER )
 
-#define CHUNK_HEADER( p )           ((union __fsma_chunk_header *)(p))
+#define CHUNK_HEADER( p )       ((union __fsma_chunk_header *)(p))
 

@@ -4,311 +4,312 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dll.c,v 1.2 2001/07/05 15:19:13 seth Exp $" ;
+static char RCSid[] = "$Id: dll.c,v 1.3 2001/07/07 02:58:22 seth Exp $" ;
 
 #include <stdlib.h>
 #include "dllimpl.h"
 #include "clchack.h"
 
-dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags, int *errnop)
-	             	         					/* object-object comparator */
-	             	         					/* key-object comparator */
-	   				       
-	   				         
+dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
 {
-	header_s			*hp ;
-	char				*id = "dll_create" ;
+  header_s			*hp ;
+  char				*id = "dll_create" ;
 
-	flags |= DICT_RETURN_ERROR; /* prevent calls to exit() */
+  if ( ! __dict_args_ok( id, flags, oo_comp, ko_comp, DICT_ORDERED + DICT_UNORDERED ) )
+    return( NULL_HANDLE ) ;
 
-	if ( ! __dict_args_ok( id,
-				flags, errnop, oo_comp, ko_comp, DICT_ORDERED + DICT_UNORDERED ) )
-		return( NULL_HANDLE ) ;
-
-	hp = (header_s *) malloc( sizeof( header_s ) ) ;
-	if ( hp == NULL )
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
+  hp = (header_s *) malloc( sizeof( header_s ) ) ;
+  if ( hp == NULL )
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 	
-	/*
-	 * Create an allocator
-	 */
-	hp->alloc = fsm_create( sizeof( node_s ), 0,
-				( flags & DICT_RETURN_ERROR ) ? FSM_RETURN_ERROR : FSM_NOFLAGS ) ;
-	if ( hp->alloc == NULL )
-	{
-		free( (char *)hp ) ;
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
-	}
+  /*
+   * Create an allocator
+   */
+  hp->alloc = fsm_create( sizeof( node_s ), 0,
+			  ( flags & DICT_NOCOALESCE ) ? FSM_NOCOALESCE : FSM_NOFLAGS ) ;
+  if ( hp->alloc == NULL )
+  {
+    free( (char *)hp ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
 	
-	/*
-	 * Allocate and initialize head node
-	 */
-	hp->head = (node_s *) fsm_alloc( hp->alloc ) ;
-	if ( hp->head == NULL )
-	{
-		fsm_destroy( hp->alloc ) ;
-		free( (char *)hp ) ;
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
-	}
+  /*
+   * Allocate and initialize head node
+   */
+  hp->head = (node_s *) fsm_alloc( hp->alloc ) ;
+  if ( hp->head == NULL )
+  {
+    fsm_destroy( hp->alloc ) ;
+    free( (char *)hp ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
 
-	NEXT( hp->head ) = PREV( hp->head ) = hp->head ;
-	OBJ( hp->head ) = NULL ;
+  NEXT( hp->head ) = PREV( hp->head ) = hp->head ;
+  OBJ( hp->head ) = NULL ;
 
-	/*
-	 * Initialize dictionary header, hints
-	 */
-	__dict_init_header( DHP( hp ), oo_comp, ko_comp, flags, errnop ) ;
-	HINT_CLEAR( hp, last_search ) ;
-	HINT_CLEAR( hp, last_successor ) ;
-	HINT_CLEAR( hp, last_predecessor ) ;
+  /*
+   * Initialize dictionary header, hints
+   */
+  __dict_init_header( DHP( hp ), oo_comp, ko_comp, flags ) ;
+  HINT_CLEAR( hp, last_search ) ;
+  HINT_CLEAR( hp, last_successor ) ;
+  HINT_CLEAR( hp, last_predecessor ) ;
 
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
-	/* Make sure iteration stuff is initialized too. */
-	dll_iterate(hp, DICT_FROM_START);
+  /* Make sure iteration stuff is initialized too. */
+  dll_iterate(hp, DICT_FROM_START);
 #endif
 
-	return( (dict_h) hp ) ;
+  return( (dict_h) hp ) ;
 }
+
 
 
 void dll_destroy(dict_h handle)
 {
-	header_s		*hp = LHP( handle ) ;
+  header_s	*hp	= LHP( handle ) ;
+  dheader_s	*dhp	= DHP( hp ) ;
 
 #ifdef COALESCE
-	node_s *x, *y;
+  node_s *x, *y;
 
-	NEXT(PREV(hp->head)) = NULL;			/* Break dll loop */
-	for(x=hp->head;x;x=y)
-	  {
-	    y = NEXT(x);
-	    fsm_free(hp->alloc, (char *)x);
-	  }
-#else /* COALESCE */
-	/* Necessary during fsma debugging */
-	fsm_free( hp->alloc, hp->head);
+  if (!(dhp->flags & DICT_NOCOALESCE))
+  {
+    NEXT(PREV(hp->head)) = NULL;		/* Break dll loop */
+    for(x=hp->head;x;x=y)
+    {
+      y = NEXT(x);
+      fsm_free(hp->alloc, x);
+    }
+  }
+  else
 #endif /* COALESCE */
-	fsm_destroy( hp->alloc ) ;
-	free( (char *)hp ) ;
+  {
+    /* Necessary during fsma debugging */
+    fsm_free(hp->alloc, hp->head);
+  }
+
+  fsm_destroy( hp->alloc ) ;
+  free( (char *)hp ) ;
 }
 
 
 
 PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register dict_obj object, dict_obj *objectp, int flags)
 {
-	register dheader_s	*dhp = DHP( hp ) ;
-	register bool_int 	unordered_list = ( dhp->flags & DICT_UNORDERED ) ;
-	register node_s		*np = NULL ;
-	node_s			*newnode ;
-	node_s			*before, *after ;
-	char			*id = "dll_do_insert" ;
+  register dheader_s	*dhp = DHP( hp ) ;
+  register bool_int 	unordered_list = ( dhp->flags & DICT_UNORDERED ) ;
+  register node_s	*np = NULL ;
+  node_s		*newnode ;
+  node_s		*before, *after ;
+  char			*id = "dll_do_insert" ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, DICT_ERR ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-	if (!unordered_list || must_be_uniq)
-	{
-		/*
-		 * Find node n such that key(OBJ(n)) >= key(object)
-		 */
-		for ( np = ( flags & DLL_POSTPEND ) ? PREV( hp->head) : NEXT( hp->head ) ; np != hp->head ; np = ( flags & DLL_POSTPEND ) ? PREV( np ) : NEXT( np ) )
-		{
-			register int v = (*dhp->oo_comp)( OBJ( np ), object ) ;
+  if (!unordered_list || must_be_uniq)
+  {
+    /*
+     * Find node n such that key(OBJ(n)) >= key(object)
+     */
+    for ( np = ( flags & DLL_POSTPEND ) ? PREV( hp->head) : NEXT( hp->head ) ; np != hp->head ; np = ( flags & DLL_POSTPEND ) ? PREV( np ) : NEXT( np ) )
+    {
+      register int v = (*dhp->oo_comp)( OBJ( np ), object ) ;
 
-			if (!unordered_list)
-			  {
-			    if (flags & DLL_POSTPEND)
-			      {
-				if (v < 0)
-				  break;
-			      }
-			    else
-			      {
-				if (v > 0)
-				  break;
-			      }
-			  }
-
-			if ( v == 0 )
-			{
-				if ( must_be_uniq )
-				{
-					if ( objectp != NULL )
-						*objectp = OBJ( np ) ;
-					ERRNO( dhp ) = DICT_EEXISTS ;
-					return( DICT_ERR ) ;
-				}
-				else
-					break ;
-			}
-		}
-	}
-	if ( unordered_list)
-	{
-		if ( flags & DLL_POSTPEND )
-			np = PREV(hp->head) ;
-		else
-			np = NEXT(hp->head) ;
-	}
-
-	newnode = (node_s *) fsm_alloc( hp->alloc ) ;
-	if ( newnode == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENOMEM, DICT_ERR ) ;
-
+      if (!unordered_list)
+      {
 	if (flags & DLL_POSTPEND)
-	  {
-	    /*
-	     * The new node is inserted AFTER np
-	     */
-	    before = np ;
-	    after = NEXT(np) ;
-	  }
+	{
+	  if (v < 0)
+	    break;
+	}
 	else
-	  {
-	    /*
-	     * The new node is inserted BEFORE np
-	     */
-	    before = PREV( np ) ;
-	    after = np ;
-	  }
-	NEXT( newnode ) = after ;
-	PREV( newnode ) = before ;
-	NEXT( before ) = newnode ;
-	PREV( after ) = newnode ;
-	OBJ( newnode ) = object ;
-	if ( objectp != NULL )
-		*objectp = object ;
-	return( DICT_OK ) ;
+	{
+	  if (v > 0)
+	    break;
+	}
+      }
+
+      if ( v == 0 )
+      {
+	if ( must_be_uniq )
+	{
+	  if ( objectp != NULL )
+	    *objectp = OBJ( np ) ;
+	  ERRNO( dhp ) = DICT_EEXISTS ;
+	  return( DICT_ERR ) ;
+	}
+	else
+	  break ;
+      }
+    }
+  }
+  if ( unordered_list)
+  {
+    if ( flags & DLL_POSTPEND )
+      np = PREV(hp->head) ;
+    else
+      np = NEXT(hp->head) ;
+  }
+
+  newnode = (node_s *) fsm_alloc( hp->alloc ) ;
+  if ( newnode == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENOMEM, DICT_ERR ) ;
+
+  if (flags & DLL_POSTPEND)
+  {
+    /*
+     * The new node is inserted AFTER np
+     */
+    before = np ;
+    after = NEXT(np) ;
+  }
+  else
+  {
+    /*
+     * The new node is inserted BEFORE np
+     */
+    before = PREV( np ) ;
+    after = np ;
+  }
+  NEXT( newnode ) = after ;
+  PREV( newnode ) = before ;
+  NEXT( before ) = newnode ;
+  PREV( after ) = newnode ;
+  OBJ( newnode ) = object ;
+  if ( objectp != NULL )
+    *objectp = object ;
+  return( DICT_OK ) ;
 }
 
 
 int dll_insert(dict_h handle, dict_obj object)
 {
-	header_s		*hp = LHP( handle ) ;
+  header_s		*hp = LHP( handle ) ;
 
-	return( dll_do_insert( hp, hp->dh.flags & DICT_UNIQUE_KEYS,
-					object, (dict_obj *)NULL,
-			      		DLL_PREPEND ) ) ;
+  return( dll_do_insert( hp, hp->dh.flags & DICT_UNIQUE_KEYS,
+			 object, (dict_obj *)NULL,
+			 DLL_PREPEND ) ) ;
 }
 
 
 
 int dll_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
-	header_s		*hp	= LHP( handle ) ;
-	dheader_s	*dhp	= DHP( hp ) ;
+  header_s		*hp	= LHP( handle ) ;
+  dheader_s	*dhp	= DHP( hp ) ;
 
-	if ( dhp->oo_comp == NULL_FUNC )
-		HANDLE_ERROR( dhp, "dll_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
-	return( dll_do_insert( hp, TRUE, object, objectp, DLL_PREPEND ) ) ;
+  if ( dhp->oo_comp == NULL_FUNC )
+    HANDLE_ERROR( dhp, "dll_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+  return( dll_do_insert( hp, TRUE, object, objectp, DLL_PREPEND ) ) ;
 }
 
 
 int dll_append(dict_h handle, dict_obj object)
 {
-	header_s		*hp = LHP( handle ) ;
+  header_s		*hp = LHP( handle ) ;
 
-	return( dll_do_insert( hp, hp->dh.flags & DICT_UNIQUE_KEYS,
-					object, (dict_obj *)NULL,
-					DLL_POSTPEND ) ) ;
+  return( dll_do_insert( hp, hp->dh.flags & DICT_UNIQUE_KEYS,
+			 object, (dict_obj *)NULL,
+			 DLL_POSTPEND ) ) ;
 }
 
 
 
 int dll_append_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
-	header_s		*hp	= LHP( handle ) ;
-	dheader_s	*dhp	= DHP( hp ) ;
+  header_s		*hp	= LHP( handle ) ;
+  dheader_s	*dhp	= DHP( hp ) ;
 
-	if ( dhp->oo_comp == NULL_FUNC )
-		HANDLE_ERROR( dhp, "dll_append_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
-	return( dll_do_insert( hp, TRUE, object, objectp, DLL_POSTPEND ) ) ;
+  if ( dhp->oo_comp == NULL_FUNC )
+    HANDLE_ERROR( dhp, "dll_append_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+  return( dll_do_insert( hp, TRUE, object, objectp, DLL_POSTPEND ) ) ;
 }
 
 
 int dll_delete(dict_h handle, register dict_obj object)
 {
-	register header_s *hp	= LHP( handle ) ;
-	dheader_s			*dhp	= DHP( hp ) ;
-	register node_s	*np=NULL ;
-	node_s				*after, *before ;
+  register header_s	*hp	= LHP( handle ) ;
+  dheader_s		*dhp	= DHP( hp ) ;
+  register node_s	*np=NULL ;
+  node_s		*after, *before ;
 #ifdef SAFE_ITERATE
-	struct dll_iterator	*dip		= &LHP( handle )->iter ;
+  struct dll_iterator	*dip		= &LHP( handle )->iter ;
 #endif
 
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, "dll_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, "dll_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
 
 #ifdef SAFE_ITERATE	
-	if (dip->next && (OBJ(dip->next) == object) )
-	  {
-	    dll_nextobj(handle);
-	  }
+  if (dip->next && (OBJ(dip->next) == object) )
+  {
+    dll_nextobj(handle);
+  }
 #endif
 
 #ifdef FAST_ACTIONS
-	if ( dip->next && PREV(dip->next) && (OBJ( PREV(dip->next))==object) )
-	  np = PREV(dip->next);
-	if ( OBJ( hp->hint.last_predecessor ) == object )
-	  np = hp->hint.last_predecessor;
-	else if ( OBJ( hp->hint.last_successor ) == object )
-	  np = hp->hint.last_successor;
-	else
+  if ( dip->next && PREV(dip->next) && (OBJ( PREV(dip->next))==object) )
+    np = PREV(dip->next);
+  if ( OBJ( hp->hint.last_predecessor ) == object )
+    np = hp->hint.last_predecessor;
+  else if ( OBJ( hp->hint.last_successor ) == object )
+    np = hp->hint.last_successor;
+  else
 #endif /* FAST_ACTIONS */
-	  if ( OBJ( hp->hint.last_search ) == object )
-	    np = hp->hint.last_search ;
-	  else
-	    for ( np = NEXT( hp->head ) ;; np = NEXT( np ) )
-	      if ( np == hp->head )
-		{
-		  ERRNO( dhp ) = DICT_ENOTFOUND ;
-		  return( DICT_ERR ) ;
-		}
-	      else if ( object == OBJ( np ) )
-		break ;
+    if ( OBJ( hp->hint.last_search ) == object )
+      np = hp->hint.last_search ;
+    else
+      for ( np = NEXT( hp->head ) ;; np = NEXT( np ) )
+	if ( np == hp->head )
+	{
+	  ERRNO( dhp ) = DICT_ENOTFOUND ;
+	  return( DICT_ERR ) ;
+	}
+	else if ( object == OBJ( np ) )
+	  break ;
 
-	/*
-	 * First disconnect, then release
-	 */
-	after = NEXT( np ) ;
-	before = PREV( np ) ;
-	NEXT( before ) = after ;
-	PREV( after ) = before ;
-	OBJ( np ) = NULL ;
-	fsm_free( hp->alloc, (char *)np ) ;
+  /*
+   * First disconnect, then release
+   */
+  after = NEXT( np ) ;
+  before = PREV( np ) ;
+  NEXT( before ) = after ;
+  PREV( after ) = before ;
+  OBJ( np ) = NULL ;
+  fsm_free( hp->alloc, (char *)np ) ;
 
-	/*
-	 * Clear all hints
-	 */
-	HINT_CLEAR( hp, last_search ) ;
-	HINT_CLEAR( hp, last_successor ) ;
-	HINT_CLEAR( hp, last_predecessor ) ;
+  /*
+   * Clear all hints
+   */
+  HINT_CLEAR( hp, last_search ) ;
+  HINT_CLEAR( hp, last_successor ) ;
+  HINT_CLEAR( hp, last_predecessor ) ;
 
-	return( DICT_OK ) ;
+  return( DICT_OK ) ;
 }
 
 
 dict_obj dll_search(dict_h handle, register dict_key key)
 {
-	register header_s		*hp				= LHP( handle ) ;
-	register dheader_s	*dhp				= DHP( hp ) ;
-	register bool_int		unordered_list	= ( dhp->flags & DICT_UNORDERED ) ;
-	register node_s		*np ;
+  register header_s	*hp		= LHP( handle ) ;
+  register dheader_s	*dhp		= DHP( hp ) ;
+  register bool_int	unordered_list	= ( dhp->flags & DICT_UNORDERED ) ;
+  register node_s	*np ;
 
-	for ( np = NEXT( hp->head ) ; np != hp->head ; np = NEXT( np ) )
-	{
-		register int v = (*dhp->ko_comp)( key, OBJ( np ) ) ;
+  for ( np = NEXT( hp->head ) ; np != hp->head ; np = NEXT( np ) )
+  {
+    register int v = (*dhp->ko_comp)( key, OBJ( np ) ) ;
 
-		if ( v == 0 )
-		{
-			hp->hint.last_search = np ;		/* update search hint */
-			return( OBJ( np ) ) ;
-		}
-		else if ( v < 0 && ! unordered_list )
-			break ;
-	}
-	return( NULL_OBJ ) ;
+    if ( v == 0 )
+    {
+      hp->hint.last_search = np ;		/* update search hint */
+      return( OBJ( np ) ) ;
+    }
+    else if ( v < 0 && ! unordered_list )
+      break ;
+  }
+  return( NULL_OBJ ) ;
 }
 
 
@@ -320,11 +321,11 @@ dict_obj dll_search(dict_h handle, register dict_key key)
  */
 dict_obj dll_minimum(dict_h handle)
 {
-	header_s		*hp = LHP( handle ) ;
-	node_s		*np = NEXT( hp->head ) ;
+  header_s		*hp = LHP( handle ) ;
+  node_s		*np = NEXT( hp->head ) ;
 
-	hp->hint.last_successor = np ;			/* update hint */
-	return( OBJ( np ) ) ;
+  hp->hint.last_successor = np ;			/* update hint */
+  return( OBJ( np ) ) ;
 }
 
 
@@ -336,11 +337,11 @@ dict_obj dll_minimum(dict_h handle)
  */
 dict_obj dll_maximum(dict_h handle)
 {
-	header_s		*hp = LHP( handle ) ;
-	node_s		*np = PREV( hp->head ) ;
+  header_s		*hp = LHP( handle ) ;
+  node_s		*np = PREV( hp->head ) ;
 
-	hp->hint.last_predecessor = np ;			/* update hint */
-	return( OBJ( np ) ) ;
+  hp->hint.last_predecessor = np ;			/* update hint */
+  return( OBJ( np ) ) ;
 }
 
 
@@ -353,29 +354,29 @@ dict_obj dll_maximum(dict_h handle)
  */
 dict_obj dll_successor(dict_h handle, register dict_obj object)
 {
-	register header_s *hp	= LHP( handle ) ;
-	dheader_s			*dhp	= DHP( hp ) ;
-	register node_s	*np ;
-	node_s				*successor ;
-	char					*id = "dll_successor" ;
+  register header_s	*hp	= LHP( handle ) ;
+  dheader_s		*dhp	= DHP( hp ) ;
+  register node_s	*np ;
+  node_s		*successor ;
+  char			*id = "dll_successor" ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-	if ( OBJ( hp->hint.last_successor ) == object )
-		successor = NEXT( hp->hint.last_successor ) ;
-	else
-	{
-		ERRNO( dhp ) = DICT_ENOERROR ;
-		for ( np = NEXT( hp->head ) ; np != hp->head ; np = NEXT( np ) )
-			if ( OBJ( np ) == object )
-				break ;
-		if ( np == hp->head )
-			HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
-		successor = NEXT( np ) ;
-	}
-	hp->hint.last_successor = successor ;
-	return( OBJ( successor ) ) ;
+  if ( OBJ( hp->hint.last_successor ) == object )
+    successor = NEXT( hp->hint.last_successor ) ;
+  else
+  {
+    ERRNO( dhp ) = DICT_ENOERROR ;
+    for ( np = NEXT( hp->head ) ; np != hp->head ; np = NEXT( np ) )
+      if ( OBJ( np ) == object )
+	break ;
+    if ( np == hp->head )
+      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    successor = NEXT( np ) ;
+  }
+  hp->hint.last_successor = successor ;
+  return( OBJ( successor ) ) ;
 }
 
 
@@ -389,59 +390,76 @@ dict_obj dll_successor(dict_h handle, register dict_obj object)
  */
 dict_obj dll_predecessor(dict_h handle, register dict_obj object)
 {
-	register header_s *hp	= LHP( handle ) ;
-	dheader_s			*dhp	= DHP( hp ) ;
-	node_s				*predecessor ;
-	register node_s	*np ;
-	char					*id = "dll_predecessor" ;
+  register header_s	*hp	= LHP( handle ) ;
+  dheader_s		*dhp	= DHP( hp ) ;
+  node_s		*predecessor ;
+  register node_s	*np ;
+  char			*id = "dll_predecessor" ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-	if ( OBJ( hp->hint.last_predecessor ) == object )
-		predecessor = PREV( hp->hint.last_predecessor ) ;
-	else
-	{
-		ERRNO( dhp ) = DICT_ENOERROR ;
-		for ( np = PREV( hp->head ) ; np != hp->head ; np = PREV( np ) )
-			if ( OBJ( np ) == object )
-				break ;
-		if ( np == hp->head )
-			HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
-		predecessor = PREV( np ) ;
-	}
-	hp->hint.last_predecessor = predecessor ;
-	return( OBJ( predecessor ) ) ;
+  if ( OBJ( hp->hint.last_predecessor ) == object )
+    predecessor = PREV( hp->hint.last_predecessor ) ;
+  else
+  {
+    ERRNO( dhp ) = DICT_ENOERROR ;
+    for ( np = PREV( hp->head ) ; np != hp->head ; np = PREV( np ) )
+      if ( OBJ( np ) == object )
+	break ;
+    if ( np == hp->head )
+      HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+    predecessor = PREV( np ) ;
+  }
+  hp->hint.last_predecessor = predecessor ;
+  return( OBJ( predecessor ) ) ;
 }
 
 
 void dll_iterate(dict_h handle, enum dict_direction direction)
 {
-	register header_s		*hp	= LHP( handle ) ;
-	dheader_s				*dhp	= DHP( hp ) ;
-	struct dll_iterator	*dip	= &hp->iter ;
+  register header_s	*hp	= LHP( handle ) ;
+  dheader_s		*dhp	= DHP( hp ) ;
+  struct dll_iterator	*dip	= &hp->iter ;
 
-	if ( dhp->flags & DICT_UNORDERED )
-		dip->direction = DICT_FROM_START ;
-	else
-		dip->direction = direction ;
+  if ( dhp->flags & DICT_UNORDERED )
+    dip->direction = DICT_FROM_START ;
+  else
+    dip->direction = direction ;
 
-	if ( dip->direction == DICT_FROM_START )
-		dip->next = NEXT( hp->head ) ;
-	else
-		dip->next = PREV( hp->head ) ;
+  if ( dip->direction == DICT_FROM_START )
+    dip->next = NEXT( hp->head ) ;
+  else
+    dip->next = PREV( hp->head ) ;
 }
 
 
 dict_obj dll_nextobj(dict_h handle)
 {
-	struct dll_iterator	*dip		= &LHP( handle )->iter ;
-	node_s					*current = dip->next ;
+  struct dll_iterator	*dip		= &LHP( handle )->iter ;
+  node_s		*current	= dip->next ;
 
-	if ( dip->direction == DICT_FROM_START )
-		dip->next = NEXT( current ) ;
-	else
-		dip->next = PREV( current ) ;
-	return( OBJ( current ) ) ;
+  if ( dip->direction == DICT_FROM_START )
+    dip->next = NEXT( current ) ;
+  else
+    dip->next = PREV( current ) ;
+  return( OBJ( current ) ) ;
 }
 
+
+
+
+char *dll_error_reason(dict_h handle, int *errnop)
+{
+  header_s	*hp		= LHP( handle ) ;
+  int		errno;
+
+  if (handle)
+    errno = ERRNO(DHP(hp));
+  else
+    errno = dict_errno;
+
+  if (errnop) *errnop = errno;
+
+  return(__dict_error_reason(errno));
+}

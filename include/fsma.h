@@ -8,39 +8,40 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.2 2001/07/05 15:19:12 seth Exp $
+ * $Id: fsma.h,v 1.3 2001/07/07 02:58:20 seth Exp $
  */
 
-#define __FSMA_ALIGNMENT					8
+#define __FSMA_ALIGNMENT	8
 
 union __fsma_chunk_header
 {
-	union __fsma_chunk_header *next_chunk ;
-	char bytes[ __FSMA_ALIGNMENT ] ;
+  union __fsma_chunk_header *next_chunk ;
+  char bytes[ __FSMA_ALIGNMENT ] ;
 } ;
 
-typedef char *__fsma_pointer ;
+typedef void *__fsma_pointer ;
 
 struct __fsma_header
 {
-	union __fsma_chunk_header *chunk_chain ;
-	__fsma_pointer next_free ;
-	__fsma_pointer temp ;
-	unsigned slots_in_chunk ;
-	unsigned slot_size ;
-	unsigned chunk_size ;
-	unsigned short flags;
-	unsigned short references;
-	int is_inlined ;						/* header is inlined (boolean)	*/
+  union __fsma_chunk_header *chunk_chain ;
+  __fsma_pointer next_free ;
+  __fsma_pointer temp ;
+  unsigned slots_in_chunk ;
+  unsigned slot_size ;
+  unsigned chunk_size ;
+  unsigned short flags;
+  unsigned short references;
+  int is_inlined ;						/* header is inlined (boolean)	*/
 } ;
 
 typedef struct __fsma_header *fsma_h ;
 
+
 /*
  * Flags
  */
-#define FSM_NOFLAGS					0x0
-#define FSM_RETURN_ERROR			0x1
+#define FSM_NOFLAGS				0x0
+#define FSM_NOCOALESCE				0x1
 #define FSM_ZERO_ALLOC				0x2
 #define FSM_ZERO_FREE				0x4
 #define FSM_ZERO_DESTROY			0x8
@@ -48,8 +49,8 @@ typedef struct __fsma_header *fsma_h ;
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
 void	fsm_destroy	( fsma_h handle )  ;
-char	*_fsm_alloc	( fsma_h handle )  ;
-void	_fsm_free	( fsma_h handle, char *ptr )  ;
+void	*_fsm_alloc	( fsma_h handle )  ;
+void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
 #define fsm_alloc( fsma ) \
      ( \

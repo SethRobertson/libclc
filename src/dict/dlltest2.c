@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: dlltest2.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: dlltest2.c,v 1.2 2001/07/07 02:58:23 seth Exp $" ;
 
 struct foo
 {
@@ -44,15 +44,15 @@ int main(void)
 	dict_h lh ;
 
 	printf("---- ordered test ---\n");
-	lh = dll_create( int_comp, int_kcomp, 0, NULL ) ;
+	lh = dll_create( int_comp, int_kcomp, 0 ) ;
 	baz(lh);
 	printf("------\n");
 	printf("---- unordered test ---\n");
-	lh = dll_create( NULL, NULL, DICT_UNORDERED, NULL ) ;
+	lh = dll_create( NULL, NULL, DICT_UNORDERED ) ;
 	baz(lh);
 	printf("------\n");
 	printf("---- unordered unique test ---\n");
-	lh = dll_create( int_comp, int_kcomp, DICT_UNORDERED|DICT_UNIQUE_KEYS, NULL ) ;
+	lh = dll_create( int_comp, int_kcomp, DICT_UNORDERED|DICT_UNIQUE_KEYS ) ;
 	baz(lh);
 	printf("------\n");
 
@@ -87,7 +87,7 @@ void baz(dict_h lh)
 	cntr = 13; foos[cntr].compare = 200; foos[cntr].text = "append"; dll_append(lh, &foos[cntr]);
 
 
-	for(bar = dll_minimum(lh);bar;bar = dll_successor(lh,bar))
+	for(bar = (struct foo *)dll_minimum(lh);bar;bar = (struct foo *)dll_successor(lh,bar))
 	  {
 	    printf("%02d %3d %s\n",bar->counter,bar->compare,bar->text);
 	  }

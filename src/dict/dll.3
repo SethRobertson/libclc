@@ -2,10 +2,10 @@
 .\"All rights reserved.  The file named COPYRIGHT specifies the terms 
 .\"and conditions for redistribution.
 .\"
-.\" $Id: dll.3,v 1.1 2001/05/26 22:04:49 seth Exp $
+.\" $Id: dll.3,v 1.2 2001/07/07 02:58:22 seth Exp $
 .TH DLL 3X "23 April 1993"
 .SH NAME
-dll_create, dll_destroy, dll_insert, dll_insert_uniq, dll_delete, dll_search, dll_minimum, dll_maximum, dll_successor, dll_predecessor, dll_iterate, dll_nextobj - double linked list management functions
+dll_create, dll_destroy, dll_insert, dll_insert_uniq, dll_delete, dll_search, dll_minimum, dll_maximum, dll_successor, dll_predecessor, dll_iterate, dll_nextobj, dll_error_reason - double linked list management functions
 .SH SYNOPSIS
 .LP
 .nf
@@ -81,6 +81,11 @@ enum dict_direction direction ;
 .ft B
 dict_obj dll_nextobj( handle )
 dict_h handle ;
+.LP
+.ft B
+char *dll_error_reason( handle, errnop )
+dict_h handle ;
+int *errnop ;
 .SH DESCRIPTION
 .LP
 This library supports dictionary functions using double linked lists.

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: htest.c,v 1.1 2001/05/26 22:04:49 seth Exp $" ;
+static char RCSid[] = "$Id: htest.c,v 1.2 2001/07/07 02:58:23 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0
@@ -58,7 +58,7 @@ int main(void)
 	args.ht_objvalue = getval ;
 	args.ht_keyvalue = getval ;
 
-	lh = ht_create( int_comp, int_comp, 0, NULL, &args ) ;
+	lh = ht_create( int_comp, int_comp, 0, &args ) ;
 
 	for ( i = 0 ; i < N ; i++ )
 	{

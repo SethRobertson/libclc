@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static char RCSid[] = "$Id: ht.c,v 1.3 2001/07/06 00:57:31 seth Exp $" ;
+static char RCSid[] = "$Id: ht.c,v 1.4 2001/07/07 02:58:23 seth Exp $" ;
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -57,152 +57,150 @@ static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29 } ;
  */ 
 PRIVATE unsigned find_good_size(register unsigned int hint)
 {
-	register unsigned int		k ;
-	unsigned			starting_point ;
-	register unsigned		size ;
+  register unsigned int		k ;
+  unsigned			starting_point ;
+  register unsigned		size ;
 
 
-	/*
-	 * Find starting point
-	 *
-	 * XXX:	a hint that is too large ( 1 << ( WORD_SIZE - 1 ) ) will cause
-	 *			weird behavior
-	 */
-	for ( k = 0 ; ; k++ )
-		if ( hint < (unsigned int)( 1 << k ) - 1 )
-			break ;
+  /*
+   * Find starting point
+   *
+   * XXX:	a hint that is too large ( 1 << ( WORD_SIZE - 1 ) ) will cause
+   *			weird behavior
+   */
+  for ( k = 0 ; ; k++ )
+    if ( hint < (unsigned int)( 1 << k ) - 1 )
+      break ;
 	
-	starting_point  = ( 1 << (k-1) ) - 1 ;
+  starting_point  = ( 1 << (k-1) ) - 1 ;
 	
-	/*
-	 * XXX:	This may be slow, especially on machines without division
-	 *			hardware (for example, SPARC V[78] implementations).
-	 */
-	for ( size = starting_point ;; size += 2 )
-	{
-		register unsigned int j ;
+  /*
+   * XXX:	This may be slow, especially on machines without division
+   *			hardware (for example, SPARC V[78] implementations).
+   */
+  for ( size = starting_point ;; size += 2 )
+  {
+    register unsigned int j ;
 
-		for ( j = 0 ; j < sizeof( primes ) / sizeof( unsigned ) ; j++ )
-			if ( size % primes[j] == 0 )
-				goto next ;
-		return( size ) ;
-next: ;
-	}
+    for ( j = 0 ; j < sizeof( primes ) / sizeof( unsigned ) ; j++ )
+      if ( size % primes[j] == 0 )
+	goto next ;
+    return( size ) ;
+  next: ;
+  }
 }
 
 
 /*
  * Create a new hash table
  */
-dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, int *errnop, struct ht_args *argsp)
+dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct ht_args *argsp)
 {
-	header_s			*hp ;
-	int				allocator_flags ;
-	unsigned			table_size, bucket_size ;
-	char				*id = "ht_create" ;
+  header_s			*hp ;
+  int				allocator_flags ;
+  unsigned			table_size, bucket_size ;
+  char				*id = "ht_create" ;
 
-	flags |= DICT_RETURN_ERROR; /* prevent calls to exit() */
+  if ( !__dict_args_ok( id, flags, oo_comp, ko_comp, DICT_UNORDERED ) )
+    return( NULL_HANDLE ) ;
 
-	if ( !__dict_args_ok( id, flags, errnop, oo_comp, ko_comp, DICT_UNORDERED ) )
-		return( NULL_HANDLE ) ;
+  if ( argsp->ht_objvalue == NULL || argsp->ht_keyvalue == NULL )
+    return( __dict_create_error( id, flags, DICT_ENOHVFUNC ) ) ;
 
-   if ( argsp->ht_objvalue == NULL || argsp->ht_keyvalue == NULL )
-		return( __dict_create_error( id, flags, errnop, DICT_ENOHVFUNC ) ) ;
-
-	hp = HHP( malloc( sizeof( header_s ) ) ) ;
+  hp = HHP( malloc( sizeof( header_s ) ) ) ;
 #ifdef DEBUG
-	fprintf(stderr,"Mallocing hash hash header: %d\n", sizeof(header_s));
+  fprintf(stderr,"Mallocing hash hash header: %d\n", sizeof(header_s));
 #endif /* DEBUG */
-	if ( hp == NULL )
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
+  if ( hp == NULL )
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 
-   /*
-    * Allocate the hash table
-    */
-	if ( argsp->ht_table_entries == 0 )
-		argsp->ht_table_entries = ht_num_table_entries ;
-	else
-	  {
-	    if (!(flags | DICT_HT_STRICT_HINTS))
-		argsp->ht_table_entries = find_good_size( argsp->ht_table_entries ) ;
-	  }
+  /*
+   * Allocate the hash table
+   */
+  if ( argsp->ht_table_entries == 0 )
+    argsp->ht_table_entries = ht_num_table_entries ;
+  else
+  {
+    if (!(flags | DICT_HT_STRICT_HINTS))
+      argsp->ht_table_entries = find_good_size( argsp->ht_table_entries ) ;
+  }
 
-   table_size = argsp->ht_table_entries * sizeof( tabent_s ) ;
-   hp->table = TEP( malloc( table_size ) ) ;
+  table_size = argsp->ht_table_entries * sizeof( tabent_s ) ;
+  hp->table = TEP( malloc( table_size ) ) ;
 
 #ifdef DEBUG
-   fprintf(stderr,"Mallocing hash table: %d\n", table_size);
+  fprintf(stderr,"Mallocing hash table: %d\n", table_size);
 #endif /* DEBUG */
-   if ( hp->table == NULL )
-   {
-      free( (char *)hp ) ;
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
-   }
+  if ( hp->table == NULL )
+  {
+    free( hp ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
 
-   /*
-    * Determine the bucket size and create an allocator
-    */
-	if ( argsp->ht_bucket_entries == 0 )
-		argsp->ht_bucket_entries = ht_num_bucket_entries ;
-   bucket_size = sizeof( bucket_s ) +
-								argsp->ht_bucket_entries * sizeof( dict_obj ) ;
+  /*
+   * Determine the bucket size and create an allocator
+   */
+  if ( argsp->ht_bucket_entries == 0 )
+    argsp->ht_bucket_entries = ht_num_bucket_entries ;
+  bucket_size = sizeof( bucket_s ) +
+    argsp->ht_bucket_entries * sizeof( dict_obj ) ;
 	
-	/*
-	 * XXX: can't use fast allocator if we set FSM_ZERO_ALLOC
-	 *      (we no longer do this for buckets of size 1)
-	 *
-	 * XXX: should be able to give some indication to FSMA about the
-	 *		  slots/chunk; currently we use the default.
-	 */
-	allocator_flags = argsp->ht_bucket_entries == 1 ? 0 : FSM_ZERO_ALLOC ;
-	if ( flags & DICT_RETURN_ERROR )
-		allocator_flags |= FSM_RETURN_ERROR ;
-   hp->alloc = fsm_create( bucket_size, 0, allocator_flags ) ;
-   if ( hp->alloc == NULL )
-   {
-      free( (char *)hp ) ;
-      free( (char *)hp->table ) ;
-		return( __dict_create_error( id, flags, errnop, DICT_ENOMEM ) ) ;
-   }
+  /*
+   * XXX: can't use fast allocator if we set FSM_ZERO_ALLOC
+   *      (we no longer do this for buckets of size 1)
+   *
+   * XXX: should be able to give some indication to FSMA about the
+   *		  slots/chunk; currently we use the default.
+   */
+  allocator_flags = argsp->ht_bucket_entries == 1 ? 0 : FSM_ZERO_ALLOC ;
+  if ( flags & DICT_NOCOALESCE )
+    allocator_flags |= FSM_NOCOALESCE ;
+  hp->alloc = fsm_create( bucket_size, 0, allocator_flags ) ;
+  if ( hp->alloc == NULL )
+  {
+    free( hp ) ;
+    free( hp->table ) ;
+    return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
+  }
 
-	__dict_init_header( DHP( hp ), oo_comp, ko_comp, flags, errnop ) ;
+  __dict_init_header( DHP( hp ), oo_comp, ko_comp, flags ) ;
 
-	/*
-	 * Clear the table
-	 */
-	(void) memset( (char *) hp->table, 0, (int) table_size ) ;
+  /*
+   * Clear the table
+   */
+  (void) memset( hp->table, 0, (int) table_size ) ;
 
-	hp->args = *argsp ;
-   return( (dict_h) hp ) ;
+  hp->args = *argsp ;
+  return( (dict_h) hp ) ;
 }
 
 
 
 void ht_destroy(dict_h handle)
 {
-   header_s		*hp = HHP( handle ) ;
+  header_s		*hp = HHP( handle ) ;
 
 #ifdef COALESCE
-   bucket_s *bp,*np;
-   unsigned int i;
+  bucket_s *bp,*np;
+  unsigned int i;
 
-   for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
-     {
-       tabent_s *tep = &hp->table[i] ;
-       if (ENTRY_HAS_CHAIN(tep))
-	 {
-	   for(bp=tep->head_bucket;bp;bp=np)
-	     {
-	       np = bp->next;
-	       fsm_free(hp->alloc, (char *)bp);
-	     }
-	 }
-     }
+  for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
+  {
+    tabent_s *tep = &hp->table[i] ;
+    if (ENTRY_HAS_CHAIN(tep))
+    {
+      for(bp=tep->head_bucket;bp;bp=np)
+      {
+	np = bp->next;
+	fsm_free(hp->alloc, bp);
+      }
+    }
+  }
 #endif /* COALESCE */
 
-   fsm_destroy( hp->alloc ) ;
-   free( (char *)hp->table ) ;
-   free( (char *)hp ) ;
+  fsm_destroy( hp->alloc ) ;
+  free( hp->table ) ;
+  free( hp ) ;
 }
 
 
@@ -213,23 +211,23 @@ void ht_destroy(dict_h handle)
  */
 PRIVATE dict_obj *bc_reverse_lookup(bucket_s *bp, unsigned int entries, bucket_s *stop)
 {
-	dict_obj		*result ;
-	dict_obj		*bucket_list ;
-	int			j ;
+  dict_obj		*result ;
+  dict_obj		*bucket_list ;
+  int			j ;
 
-	if ( bp == stop )
-		return( NULL ) ;
+  if ( bp == stop )
+    return( NULL ) ;
 
-	result = bc_reverse_lookup( bp->next, entries, stop ) ;
-	if ( result )
-		return( result ) ;
+  result = bc_reverse_lookup( bp->next, entries, stop ) ;
+  if ( result )
+    return( result ) ;
 
-	bucket_list = BUCKET_OBJECTS( bp ) ;
+  bucket_list = BUCKET_OBJECTS( bp ) ;
 
-	for ( j = entries-1 ; j >= 0 ; j-- )
-		if ( bucket_list[ j ] != NULL )
-			return( &bucket_list[ j ] ) ;
-	return( NULL ) ;
+  for ( j = entries-1 ; j >= 0 ; j-- )
+    if ( bucket_list[ j ] != NULL )
+      return( &bucket_list[ j ] ) ;
+  return( NULL ) ;
 }
 
 
@@ -240,19 +238,19 @@ PRIVATE dict_obj *bc_reverse_lookup(bucket_s *bp, unsigned int entries, bucket_s
  */
 PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_type type)
 {
-	register bucket_s	*bp ;
-	register int		look_for_empty = ( type == EMPTY ) ;
+  register bucket_s	*bp ;
+  register int		look_for_empty = ( type == EMPTY ) ;
 
-	for ( bp = start ; bp != NULL ; bp = bp->next )
-	{
-		unsigned int j ;
-		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
+  for ( bp = start ; bp != NULL ; bp = bp->next )
+  {
+    unsigned int j ;
+    dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
 
-		for ( j = 0 ; j < entries ; j++ )
-			if ( ( bucket_list[j] == NULL ) == look_for_empty )
-				return( &bucket_list[j] ) ;
-	}
-	return( NULL ) ;
+    for ( j = 0 ; j < entries ; j++ )
+      if ( ( bucket_list[j] == NULL ) == look_for_empty )
+	return( &bucket_list[j] ) ;
+  }
+  return( NULL ) ;
 }
 
 
@@ -263,22 +261,22 @@ PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_t
  */
 PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj object, int *idx)
 {
-	bucket_s		*bp ;
+  bucket_s		*bp ;
 
-	for ( bp = chain ; bp ; bp = bp->next )
-	{
-		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
-		unsigned int i ;
+  for ( bp = chain ; bp ; bp = bp->next )
+  {
+    dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
+    unsigned int i ;
 
-		for ( i = 0 ; i < entries ; i++ )
-			if ( bucket_list[ i ] == object )
-			{
-				if ( idx )
-					*idx = i ;
-				return( bp ) ;
-			}
-	}
-	return( NULL ) ;
+    for ( i = 0 ; i < entries ; i++ )
+      if ( bucket_list[ i ] == object )
+      {
+	if ( idx )
+	  *idx = i ;
+	return( bp ) ;
+      }
+  }
+  return( NULL ) ;
 }
 
 
@@ -289,27 +287,27 @@ PRIVATE bucket_s *bc_search(bucket_s *chain, unsigned int entries, dict_obj obje
  */
 PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
 {
-	dheader_s	*dhp = DHP( hp ) ;
-	bucket_s		*bp ;
+  dheader_s	*dhp = DHP( hp ) ;
+  bucket_s     	*bp ;
 
-	bp = (bucket_s *) fsm_alloc( hp->alloc ) ;
-	if ( bp == NULL )
-		HANDLE_ERROR( dhp, "te_expand", DICT_ENOMEM, NULL ) ;
+  bp = (bucket_s *) fsm_alloc( hp->alloc ) ;
+  if ( bp == NULL )
+    HANDLE_ERROR( dhp, "te_expand", DICT_ENOMEM, NULL ) ;
 
-	if ( !( hp->alloc->flags & FSM_ZERO_ALLOC ) )
-		*BUCKET_OBJECTS( bp ) = NULL; /* zero out single entry */
+  if ( !( hp->alloc->flags & FSM_ZERO_ALLOC ) )
+    *BUCKET_OBJECTS( bp ) = NULL; /* zero out single entry */
 
-	/*
-	 * Put the bucket at the head of this entry's chain
-	 */
-	bp->next = tep->head_bucket ;
-	tep->head_bucket = bp ;
+  /*
+   * Put the bucket at the head of this entry's chain
+   */
+  bp->next = tep->head_bucket ;
+  tep->head_bucket = bp ;
 
-	/*
-	 * Update entry info
-	 */
-	tep->n_free += hp->args.ht_bucket_entries ;
-	return( BUCKET_OBJECTS( bp ) ) ;
+  /*
+   * Update entry info
+   */
+  tep->n_free += hp->args.ht_bucket_entries ;
+  return( BUCKET_OBJECTS( bp ) ) ;
 }
 
 
@@ -318,262 +316,261 @@ PRIVATE dict_obj *te_expand(tabent_s *tep, header_s *hp)
  */
 PRIVATE dict_obj *te_search(tabent_s *tep, header_s *hp, search_e type, dict_h arg)
 {
-	dheader_s	*dhp = DHP( hp ) ;
-	bucket_s		*bp ;
+  dheader_s	*dhp = DHP( hp ) ;
+  bucket_s     	*bp ;
 
-	for ( bp = tep->head_bucket ; bp != NULL ; bp = bp->next )
-	{
-		unsigned int i ;
-		int result ;
-		dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
+  for ( bp = tep->head_bucket ; bp != NULL ; bp = bp->next )
+  {
+    unsigned int i ;
+    int result ;
+    dict_obj *bucket_list = BUCKET_OBJECTS( bp ) ;
 
-		for ( i = 0 ; i < hp->args.ht_bucket_entries ; i++ )
-			if ( bucket_list[ i ] != NULL )
-			{
-				result = ( type == KEY_SEARCH )
-					? (*dhp->ko_comp)( (dict_key)arg, bucket_list[ i ] )
-					: (*dhp->oo_comp)( (dict_obj)arg, bucket_list[ i ] ) ;
-				if ( result == 0 )
-					return( &bucket_list[ i ] ) ;
-			}
-	}
-	return( NULL ) ;
+    for ( i = 0 ; i < hp->args.ht_bucket_entries ; i++ )
+      if ( bucket_list[ i ] != NULL )
+      {
+	result = ( type == KEY_SEARCH )
+	  ? (*dhp->ko_comp)( (dict_key)arg, bucket_list[ i ] )
+	  : (*dhp->oo_comp)( (dict_obj)arg, bucket_list[ i ] ) ;
+	if ( result == 0 )
+	  return( &bucket_list[ i ] ) ;
+      }
+  }
+  return( NULL ) ;
 }
 
 
 PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_obj *objectp)
 {
-	dheader_s			*dhp = DHP( hp ) ;
-	tabent_s				*tep ;
-	dict_obj				*object_slot ;
+  dheader_s		*dhp = DHP( hp ) ;
+  tabent_s		*tep ;
+  dict_obj		*object_slot ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, "ht_do_insert", DICT_ENULLOBJECT, DICT_ERR ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, "ht_do_insert", DICT_ENULLOBJECT, DICT_ERR ) ;
 	
-	tep = HASH_OBJECT( hp, object ) ;
+  tep = HASH_OBJECT( hp, object ) ;
 
-	/*
-	 * We search the entry chain only if it exists and uniqueness is required.
-	 */
-	if ( ENTRY_HAS_CHAIN( tep ) && uniq )
-	{
-		object_slot = te_search( tep, hp, OBJECT_SEARCH, (dict_h) object ) ;
-		if ( object_slot != NULL )
-		{
-			if ( objectp != NULL )
-				*objectp = *object_slot ;
-			ERRNO( dhp ) = DICT_EEXISTS ;
-			return( DICT_ERR ) ;
-		}
-	}
+  /*
+   * We search the entry chain only if it exists and uniqueness is required.
+   */
+  if ( ENTRY_HAS_CHAIN( tep ) && uniq )
+  {
+    object_slot = te_search( tep, hp, OBJECT_SEARCH, (dict_h) object ) ;
+    if ( object_slot != NULL )
+    {
+      if ( objectp != NULL )
+	*objectp = *object_slot ;
+      ERRNO( dhp ) = DICT_EEXISTS ;
+      return( DICT_ERR ) ;
+    }
+  }
 
-	/*
-	 * If the entry chain is full, expand it
-	 */
-	if ( ENTRY_IS_FULL( tep ) )
-	{
-		object_slot = te_expand( tep, hp ) ;
-		if ( object_slot == NULL )
-			return( DICT_ERR ) ;
-	}
-	else
-		object_slot = bc_lookup( tep->head_bucket,
-														hp->args.ht_bucket_entries, EMPTY ) ;
-	tep->n_free-- ;
+  /*
+   * If the entry chain is full, expand it
+   */
+  if ( ENTRY_IS_FULL( tep ) )
+  {
+    object_slot = te_expand( tep, hp ) ;
+    if ( object_slot == NULL )
+      return( DICT_ERR ) ;
+  }
+  else
+    object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY ) ;
+  tep->n_free-- ;
 
-	*object_slot = object ;
-	if ( objectp != NULL )
-		*objectp = *object_slot ;
-	return( DICT_OK ) ;
+  *object_slot = object ;
+  if ( objectp != NULL )
+    *objectp = *object_slot ;
+  return( DICT_OK ) ;
 }
 
 
 
 int ht_insert(dict_h handle, dict_obj object)
 {
-	header_s		*hp = HHP( handle ) ;
+  header_s		*hp = HHP( handle ) ;
 
-	return( ht_do_insert( hp,
-					hp->dh.flags & DICT_UNIQUE_KEYS, object, (dict_obj *)NULL ) ) ;
+  return( ht_do_insert( hp,
+			hp->dh.flags & DICT_UNIQUE_KEYS, object, (dict_obj *)NULL ) ) ;
 }
 
 
 int ht_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
-	header_s    *hp = HHP( handle ) ;
-	dheader_s	*dhp = DHP( hp ) ;
+  header_s    *hp = HHP( handle ) ;
+  dheader_s	*dhp = DHP( hp ) ;
 
-	if ( dhp->oo_comp == NULL_FUNC )
-		HANDLE_ERROR( dhp, "ht_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
-	return( ht_do_insert( hp, TRUE, object, objectp ) ) ;
+  if ( dhp->oo_comp == NULL_FUNC )
+    HANDLE_ERROR( dhp, "ht_insert_uniq", DICT_ENOOOCOMP, DICT_ERR ) ;
+  return( ht_do_insert( hp, TRUE, object, objectp ) ) ;
 }
 
 
 int ht_delete(dict_h handle, dict_obj object)
 {
-	header_s		*hp = HHP( handle ) ;
-	dheader_s	*dhp = DHP( hp ) ;
-	tabent_s		*tep ;
-	int			bucket_index ;
-	bucket_s		*bp ;
+  header_s		*hp = HHP( handle ) ;
+  dheader_s		*dhp = DHP( hp ) ;
+  tabent_s		*tep ;
+  int			bucket_index ;
+  bucket_s		*bp ;
 
-   if ( object == NULL )
-      HANDLE_ERROR( dhp, "ht_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, "ht_delete", DICT_ENULLOBJECT, DICT_ERR ) ;
 
-	tep = HASH_OBJECT( hp, object ) ;
-	if ( ! ENTRY_HAS_CHAIN( tep ) )
-	{
-		ERRNO( dhp ) = DICT_ENOTFOUND ;
-		return( DICT_ERR ) ;
-	}
+  tep = HASH_OBJECT( hp, object ) ;
+  if ( ! ENTRY_HAS_CHAIN( tep ) )
+  {
+    ERRNO( dhp ) = DICT_ENOTFOUND ;
+    return( DICT_ERR ) ;
+  }
 
-	bp = bc_search( tep->head_bucket,
-								hp->args.ht_bucket_entries, object, &bucket_index ) ;
-   if ( bp != NULL )
-   {
-		BUCKET_OBJECTS( bp )[ bucket_index ] = NULL ;
-		tep->n_free++ ;
-      return( DICT_OK ) ;
-   }
-   else
-   {
-      ERRNO( dhp ) = DICT_ENOTFOUND ;
-      return( DICT_ERR ) ;
-   }
+  bp = bc_search( tep->head_bucket,
+		  hp->args.ht_bucket_entries, object, &bucket_index ) ;
+  if ( bp != NULL )
+  {
+    BUCKET_OBJECTS( bp )[ bucket_index ] = NULL ;
+    tep->n_free++ ;
+    return( DICT_OK ) ;
+  }
+  else
+  {
+    ERRNO( dhp ) = DICT_ENOTFOUND ;
+    return( DICT_ERR ) ;
+  }
 }
 
 
 dict_obj ht_search(dict_h handle, dict_key key)
 {
-	header_s		*hp	= HHP( handle ) ;
-	tabent_s		*tep	= HASH_KEY( hp, key ) ;
-	dict_obj		*objp = te_search( tep, hp, KEY_SEARCH, (dict_h) key ) ;
+  header_s		*hp	= HHP( handle ) ;
+  tabent_s		*tep	= HASH_KEY( hp, key ) ;
+  dict_obj		*objp = te_search( tep, hp, KEY_SEARCH, (dict_h) key ) ;
 
-	return( ( objp == NULL ) ? NULL_OBJ : *objp ) ;
+  return( ( objp == NULL ) ? NULL_OBJ : *objp ) ;
 }
 
 
 
 dict_obj ht_minimum(dict_h handle)
 {
-	header_s		*hp				= HHP( handle ) ;
-	unsigned		bucket_entries = hp->args.ht_bucket_entries ;
-	unsigned int		i ;
+  header_s		*hp		= HHP( handle ) ;
+  unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
+  unsigned int		i ;
 
-	for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
-	{
-		tabent_s *tep = &hp->table[i] ;
-		dict_obj *found ;
+  for ( i = 0 ; i < hp->args.ht_table_entries ; i++ )
+  {
+    tabent_s *tep = &hp->table[i] ;
+    dict_obj *found ;
 
-		if ( ! ENTRY_HAS_CHAIN( tep ) )
-			continue ;
-		found = bc_lookup( tep->head_bucket, bucket_entries, FULL ) ;
-		if ( found )
-			return( *found ) ;
-	}
-	return( NULL_OBJ ) ;
+    if ( ! ENTRY_HAS_CHAIN( tep ) )
+      continue ;
+    found = bc_lookup( tep->head_bucket, bucket_entries, FULL ) ;
+    if ( found )
+      return( *found ) ;
+  }
+  return( NULL_OBJ ) ;
 }
 
 
 dict_obj ht_maximum(dict_h handle)
 {
-	header_s		*hp				= HHP( handle ) ;
-	unsigned		bucket_entries = hp->args.ht_bucket_entries ;
-	int i ;
+  header_s		*hp		= HHP( handle ) ;
+  unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
+  int i ;
 
-	for ( i = hp->args.ht_table_entries-1 ; i >= 0 ; i-- )
-	{
-		tabent_s *tep = &hp->table[i] ;
-		dict_obj *found ;
+  for ( i = hp->args.ht_table_entries-1 ; i >= 0 ; i-- )
+  {
+    tabent_s *tep = &hp->table[i] ;
+    dict_obj *found ;
 
-		if ( ! ENTRY_HAS_CHAIN( tep ) )
-			continue ;
-		found = bc_reverse_lookup( tep->head_bucket,
-															bucket_entries, BUCKET_NULL ) ;
-		if ( found )
-			return( *found ) ;
-	}
-	return( NULL_OBJ ) ;
+    if ( ! ENTRY_HAS_CHAIN( tep ) )
+      continue ;
+    found = bc_reverse_lookup( tep->head_bucket,
+			       bucket_entries, BUCKET_NULL ) ;
+    if ( found )
+      return( *found ) ;
+  }
+  return( NULL_OBJ ) ;
 }
 
 
 dict_obj ht_successor(dict_h handle, dict_obj object)
 {
-	header_s		*hp				= HHP( handle ) ;
-	dheader_s	*dhp				= DHP( hp ) ;
-	tabent_s		*table_end		= &hp->table[ hp->args.ht_table_entries ] ;
-	unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
-	tabent_s		*tep ;
-	bucket_s		*bp = NULL ;
-	int			bucket_index ;
-	unsigned int		i ;
-	char			*id = "ht_successor" ;
+  header_s		*hp		= HHP( handle ) ;
+  dheader_s		*dhp		= DHP( hp ) ;
+  tabent_s		*table_end	= &hp->table[ hp->args.ht_table_entries ] ;
+  unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
+  tabent_s		*tep ;
+  bucket_s		*bp		= NULL ;
+  int			bucket_index ;
+  unsigned int		i ;
+  char			*id = "ht_successor" ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-	tep = HASH_OBJECT( hp, object ) ;
-	if ( ! ENTRY_HAS_CHAIN( tep ) ||
-		 		( bp = bc_search( tep->head_bucket,
-								bucket_entries, object, &bucket_index ) ) == NULL )
-		HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+  tep = HASH_OBJECT( hp, object ) ;
+  if ( ! ENTRY_HAS_CHAIN( tep ) ||
+       ( bp = bc_search( tep->head_bucket,
+			 bucket_entries, object, &bucket_index ) ) == NULL )
+    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
 
-	ERRNO( dhp ) = DICT_ENOERROR ;
-	
-	for ( i = bucket_index+1 ; i < bucket_entries ; i++ )
-		if ( BUCKET_OBJECTS( bp )[ i ] != NULL )
-			return( BUCKET_OBJECTS( bp )[ i ] ) ;
-	
-	for ( bp = bp->next ;; )
-	{
-		dict_obj *found = bc_lookup( bp, bucket_entries, FULL ) ;
+  ERRNO( dhp ) = DICT_ENOERROR ;
 
-		if ( found )
-			return( *found ) ;
-		tep++ ;
-		if ( tep >= table_end )
-			return( NULL_OBJ ) ;
-		bp = tep->head_bucket ;
-	}
+  for ( i = bucket_index+1 ; i < bucket_entries ; i++ )
+    if ( BUCKET_OBJECTS( bp )[ i ] != NULL )
+      return( BUCKET_OBJECTS( bp )[ i ] ) ;
+
+  for ( bp = bp->next ;; )
+  {
+    dict_obj *found = bc_lookup( bp, bucket_entries, FULL ) ;
+
+    if ( found )
+      return( *found ) ;
+    tep++ ;
+    if ( tep >= table_end )
+      return( NULL_OBJ ) ;
+    bp = tep->head_bucket ;
+  }
 }
 
 
 dict_obj ht_predecessor(dict_h handle, dict_obj object)
 {
-	header_s		*hp				= HHP( handle ) ;
-	dheader_s	*dhp				= DHP( hp ) ;
-	unsigned		bucket_entries = hp->args.ht_bucket_entries ;
-	tabent_s		*tep ;
-	bucket_s		*stop ;
-	dict_obj		*found ;
-	int			bucket_index ;
-	int			i ;
-	char			*id = "ht_predecessor" ;
+  header_s		*hp		= HHP( handle ) ;
+  dheader_s		*dhp		= DHP( hp ) ;
+  unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
+  tabent_s		*tep ;
+  bucket_s		*stop ;
+  dict_obj		*found ;
+  int			bucket_index ;
+  int			i ;
+  char			*id = "ht_predecessor" ;
 
-	if ( object == NULL )
-		HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
+  if ( object == NULL )
+    HANDLE_ERROR( dhp, id, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-	tep = HASH_OBJECT( hp, object ) ;
-	stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
-	if ( stop == NULL )
-		HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
+  tep = HASH_OBJECT( hp, object ) ;
+  stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
+  if ( stop == NULL )
+    HANDLE_ERROR( dhp, id, DICT_EBADOBJECT, NULL_OBJ ) ;
 	
-	ERRNO( dhp ) = DICT_ENOERROR ;
+  ERRNO( dhp ) = DICT_ENOERROR ;
 
-	for ( i = bucket_index-1 ; i >= 0 ; i-- )
-		if ( BUCKET_OBJECTS( stop )[ i ] != NULL )
-			return( BUCKET_OBJECTS( stop )[ i ] ) ;
+  for ( i = bucket_index-1 ; i >= 0 ; i-- )
+    if ( BUCKET_OBJECTS( stop )[ i ] != NULL )
+      return( BUCKET_OBJECTS( stop )[ i ] ) ;
 	
-	for ( ;; )
-	{
-		found = bc_reverse_lookup( tep->head_bucket, bucket_entries, stop ) ;
-		if ( found )
-			return( *found ) ;
-		stop = NULL ;
-		if ( tep <= hp->table )
-			return( NULL_OBJ ) ;
-		tep-- ;
-	}
+  for ( ;; )
+  {
+    found = bc_reverse_lookup( tep->head_bucket, bucket_entries, stop ) ;
+    if ( found )
+      return( *found ) ;
+    stop = NULL ;
+    if ( tep <= hp->table )
+      return( NULL_OBJ ) ;
+    tep-- ;
+  }
 }
 
 
@@ -584,17 +581,17 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
  */
 PRIVATE void iter_next(header_s *hp)
 {
-	register unsigned int	i ;
-	struct ht_iter *ip = &hp->iter ;
+  register unsigned int	i ;
+  struct ht_iter *ip = &hp->iter ;
 
-	for ( i = ip->current_table_entry ; i < hp->args.ht_table_entries ; i++ )
-		if ( ENTRY_HAS_CHAIN( &hp->table[i] ) )
-		{
-			ip->current_bucket = hp->table[i].head_bucket ;
-			ip->next_bucket_offset = 0 ;
-			break ;
-		}
-	ip->current_table_entry = i ;
+  for ( i = ip->current_table_entry ; i < hp->args.ht_table_entries ; i++ )
+    if ( ENTRY_HAS_CHAIN( &hp->table[i] ) )
+    {
+      ip->current_bucket = hp->table[i].head_bucket ;
+      ip->next_bucket_offset = 0 ;
+      break ;
+    }
+  ip->current_table_entry = i ;
 }
 
 
@@ -603,46 +600,46 @@ PRIVATE void iter_next(header_s *hp)
  */
 void ht_iterate(dict_h handle, enum dict_direction direction)
 {
-	header_s					*hp = HHP( handle ) ;
+  header_s					*hp = HHP( handle ) ;
 
 #ifdef lint
-	direction = direction ;
+  direction = direction ;
 #endif
-	hp->iter.current_table_entry = 0 ;
-	iter_next( hp ) ;
+  hp->iter.current_table_entry = 0 ;
+  iter_next( hp ) ;
 }
 
 
 dict_obj ht_nextobj(dict_h handle)
 {
-	header_s	*hp = HHP( handle ) ;
-	struct ht_iter *ip = &hp->iter ;
-	unsigned int	i ;
+  header_s		*hp = HHP( handle ) ;
+  struct ht_iter	*ip = &hp->iter ;
+  unsigned int		i ;
 
-	while ( ip->current_table_entry < hp->args.ht_table_entries )
+  while ( ip->current_table_entry < hp->args.ht_table_entries )
+  {
+    do
+    {
+      for ( i = ip->next_bucket_offset ;
+	    i < hp->args.ht_bucket_entries ; i++ )
+      {
+	dict_obj *bucket_list = BUCKET_OBJECTS( ip->current_bucket ) ;
+
+	if ( bucket_list[i] != NULL )
 	{
-		do
-		{
-			for ( i = ip->next_bucket_offset ;
-										i < hp->args.ht_bucket_entries ; i++ )
-			{
-				dict_obj *bucket_list = BUCKET_OBJECTS( ip->current_bucket ) ;
-
-				if ( bucket_list[i] != NULL )
-				{
-					ip->next_bucket_offset = i+1 ;
-					return( bucket_list[i] ) ;
-				}
-			}
-			ip->current_bucket = ip->current_bucket->next ;
-			ip->next_bucket_offset = 0;
-		}
-		while ( ip->current_bucket ) ;
-
-		ip->current_table_entry++ ;
-		iter_next( hp ) ;
+	  ip->next_bucket_offset = i+1 ;
+	  return( bucket_list[i] ) ;
 	}
-	return( NULL_OBJ ) ;
+      }
+      ip->current_bucket = ip->current_bucket->next ;
+      ip->next_bucket_offset = 0;
+    }
+    while ( ip->current_bucket ) ;
+
+    ip->current_table_entry++ ;
+    iter_next( hp ) ;
+  }
+  return( NULL_OBJ ) ;
 }
 
 #else  /* SWITCH_HT_TO_DLL */
@@ -662,63 +659,80 @@ dict_obj ht_nextobj(dict_h handle)
 
 dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, int *errnop, struct ht_args *argsp)
 {
-	argsp = argsp;
-	return dll_create( oo_comp, ko_comp, flags, errnop);
+  argsp = argsp;
+  return dll_create( oo_comp, ko_comp, flags, errnop);
 }
 
 void ht_destroy(dict_h handle)
 {
-	dll_destroy( handle );
+  dll_destroy( handle );
 }
 
 int ht_insert(dict_h handle, dict_obj object)
 {
-	return dll_insert( handle, object );
+  return dll_insert( handle, object );
 }
 
 int ht_insert_uniq(dict_h handle, dict_obj object, dict_obj *objectp)
 {
-	return dll_insert_uniq( handle, object, objectp );
+  return dll_insert_uniq( handle, object, objectp );
 }
 
 int ht_delete(dict_h handle, dict_obj object)
 {
-	return dll_delete( handle, object );
+  return dll_delete( handle, object );
 }
 
 dict_obj ht_search(dict_h handle, dict_key key)
 {
-	return dll_search( handle, key );
+  return dll_search( handle, key );
 }
 
 dict_obj ht_minimum(dict_h handle)
 {
-	return dll_minimum( handle );
+  return dll_minimum( handle );
 }
 
 dict_obj ht_maximum(dict_h handle)
 {
-	return dll_maximum( handle );
+  return dll_maximum( handle );
 }
 
 dict_obj ht_successor(dict_h handle, dict_obj object)
 {
-	return dll_successor( handle, object );
+  return dll_successor( handle, object );
 }
 
 dict_obj ht_predecessor(dict_h handle, dict_obj object)
 {
-	return dll_predecessor( handle, object );
+  return dll_predecessor( handle, object );
 }
 
 void ht_iterate(dict_h handle, enum dict_direction direction)
 {
-	dll_iterate( handle, direction );
+  dll_iterate( handle, direction );
 }
 
 dict_obj ht_nextobj(dict_h handle)
 {
-	return dll_nextobj( handle );
+  return dll_nextobj( handle );
 }
 
 #endif /* SWITCH_HT_TO_DLL */
+
+
+
+char *ht_error_reason(dict_h handle, int *errnop)
+{
+  header_s	*hp		= HHP( handle ) ;
+  int		errno;
+
+  if (handle)
+    errno = ERRNO(DHP(hp));
+  else
+    errno = dict_errno;
+
+  if (errnop) *errnop = errno;
+
+  return(__dict_error_reason(errno));
+}

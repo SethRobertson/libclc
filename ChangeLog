@@ -1,3 +1,16 @@
+2001-07-06  Seth Robertson  <seth@yeah.baka.org>
+
+	* Change error handling.  Specifically, get rid of errno pointer
+	and create functions to access the error value as a string.  This
+	supports automatic reentrancy except from during dictionary creation
+	(which is either programmer error or an out-of-memory condition).
+
+	Add DICT_NOCOALESCE to allow reentrancy.
+
+	Delete DICT_RETURN_ERROR -- never exit.
+	
+	Change indention to BAKA style.
+
 2001-07-05  Seth Robertson  <seth@yeah.baka.org>
 
 	* src/dict/htimpl.h: Fix indention

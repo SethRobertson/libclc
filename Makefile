@@ -1,5 +1,5 @@
 ######################################################################
-# $Id: Makefile,v 1.4 2001/06/18 21:59:44 seth Exp $
+# $Id: Makefile,v 1.5 2002/07/13 04:40:54 jtt Exp $
 #
 # ++Copyright LIBBK++
 #
@@ -14,7 +14,8 @@
 #
 # libbk group Makefile 
 #
-BK_SUBDIR=src include
+BK_INCLUDE_DIRS=include
+BK_SUBDIR=src
 
 GROUPTOP=.
 GROUPSUBDIR=.

@@ -1,3 +1,14 @@
+2002-08-27  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/dict/ht.c (ht_minimum): Serious and quite possibly
+	bug-injecting misuse of a hint (cur_min).  The insert and delete
+	routines were setting this to a bucket chain entry, not a table
+	entry bucket (except when the insert routine had to perform a
+	bucket chain expansion--when cur_min might be set to some other
+	random value).  This usually was OK since bucket chain numbers are
+	very low (0-3 range), but if a valid entry was in the table at
+	slot zero or one, then ht_minimum might never see that item.
+
 2002-08-14  James Tanis  <jtt@saint.sysdetect.com>
 
 	* src/dict/ht.c (ht_minimum): Use cached minimum index as search start.

@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.4 2002/08/15 04:16:28 jtt Exp $
+ * $Id: htimpl.h,v 1.5 2002/08/27 11:17:39 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -89,8 +89,8 @@ struct ht_header
 	struct table_entry	*table ;
 	struct ht_args 		args ;
 	struct ht_iter 		iter ;
-  unsigned int		cur_min;
-  unsigned int		obj_cnt;
+        unsigned int		cur_min;
+  	unsigned int		obj_cnt;
 } ;
 
 typedef struct ht_header header_s ;

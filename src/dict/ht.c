@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.11 2002/08/15 04:16:28 jtt Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.12 2002/08/27 11:17:39 seth Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -25,9 +25,22 @@ enum lookup_type { EMPTY, FULL } ;
 
 
 
-#define HASH( hp, func, arg )	( &(hp)->table[ (*(func))( arg ) % (hp)->args.ht_table_entries ] )
-#define HASH_OBJECT( hp, obj )  HASH( hp, (hp)->args.ht_objvalue, obj )
-#define HASH_KEY( hp, key )     HASH( hp, (hp)->args.ht_keyvalue, key )
+#define CUR_MIN_PERHACK
+#ifdef CUR_MIN_PERHACK
+
+#define HASH( hp, func, arg, save )	( &(hp)->table[ (save) = ((*(func))( arg ) % (hp)->args.ht_table_entries) ] )
+#define HASH_OBJECT( hp, obj, save )  HASH( hp, (hp)->args.ht_objvalue, obj, save )
+#define HASH_KEY( hp, key, save )     HASH( hp, (hp)->args.ht_keyvalue, key, save )
+
+static int junkptr = 0;
+
+#else // CUR_MIN_PERHACK
+
+#define HASH( hp, func, arg, save )	( &(hp)->table[ (*(func))( arg ) % (hp)->args.ht_table_entries ] )
+#define HASH_OBJECT( hp, obj, save )  HASH( hp, (hp)->args.ht_objvalue, obj, save )
+#define HASH_KEY( hp, key, save )     HASH( hp, (hp)->args.ht_keyvalue, key, save )
+
+#endif // CUR_MIN_PERHACK
 
 
 #define N_PRIMES							( sizeof( primes ) / sizeof( unsigned ) )
@@ -168,13 +181,10 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
   hp->args = *argsp ;
 
   /*
-   * Set cur_min to zero. This is a little bogus since 0 is a valid slot
-   * (but not the valid minimum) and, furthermore, inserts will *not*
-   * change this until the first call to ht_miniumum. but what this means
-   * is that we check for the special case of the cur_min being unset
-   * (which, BTW, would take a new field in the header as well at the cost
-   * of 4 bytes per ht) with each insert. And after all, in theory,
-   * ht_minimum might never be called.
+   * Set cur_min to zero. This is a little bogus since 0 is a valid
+   * slot (but not the valid minimum) but the first insert will fix
+   * this up.  Anyway, ht_minimum will special case no objects being
+   * in the hash table.
    */
   hp->cur_min = 0;
   hp->obj_cnt = 0;
@@ -243,7 +253,7 @@ PRIVATE dict_obj *bc_reverse_lookup(bucket_s *bp, unsigned int entries, bucket_s
  *		Return a pointer to the first NULL (if type is EMPTY) or non-NULL
  *		(if type is FULL) dict_obj in the bucket chain.
  */
-PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_type type, int *indexp)
+PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_type type)
 {
   register bucket_s	*bp ;
   register int		look_for_empty = ( type == EMPTY ) ;
@@ -256,7 +266,6 @@ PRIVATE dict_obj *bc_lookup(bucket_s *start, unsigned int entries, enum lookup_t
     for ( j = 0 ; j < entries ; j++ )
       if ( ( bucket_list[j] == NULL ) == look_for_empty )
       {
-	if (indexp) *indexp = j;
 	return( &bucket_list[j] ) ;
       }
   }
@@ -355,12 +364,12 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   dheader_s		*dhp = DHP( hp ) ;
   tabent_s		*tep ;
   dict_obj		*object_slot ;
-  unsigned int		min_index;
+  unsigned int		min_index = 0;
 
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 	
-  tep = HASH_OBJECT( hp, object ) ;
+  tep = HASH_OBJECT( hp, object, min_index ) ;
 
   /*
    * We search the entry chain only if it exists and uniqueness is required.
@@ -387,12 +396,14 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
       return( DICT_ERR ) ;
   }
   else
-    object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY, &min_index ) ;
+    object_slot = bc_lookup( tep->head_bucket, hp->args.ht_bucket_entries, EMPTY ) ;
   tep->n_free-- ;
 
-  if (min_index < hp->cur_min)
+#ifdef CUR_MIN_PERHACK
+  if (min_index < hp->cur_min || hp->obj_cnt == 0)
     hp->cur_min = min_index;
-  
+#endif // CUR_MIN_PERHACK
+
   hp->obj_cnt++;
 
   *object_slot = object ;
@@ -434,7 +445,7 @@ int ht_delete(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-  tep = HASH_OBJECT( hp, object ) ;
+  tep = HASH_OBJECT( hp, object, junkptr ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep) )
   {
     ERRNO( dhp ) = DICT_ENOTFOUND ;
@@ -450,30 +461,11 @@ int ht_delete(dict_h handle, dict_obj object)
 
     hp->obj_cnt--;
 
-    if (bucket_index == (int)hp->cur_min)
-    {
-      unsigned int i;
-
-      if (hp->obj_cnt)
-      {
-	// Look for new minimum
-	for ( i = hp->cur_min ; i < hp->args.ht_table_entries ; i++ )
-	{
-	  tabent_s *ltep = &hp->table[i] ;
-
-	  if ( ENTRY_HAS_CHAIN( ltep ) &&  ! ENTRY_IS_EMPTY( ltep ) )
-	    break;
-	}
-
-	// If we don't find a new min, then reset min to initial state.
-	hp->cur_min = (i == hp->args.ht_table_entries)?0:i;
-      }
-      else
-      {
-	hp->cur_min = 0;
-      }
-    }
-
+#ifdef CUR_MIN_PERHACK
+    // Note that cur_min may be too low, but we perform lazy evaluation on the minimum
+    if (!hp->obj_cnt)
+      hp->cur_min = 0;
+#endif // CUR_MIN_PERHACK
 
     return( DICT_OK ) ;
   }
@@ -489,7 +481,7 @@ int ht_delete(dict_h handle, dict_obj object)
 dict_obj ht_search(dict_h handle, dict_key key)
 {
   header_s		*hp	= HHP( handle ) ;
-  tabent_s		*tep	= HASH_KEY( hp, key ) ;
+  tabent_s		*tep	= HASH_KEY( hp, key, junkptr ) ;
   dict_obj		*objp = te_search( tep, hp, KEY_SEARCH, (dict_h) key ) ;
 
   return( ( objp == NULL ) ? NULL_OBJ : *objp ) ;
@@ -502,7 +494,6 @@ dict_obj ht_minimum(dict_h handle)
   header_s		*hp		= HHP( handle ) ;
   unsigned		bucket_entries	= hp->args.ht_bucket_entries ;
   unsigned int		i ;
-  unsigned int		min_index;
 
   if (hp->obj_cnt)
   {
@@ -513,10 +504,13 @@ dict_obj ht_minimum(dict_h handle)
 
       if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY(tep) )
 	continue ;
-      found = bc_lookup( tep->head_bucket, bucket_entries, FULL, &min_index ) ;
+      found = bc_lookup( tep->head_bucket, bucket_entries, FULL ) ;
       if ( found )
       {
-	hp->cur_min = min_index;
+#ifdef CUR_MIN_PERHACK
+	hp->cur_min = i;
+#endif // CUR_MIN_PERHACK
+
 	return( *found ) ;
       }
     }
@@ -564,7 +558,7 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-  tep = HASH_OBJECT( hp, object ) ;
+  tep = HASH_OBJECT( hp, object, junkptr ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) ||
        ( bp = bc_search( tep->head_bucket,
 			 bucket_entries, object, &bucket_index ) ) == NULL )
@@ -578,7 +572,7 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
 
   for ( bp = bp->next ;; )
   {
-    dict_obj *found = bc_lookup( bp, bucket_entries, FULL, NULL ) ;
+    dict_obj *found = bc_lookup( bp, bucket_entries, FULL ) ;
 
     if ( found )
       return( *found ) ;
@@ -604,7 +598,7 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-  tep = HASH_OBJECT( hp, object ) ;
+  tep = HASH_OBJECT( hp, object, junkptr ) ;
   stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
   if ( stop == NULL )
     HANDLE_ERROR( dhp, DICT_EBADOBJECT, NULL_OBJ ) ;

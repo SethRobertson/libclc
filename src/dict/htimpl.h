@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: htimpl.h,v 1.9 2003/05/10 08:29:06 dupuy Exp $
+ * $Id: htimpl.h,v 1.10 2003/06/03 21:52:01 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -100,8 +100,8 @@ struct ht_header
 	fsma_h 			alloc ;
 	struct table_entry	*table ;
 	struct ht_args 		args ;
-#ifdef BK_USING_PTHREADS
 	unsigned int		flags ;
+#ifdef BK_USING_PTHREADS
         pthread_mutex_t		lock ;
 	int			iter_cnt ;
 	struct ht_iter		**iter ;

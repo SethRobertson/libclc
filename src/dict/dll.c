@@ -1,10 +1,10 @@
 /*
  * (c) Copyright 1993 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.11 2003/04/24 18:30:23 jtt Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.12 2003/06/12 21:47:41 seth Exp $";
 
 #include <stdlib.h>
 #include "clchack.h"
@@ -32,7 +32,7 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
   hp = (header_s *) malloc( sizeof( header_s ) ) ;
   if ( hp == NULL )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
-	
+
 #ifdef BK_USING_PTHREADS
   hp->flags = flags;
 
@@ -52,7 +52,7 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
     free( (char *)hp ) ;
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
   }
-	
+
   /*
    * Allocate and initialize head node
    */
@@ -98,7 +98,7 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
 void dll_destroy(dict_h handle)
 {
   header_s	*hp	= LHP( handle ) ;
-#ifdef COALESCE 
+#ifdef COALESCE
  dheader_s	*dhp	= DHP( hp ) ;
   node_s *x = NULL;
   node_s *y = NULL;
@@ -139,7 +139,7 @@ void dll_destroy(dict_h handle)
 PRIVATE int dll_do_insert(register header_s *hp, bool_int must_be_uniq, register dict_obj object, dict_obj *objectp, int flags)
 {
   register dheader_s	*dhp = DHP( hp ) ;
-  register bool_int 	unordered_list = ( dhp->flags & DICT_UNORDERED ) ;
+  register bool_int	unordered_list = ( dhp->flags & DICT_UNORDERED ) ;
   register node_s	*np = NULL ;
   node_s		*newnode ;
   node_s		*before, *after ;
@@ -385,7 +385,7 @@ int dll_delete(dict_h handle, register dict_obj object)
 	  break ;
     }
 
-#ifdef SAFE_ITERATE	
+#ifdef SAFE_ITERATE
 #ifdef BK_USING_PTHREADS
   // See if the iterator is pointing to the dying node
   for (itercnt=0; itercnt<hp->iter_cnt; itercnt++)

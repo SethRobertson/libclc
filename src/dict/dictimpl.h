@@ -9,7 +9,7 @@
 #define __DICTIMPL_H
 
 /*
- * $Id: dictimpl.h,v 1.7 2003/07/09 22:44:04 jtt Exp $
+ * $Id: dictimpl.h,v 1.8 2004/06/07 22:01:27 jtt Exp $
  */
 
 #include "dict.h"
@@ -60,6 +60,10 @@ typedef int bool_int ;
 int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function ko_comp, int allowed_orders, int *fsmaflags);
 void __dict_init_header(dheader_s *dhp, dict_function oo_comp, dict_function ko_comp, int flags) ;
 dict_h __dict_create_error(char *caller, int flags, int error_code) ;
+
+#ifdef __INSURE__
+#define realloc(p,l) ((p)?realloc((p),(l)):malloc(l))
+#endif /* __INSURE__ */
 
 #endif	/* __DICTIMPL_H */
 

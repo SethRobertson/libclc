@@ -23,7 +23,7 @@
 	(_DICT_NUKE_WORK_LOOP): common code for DICT_NUKE, DICT_NUKE_CONTENTS
 
 	* src/dict/dictimpl.h (HANDLE_ERROR): Eliminate unused id argument
-	[use __FUNCTION__  here instead if you need it for debugging]
+	[use BK_FUNCNAME  here instead if you need it for debugging]
 
 2002-01-31  Alexander Dupuy  <dupuy@sysdetect.com>
 

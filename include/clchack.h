@@ -1,10 +1,10 @@
 #ifndef _CLCHACK_H
 #define _CLCHACK_H
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 #define _REENTRANT
 #include <pthread.h>
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
 #include <stdlib.h>
 #include <unistd.h>

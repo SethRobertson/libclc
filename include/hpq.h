@@ -8,7 +8,7 @@
 #define __HPQ_H
 
 /*
- * $Id: hpq.h,v 1.8 2003/04/04 01:59:46 seth Exp $
+ * $Id: hpq.h,v 1.9 2003/04/09 19:51:56 seth Exp $
  */
 
 /*
@@ -45,13 +45,13 @@ struct __hpq_header
   pq_obj *objects ;				/* array of objects */
   int cur_size ;				/* # of objects in array */
   int max_size ;				/* max # of objects that can fit in array */
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   int iter_cnt;					/* Number of iterators allocated */
   pq_iter *iter;				/* iterator list */
   pthread_mutex_t lock;				/* Threading lock */
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
   unsigned int iter ;				/* current iteration index */
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 } ;
 typedef struct __hpq_header header_s ;
 

@@ -1,3 +1,9 @@
+2003-04-08  Seth Robertson  <seth@startide.sysdetect.com>
+
+	* src/fsma/fsma.c (fsm_threaded_makeready): Provide interface for
+	people to specify this will be a threaded program and to enforce
+	thread safe memory protection.
+
 2003-04-03  Seth Robertson  <seth@startide.sysdetect.com>
 
 	* src/pq/hpq.c: Make thread-safe, through PQ_THREADED_SAFE

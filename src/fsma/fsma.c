@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.14 2003/04/04 01:59:46 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.15 2003/04/09 19:51:56 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -30,9 +30,10 @@ unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
 #ifdef COALESCE
 static fsma_h *coalesce = NULL;
 static int coalesce_size = 0;
-#ifdef HAVE_PTHREADS
-pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;
-#endif /* HAVE_PTHREADS */
+#ifdef BK_USING_PTHREADS
+static int thread_override = 0;
+static pthread_mutex_t coalesce_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif /* BK_USING_PTHREADS */
 #endif /* COALESCE */
 
 #ifndef FSMA_USE_MALLOC
@@ -116,13 +117,21 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 
 #ifdef COALESCE
 
-#ifdef HAVE_PTHREADS
+  if (!(flags & FSM_NOCOALESCE) && !(flags & FSM_THREADED) && thread_override)
+  {
+    if (thread_override == FSM_PREFER_SAFE)
+      flags |= FSM_THREADED;
+    if (thread_override == FSM_PREFER_NOCOALESCE)
+      flags |= FSM_NOCOALESCE;
+  }
+
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_lock(&coalesce_lock) != 0)
   {
     // Error message, somehow
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (!(flags & FSM_NOCOALESCE))
   {
@@ -138,12 +147,12 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
 
 	fp = coalesce[cnt];
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 	if (pthread_mutex_unlock(&coalesce_lock) != 0)
 	{
 	  // Error message, somehow
 	}
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
 #ifdef DEBUG
 	fprintf(stderr,"Coalesced %p with references %d\n", fp, coalesce[cnt]->references);
@@ -153,13 +162,13 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     }
   }
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_unlock(&coalesce_lock) != 0)
   {
     // Error message, somehow
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 #endif /* COALESCE */
 
 
@@ -226,7 +235,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     header_inlined = FALSE ;
   }
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_init(&fp->lock, NULL) != 0)
   {
     // Error message, somehow
@@ -235,7 +244,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
       free(fp);
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   //jtt_printf("allocating: %p\n", fp);
   fp->next_free = (POINTER) slots ;
@@ -259,13 +268,13 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
   {
     fsma_h *tmp;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
     if (pthread_mutex_lock(&coalesce_lock) != 0)
     {
       // Error message, somehow
       goto bypass_coalesce;
     }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
     coalesce_size++;
     //jtt_printf("Expanding coalesce: %d\n", coalesce_size);
@@ -281,14 +290,14 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
       coalesce[coalesce_size-1] = fp;
     }
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
     if (pthread_mutex_unlock(&coalesce_lock) != 0)
     {
       // Error message, somehow
       goto bypass_coalesce;
     }
   bypass_coalesce:;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   }
 #endif /* COALESCE */
 
@@ -310,12 +319,12 @@ void fsm_destroy(register fsma_h fp)
   register int chunk_size = fp->chunk_size ;
 
 #ifdef COALESCE
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_lock(&coalesce_lock) != 0)
   {
     // Error message, somehow
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (--fp->references)
   {
@@ -342,12 +351,12 @@ void fsm_destroy(register fsma_h fp)
   }
 
  bypasscoalescefree:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_unlock(&coalesce_lock) != 0)
   {
     // Error message, somehow
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (!fp)
     return;
@@ -388,13 +397,13 @@ void *_fsm_alloc(register fsma_h fp)
 {
   register POINTER object = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((fp->flags & FSM_THREADED) && (pthread_mutex_lock(&fp->lock) != 0))
   {
     /* Complain, somehow--locking failed */
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Check if there are any slots on the free list
@@ -442,13 +451,13 @@ void *_fsm_alloc(register fsma_h fp)
 
  done:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((fp->flags & FSM_THREADED) && (pthread_mutex_unlock(&fp->lock) != 0))
   {
     /* Complain, somehow--locking failed */
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( object ) ;
 }
@@ -509,14 +518,14 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
     return( NULL ) ;
   }
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (pthread_mutex_init(&fp->lock, NULL) != 0)
   {
     // Error message, somehow
     free(fp);
     return(NULL);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /* force fsm_alloc macro to invoke _fsm_alloc function */
   fp->next_free = NULL ;
@@ -597,3 +606,11 @@ void _fsm_free(fsma_h fp, void *object)
   free ( object ) ;
 }
 #endif /* FSMA_USE_MALLOC */
+
+
+#ifdef BK_USING_PTHREADS
+void fsm_threaded_makeready(int preference)
+{
+  thread_override = preference;
+}
+#endif // BK_USING_PTHREADS

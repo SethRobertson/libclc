@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.12 2003/04/01 04:40:56 seth Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.13 2003/04/09 19:51:56 seth Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -106,7 +106,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
   if ( hp == NULL_HEADER )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   hp->flags = flags;
 
   if (pthread_mutex_init(&(hp->lock), NULL) != 0)
@@ -114,7 +114,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
     free( (char *)hp ) ;
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Create an allocator
@@ -148,15 +148,15 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
   HINT_CLEAR( hp, last_successor ) ;
   HINT_CLEAR( hp, last_predecessor ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   hp->tip_cnt = 0;
   hp->tip = NULL;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
   /* Make sure iteration stuff is initialized too. */
   bst_iterate(hp, DICT_FROM_START);
 #endif /* SAVE_ITERATE || FAST_ACTIONS */
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return( (dict_h) hp ) ;
 }
 
@@ -201,11 +201,11 @@ void bst_destroy(dict_h handle)
 
   fsm_destroy( hp->alloc ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   pthread_mutex_destroy(&hp->lock);
   if (hp->tip)
     free(hp->tip);
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   free( (char *)hp ) ;
 }
@@ -229,10 +229,10 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
   if ( object == NULL_OBJ )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   x = ROOT( hp ) ;
 
@@ -293,10 +293,10 @@ PRIVATE int tree_insert(header_s *hp, register int uniq, dict_obj object, dict_o
     *objectp = object ;
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return( ret ) ;
 }
 
@@ -342,13 +342,13 @@ int bst_delete(dict_h handle, dict_obj object)
   register tnode_s	*y, *x ;
   tnode_s		*py ;
   int			ret = DICT_OK;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   int			tipcnt;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
 #ifdef SAFE_ITERATE
   struct tree_iterator	*tip = &hp->iter ;
 #endif /* SAFE_ITERATE */
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 #ifdef FAST_ACTIONS
   tnode_s *tmp=NULL;
 #endif /* FAST_ACTIONS */
@@ -356,13 +356,13 @@ int bst_delete(dict_h handle, dict_obj object)
   if ( object == NULL_OBJ )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
 #ifdef FAST_ACTIONS
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   /* See if the interator contains a hint as to where obj might be */
   for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
   {
@@ -383,7 +383,7 @@ int bst_delete(dict_h handle, dict_obj object)
   if (delnp)
     ; // Naught
   else
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
   if ( tip->next && tip->next != ANCHOR(hp) && tip->next != NIL(hp) &&
        (tmp=previous_node(hp, tip->next)) &&
        (OBJ(tmp)==object))
@@ -391,7 +391,7 @@ int bst_delete(dict_h handle, dict_obj object)
     delnp = tmp;
   }
   else
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
    if ( HINT_MATCH( hp, last_predecessor, object ) )
     delnp = HINT_GET( hp, last_predecessor ) ;
   else if ( HINT_MATCH( hp, last_successor, object ) )
@@ -412,7 +412,7 @@ int bst_delete(dict_h handle, dict_obj object)
     }
 
 #ifdef SAFE_ITERATE	
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
   {
     if (hp->tip[tipcnt] && hp->tip[tipcnt]->next && OBJ(hp->tip[tipcnt]->next) == object)
@@ -423,7 +423,7 @@ int bst_delete(dict_h handle, dict_obj object)
 	hp->tip[tipcnt]->next = previous_node( hp, hp->tip[tipcnt]->next ) ;
     }
   }
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
   if (tip->next)
   {
     if (OBJ(tip->next) == object)
@@ -431,7 +431,7 @@ int bst_delete(dict_h handle, dict_obj object)
       bst_nextobj(handle, tip);
     }
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 #endif /* SAFE_IITERATE */
 
   HINT_CLEAR( hp, last_search ) ;
@@ -456,7 +456,7 @@ int bst_delete(dict_h handle, dict_obj object)
     FIND_MINIMUM( hp, RIGHT( delnp ), y ) ;
     OBJ( delnp ) = OBJ( y ) ;
 #ifdef SAFE_ITERATE
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
     /* Update the iterator if it is pointing at the moved object */
     for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
     {
@@ -465,13 +465,13 @@ int bst_delete(dict_h handle, dict_obj object)
 	hp->tip[tipcnt]->next = delnp;
       }
     }
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
     /* Update the iterator if it is pointing at the moved object */
     if ( tip->next == y )
     {
       tip->next = delnp;
     }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 #endif /* SAFE_ITERATE */
   }
 
@@ -505,10 +505,10 @@ int bst_delete(dict_h handle, dict_obj object)
   NODE_FREE( hp, y ) ;
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return( ret ) ;
 }
 
@@ -528,10 +528,10 @@ dict_obj bst_search(dict_h handle, dict_key key)
   register int 		v ;
   dict_obj		ret = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   np = ROOT(hp);
 
@@ -547,10 +547,10 @@ dict_obj bst_search(dict_h handle, dict_key key)
 
   ret = OBJ( np );
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( ret ) ;
 }
@@ -569,10 +569,10 @@ dict_obj bst_minimum(dict_h handle)
   register tnode_s	*np ;
   dict_obj		ret = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( TREE_EMPTY( hp ) )
     goto done;
@@ -583,10 +583,10 @@ dict_obj bst_minimum(dict_h handle)
   ret = OBJ(np);
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(ret);
 }
@@ -605,10 +605,10 @@ dict_obj bst_maximum(dict_h handle)
   register tnode_s	*np ;
   dict_obj		ret = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( TREE_EMPTY( hp ) )
     goto done;
@@ -619,10 +619,10 @@ dict_obj bst_maximum(dict_h handle)
   ret = OBJ(np);
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(ret);
 }
@@ -678,10 +678,10 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
   dict_obj		ret = NULL;
   int			errmsg = 0;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( object == NULL_OBJ )
   {
@@ -714,18 +714,18 @@ dict_obj bst_successor(dict_h handle, dict_obj object)
 
   ret = OBJ( successor );
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( ret ) ;
 
  error:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   HANDLE_ERROR( dhp, errmsg, NULL_OBJ ) ;
 }
@@ -781,10 +781,10 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
   dict_obj		ret = NULL;
   int			errmsg = 0;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( object == NULL_OBJ )
   {
@@ -817,19 +817,19 @@ dict_obj bst_predecessor(dict_h handle, dict_obj object)
 
   ret = OBJ( predecessor );
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( ret ) ;
 
  error:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   HANDLE_ERROR( dhp, errmsg, NULL_OBJ ) ;
 }
@@ -847,23 +847,23 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
   register header_s	*hp	= THP( handle ) ;
   struct tree_iterator	*tip	= NULL ;
   tnode_s		*np ;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   dheader_s		*dhp	= DHP( hp ) ;
   int			tipcnt;
 
   if (!(tip = malloc(sizeof(*tip))))
     HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
 
   tip = &hp->iter;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tip->direction = direction ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( TREE_EMPTY( hp ) )
     tip->next = NULL ;
@@ -880,7 +880,7 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
     tip->next = np ;
   }
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
   {
     if (!hp->tip[tipcnt])
@@ -906,17 +906,17 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
  done:
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(tip);
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
  error:
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
 
   HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 }
 
 
@@ -928,7 +928,7 @@ dict_iter bst_iterate(dict_h handle, enum dict_direction direction)
  */
 void bst_iterate_done(dict_h handle, dict_iter iter)
 {
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   register header_s	*hp	= THP( handle ) ;
   int			tipcnt;
 
@@ -951,7 +951,7 @@ void bst_iterate_done(dict_h handle, dict_iter iter)
 
     free(iter);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return;
 }
@@ -970,10 +970,10 @@ dict_obj bst_nextobj(dict_h handle, dict_iter iter)
   tnode_s		*current;
   dict_obj		ret = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   current = tip->next ;
 
@@ -991,10 +991,10 @@ dict_obj bst_nextobj(dict_h handle, dict_iter iter)
   ret = OBJ(current);
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(ret);
 }

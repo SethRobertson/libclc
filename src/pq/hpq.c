@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: hpq.c,v 1.8 2003/04/04 01:59:46 seth Exp $";
+static const char RCSid[] = "$Id: hpq.c,v 1.9 2003/04/09 19:51:57 seth Exp $";
 static char const version[] = VERSION;
 
 #include <stdlib.h>
@@ -87,7 +87,7 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
     HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
 		  "HPQ __hpq_create: malloc failed\n" ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   hp->flags = flags;
   hp->iter_cnt = 0;
   hp->iter = NULL;
@@ -98,7 +98,7 @@ pq_h __hpq_create(int (*func)(pq_obj, pq_obj), int flags)
     HANDLE_ERROR( (header_s *)NULL, NULL, PQ_ENOMEM,
 		  "HPQ __hpq_create: malloc failed\n" ) ;
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Allocate object array
@@ -133,11 +133,11 @@ void __hpq_destroy(pq_h handle)
 {
   header_s *hp = HHP( handle ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (hp->iter)
     free(hp->iter);
   pthread_mutex_destroy(&hp->lock);
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   free( (char *) hp->objects ) ;
   free( (char *)hp ) ;
@@ -160,10 +160,10 @@ int __hpq_insert(pq_h handle, pq_obj object)
     HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_insert: NULL object\n" ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Make sure there is room to store the object
@@ -199,10 +199,10 @@ int __hpq_insert(pq_h handle, pq_obj object)
 
   ret = PQ_OK;
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(PQ_OK);
 }
@@ -250,10 +250,10 @@ pq_obj __hpq_extract_head(pq_h handle)
   register header_s *hp = HHP( handle ) ;
   pq_obj object = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( hp->cur_size == 0 )
     goto done;
@@ -263,10 +263,10 @@ pq_obj __hpq_extract_head(pq_h handle)
   restore_heap_down( hp, 0 ) ;
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( object ) ;
 }
@@ -397,10 +397,10 @@ int __hpq_delete(pq_h handle, register pq_obj object)
     HANDLE_ERROR( hp, PQ_ERR, PQ_ENULLOBJECT,
 		  "HPQ __hpq_delete: NULL object\n" ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * First find it
@@ -419,19 +419,19 @@ int __hpq_delete(pq_h handle, register pq_obj object)
   hp->objects[ i ] = hp->objects[ --hp->cur_size ] ;
   restore_heap( hp, i ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( PQ_OK ) ;
 
  error:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   HANDLE_ERROR( hp, PQ_ERR, PQ_ENOTFOUND, "HPQ __hpq_delete: object not found\n" ) ;
 }
@@ -447,15 +447,15 @@ pq_iter __hpq_iterate(pq_h handle)
 {
   header_s *hp = HHP( handle ) ;
   pq_iter iter = NULL;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   int itercnt = 0;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (!(iter = malloc(sizeof(*iter))))
     HANDLE_ERROR( hp, NULL, PQ_ENOMEM, "HPQ __hpq_iterate: Out of Memory\n" );
   *iter = hp->cur_size;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 
@@ -485,7 +485,7 @@ pq_iter __hpq_iterate(pq_h handle)
  done:
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(iter);
 }
@@ -505,10 +505,10 @@ pq_obj __hpq_nextobj(pq_h handle, pq_iter iter)
   register header_s *hp = HHP( handle ) ;
   pq_obj obj = NULL;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if ( *iter > hp->cur_size )
     *iter = hp->cur_size;
@@ -520,10 +520,10 @@ pq_obj __hpq_nextobj(pq_h handle, pq_iter iter)
 
  done:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(obj);
 }
@@ -537,7 +537,7 @@ pq_obj __hpq_nextobj(pq_h handle, pq_iter iter)
  */
 void __hpq_iterate_done(pq_h handle, pq_iter iter)
 {
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   register header_s *hp = HHP( handle ) ;
   int			itercnt;
 
@@ -560,7 +560,7 @@ void __hpq_iterate_done(pq_h handle, pq_iter iter)
 
     free(iter);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return;
 }
@@ -582,10 +582,10 @@ int __hpq_verify(header_s *hp, int current)
   register int right = RIGHT( current ) ;
   int ret = 0;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (hp->cur_size == 0 && current == 0)
     goto done;
@@ -622,10 +622,10 @@ int __hpq_verify(header_s *hp, int current)
   }
  done:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & PQ_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(ret);
 }

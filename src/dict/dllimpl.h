@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: dllimpl.h,v 1.2 2003/04/01 04:40:57 seth Exp $
+ * $Id: dllimpl.h,v 1.3 2003/04/09 19:51:56 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -95,14 +95,14 @@ struct dll_header
 	struct hints 		hint ;
 	fsma_h 			alloc ;		/* FSM allocator */
 	node_s			*head ;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 	u_int			flags;
         pthread_mutex_t		lock;
 	int			iter_cnt;
 	struct dll_iterator	**iter ;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
 	struct dll_iterator	iter ;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 } ;
 
 typedef struct dll_header header_s ;

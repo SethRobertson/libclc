@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dict.c,v 1.6 2003/04/01 04:40:56 seth Exp $";
+static const char RCSid[] = "$Id: dict.c,v 1.7 2003/04/09 19:51:56 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -101,7 +101,7 @@ int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function
   }
 #endif
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   // Do not need both NOCOALESCE and THREADED_MEMORY
   if ( (flags & DICT_NOCOALESCE) && (flags & DICT_THREADED_MEMORY))
     flags &= ~DICT_THREADED_MEMORY;
@@ -112,7 +112,7 @@ int __dict_args_ok(char *caller, int flags, dict_function oo_comp, dict_function
 
   if (fsma_flags && (flags & DICT_THREADED_MEMORY))
     *fsma_flags = FSM_THREADED;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (fsma_flags && (flags & DICT_NOCOALESCE))
     *fsma_flags = FSM_NOCOALESCE;

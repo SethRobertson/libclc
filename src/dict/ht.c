@@ -3,7 +3,7 @@
  * All rights reserved.  The file named COPYRIGHT specifies the terms 
  * and conditions for redistribution.
  */
-static const char RCSid[] = "$Id: ht.c,v 1.15 2003/04/01 04:40:57 seth Exp $";
+static const char RCSid[] = "$Id: ht.c,v 1.16 2003/04/09 19:51:56 seth Exp $";
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -128,7 +128,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
   if ( hp == NULL )
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   hp->flags = flags;
 
   if (pthread_mutex_init(&(hp->lock), NULL) != 0)
@@ -136,7 +136,7 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
     free( (char *)hp ) ;
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Allocate the hash table
@@ -194,10 +194,10 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
 
   hp->args = *argsp ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   hp->iter_cnt = 0;
   hp->iter = NULL;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   /*
    * Set cur_min to zero. This is a little bogus since 0 is a valid
@@ -239,11 +239,11 @@ void ht_destroy(dict_h handle)
   }
 #endif /* COALESCE */
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (hp->iter)
     free(hp->iter);
   pthread_mutex_destroy(&hp->lock);
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   fsm_destroy( hp->alloc ) ;
   free( hp->table ) ;
@@ -419,10 +419,10 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 	
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, min_index ) ;
 
@@ -468,19 +468,19 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
   if ( objectp != NULL )
     *objectp = *object_slot ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( DICT_OK ) ;
 
  error:
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   HANDLE_ERROR( dhp, errret, DICT_ERR ) ;
 }
@@ -536,10 +536,10 @@ int ht_delete(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, DICT_ERR ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) || ENTRY_IS_EMPTY( tep) )
@@ -565,18 +565,18 @@ int ht_delete(dict_h handle, dict_obj object)
     hp->cur_min = 0;
 #endif // CUR_MIN_PERHACK
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( DICT_OK ) ;
 
  error:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   HANDLE_ERROR(dhp, errret, DICT_ERR);
 }
@@ -594,18 +594,18 @@ dict_obj ht_search(dict_h handle, dict_key key)
   tabent_s		*tep;
   dict_obj		*objp;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tep = HASH_KEY( hp, key, junkptr ) ;
   objp = te_search( tep, hp, KEY_SEARCH, (dict_h) key ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( ( objp == NULL ) ? NULL_OBJ : *objp ) ;
 }
@@ -624,10 +624,10 @@ dict_obj ht_minimum(dict_h handle)
   unsigned int		i ;
   dict_obj		obj = NULL_OBJ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   if (hp->obj_cnt)
   {
@@ -654,10 +654,10 @@ dict_obj ht_minimum(dict_h handle)
   }
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( obj ) ;
 }
@@ -676,10 +676,10 @@ dict_obj ht_maximum(dict_h handle)
   dict_obj obj = NULL_OBJ;
   int i ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   for ( i = hp->args.ht_table_entries-1 ; i >= 0 ; i-- )
   {
@@ -697,10 +697,10 @@ dict_obj ht_maximum(dict_h handle)
       break;
     }
   }
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return( obj ) ;
 }
@@ -728,10 +728,10 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   if ( ! ENTRY_HAS_CHAIN( tep ) ||
@@ -767,17 +767,17 @@ dict_obj ht_successor(dict_h handle, dict_obj object)
   }
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return(ret);
 
  error:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   HANDLE_ERROR( dhp, errret, NULL_OBJ ) ;
 }
 
@@ -804,10 +804,10 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   if ( object == NULL )
     HANDLE_ERROR( dhp, DICT_ENULLOBJECT, NULL_OBJ ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   tep = HASH_OBJECT( hp, object, junkptr ) ;
   stop = bc_search( tep->head_bucket, bucket_entries, object, &bucket_index ) ;
@@ -841,17 +841,17 @@ dict_obj ht_predecessor(dict_h handle, dict_obj object)
   }
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return(ret);
 
  error:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   HANDLE_ERROR( dhp, errret, NULL_OBJ ) ;
 }
 
@@ -886,23 +886,23 @@ PRIVATE void iter_next(header_s *hp, struct ht_iter *ip)
 dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
 {
   header_s		*hp = HHP( handle ) ;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   dheader_s		*dhp		= DHP( hp ) ;
   struct ht_iter	*iter;
   int itercnt;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
   struct ht_iter	*iter	= &hp->iter ;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if (!(iter = malloc(sizeof(*iter))))
     HANDLE_ERROR( dhp, DICT_ENOMEM, NULL ) ;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   iter->current_table_entry = 0 ;
   iter_next( hp, iter ) ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
 
@@ -931,17 +931,17 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
  done:
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return(iter);
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
  error:
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
 
   HANDLE_ERROR( dhp, DICT_ENOMEM, NULL_OBJ ) ;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 }
 
 
@@ -953,7 +953,7 @@ dict_iter ht_iterate(dict_h handle, enum dict_direction direction)
  */
 void ht_iterate_done(dict_h handle, dict_iter iter)
 {
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   header_s		*hp = HHP( handle ) ;
   int			itercnt;
 
@@ -976,7 +976,7 @@ void ht_iterate_done(dict_h handle, dict_iter iter)
 
     free(iter);
   }
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   return;
 }
@@ -995,10 +995,10 @@ dict_obj ht_nextobj(dict_h handle, dict_iter iter)
   unsigned int		i ;
   dict_obj		obj = NULL_OBJ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_lock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
   while ( ip->current_table_entry < hp->args.ht_table_entries )
   {
@@ -1026,10 +1026,10 @@ dict_obj ht_nextobj(dict_h handle, dict_iter iter)
   }
 
  done:
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   if ((hp->flags & DICT_THREADED_SAFE) && pthread_mutex_unlock(&hp->lock) != 0)
     abort();
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
   return( obj ) ;
 }
 

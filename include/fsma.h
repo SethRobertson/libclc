@@ -1,6 +1,6 @@
 /*
  * (c) Copyright 1992 by Panagiotis Tsirigotis
- * All rights reserved.  The file named COPYRIGHT specifies the terms 
+ * All rights reserved.  The file named COPYRIGHT specifies the terms
  * and conditions for redistribution.
  */
 
@@ -8,7 +8,7 @@
 #define __FSMA_H
 
 /*
- * $Id: fsma.h,v 1.6 2003/04/01 04:40:56 seth Exp $
+ * $Id: fsma.h,v 1.7 2003/04/09 19:51:56 seth Exp $
  */
 
 #define __FSMA_ALIGNMENT	8
@@ -32,9 +32,9 @@ struct __fsma_header
   unsigned short flags;
   unsigned short is_inlined;			/* header is inlined (boolean) (should be converted to a flag) */
   unsigned int references;			// Number of people using this allocator.  Yes, Virginia, we can have more than 2^16.
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
   pthread_mutex_t lock;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 } ;
 
 typedef struct __fsma_header *fsma_h ;
@@ -48,18 +48,24 @@ typedef struct __fsma_header *fsma_h ;
 #define FSM_ZERO_ALLOC				0x2
 #define FSM_ZERO_FREE				0x4
 #define FSM_ZERO_DESTROY			0x8
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 #define FSM_THREADED				0x10
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 #define FSM_FREE_USEFUN				0x20 // Only for internal FSMA use--otherwise infinite loop
 
+
+#ifdef BK_USING_PTHREADS
+extern void fsm_threaded_makeready(int preference);
+#define FSM_PREFER_SAFE		0x1
+#define FSM_PREFER_NOCOALESCE	0x2
+#endif // BK_USING_PTHREADS
 
 fsma_h	fsm_create	( unsigned size, unsigned slots, int flags )  ;
 void	fsm_destroy	( fsma_h handle )  ;
 void	*_fsm_alloc	( fsma_h handle )  ;
 void	_fsm_free	( fsma_h handle, void *ptr )  ;
 
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 #ifdef __GNUC__
 #define fsm_alloc( fsma )											\
     ({														\
@@ -110,8 +116,8 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
       {													\
 	__fsma_pointer *_fsm_next = (void *)(p);							\
 													\
-        if ((fsma)->flags & FSM_FREE_USEFUN)								\
-        {												\
+	if ((fsma)->flags & FSM_FREE_USEFUN)								\
+	{												\
 	  _fsm_free(fsma, _fsm_next);									\
 	  break;											\
 	}												\
@@ -134,7 +140,7 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 	}												\
       } while (0)
 
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
 
 #define fsm_alloc( fsma )									\
      (												\
@@ -149,8 +155,8 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
       {								\
 	__fsma_pointer *_fsm_next = (void *)(p);		\
 								\
-        if ((fsma)->flags & FSM_FREE_USEFUN)			\
-        { 							\
+	if ((fsma)->flags & FSM_FREE_USEFUN)			\
+	{							\
 	  _fsm_free(fsma, _fsm_next);				\
 	  break;						\
 	}							\
@@ -162,9 +168,8 @@ void	_fsm_free	( fsma_h handle, void *ptr )  ;
 	(fsma)->next_free = _fsm_next;				\
       } while (0)
 
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 
 #define fsm_size( fsma )	(fsma)->slot_size
 
-#endif 	/* __FSMA_H */
-
+#endif	/* __FSMA_H */

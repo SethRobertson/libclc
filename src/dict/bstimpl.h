@@ -6,7 +6,7 @@
 
 
 /*
- * $Id: bstimpl.h,v 1.3 2003/04/01 04:40:56 seth Exp $
+ * $Id: bstimpl.h,v 1.4 2003/04/09 19:51:56 seth Exp $
  */
 
 #include "dictimpl.h"
@@ -114,14 +114,14 @@ struct tree_header
 	fsma_h				alloc ;
 	btnode_s			anchor ;
 	btnode_s			nil ;
-#ifdef HAVE_PTHREADS
+#ifdef BK_USING_PTHREADS
 	u_int				flags;
         pthread_mutex_t			lock;
 	int				tip_cnt;
         struct tree_iterator	      **tip;
-#else /* HAVE_PTHREADS */
+#else /* BK_USING_PTHREADS */
         struct tree_iterator	        iter;
-#endif /* HAVE_PTHREADS */
+#endif /* BK_USING_PTHREADS */
 } ;
 
 typedef struct tree_header header_s ;

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: fsma.c,v 1.22 2003/09/09 10:46:29 seth Exp $";
+static const char RCSid[] = "$Id: fsma.c,v 1.23 2003/09/19 18:52:55 seth Exp $";
 static const char version[] = VERSION;
 
 #include "clchack.h"
@@ -29,6 +29,7 @@ static const char version[] = VERSION;
 #endif /* FSMA_USE_MALLOC */
 
 unsigned int fsma_slots_per_chunk = SLOTS_PER_CHUNK;
+#define SUPPOSEDMALLOCOVERHEAD 8
 
 /*
  * <TRICKY>
@@ -195,7 +196,7 @@ fsma_h fsm_create(unsigned int object_size, unsigned int slots_per_chunk, int fl
    * overboard especially since we cannot find the right offset.
    */
   for(tmp1=16;tmp1<chunk_size;tmp1*=2) ;
-  tmp1 -= sizeof( union __fsma_chunk_header );
+  tmp1 -= sizeof( union __fsma_chunk_header ) + SUPPOSEDMALLOCOVERHEAD;
   nslots = tmp1/slot_size;
   chunk_size = sizeof( union __fsma_chunk_header ) + nslots * slot_size ;
 

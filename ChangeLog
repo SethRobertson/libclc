@@ -1,3 +1,12 @@
+2003-09-19  Seth Robertson  <seth@buscemi.sysdetect.com>
+
+	* src/fsma/fsma.c (fsm_create): Try to adjust for MALLOC overhead.
+	This apparently ranges from 4 to 16 bytes, depending on
+	implementation.  For linux people claim it is 4 bytes, but we
+	actually save more space at 8 bytes.  This does save some little
+	space (1% of total allocations for a particular worker job) but
+	since it is essentially free we might as well keep it.
+
 2003-09-09  Seth Robertson  <seth@buscemi.sysdetect.com>
 
 	* src/fsma/fsma.c: Better support for FSMA_USE_MALLOC

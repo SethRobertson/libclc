@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dll.c,v 1.13 2003/06/13 20:36:39 dupuy Exp $";
+static const char RCSid[] = "$Id: dll.c,v 1.14 2003/06/18 21:10:19 brian Exp $";
 
 #include <stdlib.h>
 #include "clchack.h"
@@ -81,7 +81,7 @@ dict_h dll_create(dict_function oo_comp, dict_function ko_comp, int flags)
 #else /* BK_USING_PTHREADS */
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
   /* Make sure iteration stuff is initialized too. */
-  dll_iterate(hp, DICT_FROM_START);
+  dll_iterate((dict_h)hp, DICT_FROM_START);
 #endif /* SAFE_ITERATE || FAST_ACTIONS */
 #endif /* BK_USING_PTHREADS */
 
@@ -401,7 +401,7 @@ int dll_delete(dict_h handle, register dict_obj object)
 #else /* BK_USING_PTHREADS */
   if (dip->next && (OBJ(dip->next) == object) )
   {
-    dll_nextobj(handle, dip);
+    dll_nextobj(handle, (dict_iter)dip);
   }
 #endif /* BK_USING_PTHREADS */
 #endif /* SAFE_ITERATE */

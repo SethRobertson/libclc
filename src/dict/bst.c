@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bst.c,v 1.17 2003/06/17 05:10:51 seth Exp $";
+static const char RCSid[] = "$Id: bst.c,v 1.18 2003/06/18 21:10:19 brian Exp $";
 
 #include "clchack.h"
 #include "bstimpl.h"
@@ -154,7 +154,7 @@ dict_h bst_create(dict_function oo_comp, dict_function ko_comp, int flags)
 #else /* BK_USING_PTHREADS */
 #if defined SAFE_ITERATE || defined FAST_ACTIONS
   /* Make sure iteration stuff is initialized too. */
-  bst_iterate(hp, DICT_FROM_START);
+  bst_iterate((dict_h)hp, DICT_FROM_START);
 #endif /* SAVE_ITERATE || FAST_ACTIONS */
 #endif /* BK_USING_PTHREADS */
   return( (dict_h) hp ) ;
@@ -428,7 +428,7 @@ int bst_delete(dict_h handle, dict_obj object)
   {
     if (OBJ(tip->next) == object)
     {
-      bst_nextobj(handle, tip);
+      bst_nextobj(handle, (dict_iter)tip);
     }
   }
 #endif /* BK_USING_PTHREADS */

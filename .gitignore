@@ -64,3 +64,4 @@ ins_init_1000.c
 ~
 ~*.tmp
 *.tar.gz
+.*~

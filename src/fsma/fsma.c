@@ -481,7 +481,7 @@ void *_fsm_alloc(register fsma_h fp, register u_int flags)
 
 /*
  * Well, the slow case no longer exists--it is all the fast
- * case...left for backwards compatability and debuggers
+ * case...left for backwards compatibility and debuggers
  *
  * THREADS: MT-SAFE
  */

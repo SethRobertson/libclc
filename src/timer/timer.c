@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: timer.c,v 1.3 2003/06/17 05:10:55 seth Exp $";
+UNUSED static const char RCSid[] = "$Id: timer.c,v 1.3 2003/06/17 05:10:55 seth Exp $";
 static const char version[] = VERSION;
 
 #include <unistd.h>

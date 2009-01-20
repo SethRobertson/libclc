@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id" ;
+UNUSED static char RCSid[] = "$Id" ;
 
 #include <stdlib.h>
 

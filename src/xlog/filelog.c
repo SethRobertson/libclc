@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static char RCSid[] = "$Id: filelog.c,v 1.2 2003/06/17 05:10:56 seth Exp $" ;
+UNUSED static char RCSid[] = "$Id: filelog.c,v 1.2 2003/06/17 05:10:56 seth Exp $" ;
 
 #include <unistd.h>
 #include <sys/types.h>

@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: xlog.c,v 1.3 2003/06/17 05:10:56 seth Exp $";
+UNUSED static const char RCSid[] = "$Id: xlog.c,v 1.3 2003/06/17 05:10:56 seth Exp $";
 static const char version[] = VERSION;
 
 #include <stdarg.h>

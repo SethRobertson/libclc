@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: dlltest2.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
+UNUSED static const char RCSid[] = "$Id: dlltest2.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
 
 struct foo
 {

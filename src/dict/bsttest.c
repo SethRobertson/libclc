@@ -4,7 +4,7 @@
  * and conditions for redistribution.
  */
 
-static const char RCSid[] = "$Id: bsttest.c,v 1.7 2003/06/17 05:10:51 seth Exp $" ;
+UNUSED static const char RCSid[] = "$Id: bsttest.c,v 1.7 2003/06/17 05:10:51 seth Exp $" ;
 
 #ifndef NULL
 #define NULL 0

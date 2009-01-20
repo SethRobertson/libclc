@@ -4,7 +4,6 @@
  * and conditions for redistribution.
  */
 
-UNUSED static const char RCSid[] = "$Id: sio.c,v 1.3 2003/06/17 05:10:54 seth Exp $";
 static const char sio_version[] = VERSION;
 
 #include <unistd.h>

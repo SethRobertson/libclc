@@ -4,7 +4,6 @@
  * and conditions for redistribution.
  */
 
-UNUSED static char RCSid[] = "$Id: copytest.c,v 1.2 2003/06/17 05:10:54 seth Exp $" ;
 
 #include "sio.h"
 #include <stdio.h>

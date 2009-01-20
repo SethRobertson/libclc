@@ -19,7 +19,6 @@
 #define NULL 0
 #endif
 
-UNUSED static const char RCSid[] = "$Id: hpq.c,v 1.12 2004/07/08 04:40:21 lindauer Exp $";
 UNUSED static char const version[] = VERSION;
 
 

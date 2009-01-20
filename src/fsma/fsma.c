@@ -8,7 +8,6 @@
 #include "fsma.h"
 #include "impl.h"
 
-UNUSED static const char RCSid[] = "$Id: fsma.c,v 1.24 2004/07/08 04:40:20 lindauer Exp $";
 UNUSED static const char version[] = VERSION;
 
 /*

@@ -8,7 +8,6 @@
 #include "clchack.h"
 #include "dllimpl.h"
 
-UNUSED static const char RCSid[] = "$Id: dll.c,v 1.16 2004/07/08 04:40:20 lindauer Exp $";
 
 
 

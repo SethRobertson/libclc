@@ -20,7 +20,6 @@
 #include "clchack.h"
 #include "htimpl.h"
 
-UNUSED static const char RCSid[] = "$Id: ht.c,v 1.29 2004/07/08 04:40:20 lindauer Exp $";
 
 
 int ht_num_table_entries = DEFAULT_TABLE_ENTRIES;

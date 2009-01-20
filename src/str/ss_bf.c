@@ -4,7 +4,6 @@
  * and conditions for redistribution.
  */
 
-UNUSED static char RCSid[] = "$Id" ;
 
 #include "ss_impl.h"
 #include "clchack.h"

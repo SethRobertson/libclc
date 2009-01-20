@@ -4,7 +4,6 @@
  * and conditions for redistribution.
  */
 
-UNUSED static const char RCSid[] = "$Id: dlltest.c,v 1.6 2003/06/17 05:10:51 seth Exp $" ;
 
 
 #ifndef NULL

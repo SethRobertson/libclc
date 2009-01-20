@@ -7,7 +7,6 @@
 #include "clchack.h"
 #include "bstimpl.h"
 
-UNUSED static const char RCSid[] = "$Id: rbt.c,v 1.7 2004/08/21 04:50:44 seth Exp $";
 
 /*
  * Transformation:

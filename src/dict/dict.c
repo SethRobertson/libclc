@@ -8,7 +8,6 @@
 #include "dictimpl.h"
 #include "fsma.h"
 
-UNUSED static const char RCSid[] = "$Id: dict.c,v 1.10 2004/07/08 04:40:20 lindauer Exp $";
 UNUSED static const char version[] = VERSION;
 
 int dict_errno ;				/* Only for errors before we have a context */

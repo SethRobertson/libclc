@@ -10,7 +10,6 @@
 #define NODE_ALLOC( hp )               TNP( fsm_alloc( (hp)->alloc ) )
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
 
-UNUSED static const char RCSid[] = "$Id: bst.c,v 1.21 2004/08/21 04:50:43 seth Exp $";
 
 
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);

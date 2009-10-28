@@ -570,8 +570,8 @@ PRIVATE int ht_do_insert(header_s *hp, int uniq, register dict_obj object, dict_
     hs->inserts++;
     if (tep->n_free_max - tep->n_free > 1)
       hs->clashes++;
-    if (tep->n_free_max - tep->n_free > hs->max_chain)
-      hs->max_chain = tep->n_free_max - tep->n_free;
+    if (tep->n_free_max > hs->max_chain)
+      hs->max_chain = tep->n_free_max;
     if (hp->obj_cnt > hs->max_cnt)
       hs->max_cnt = hp->obj_cnt;
   }

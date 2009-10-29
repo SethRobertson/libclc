@@ -65,7 +65,7 @@ static int junkptr = 0;
 /*
  * Used for the selection of a good array size
  */
-static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29 } ;
+static unsigned primes[] = { 3, 5, 7, 11, 13, 17, 23, 29, 31, 37 } ;
 
 
 

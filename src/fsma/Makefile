@@ -1,16 +1,16 @@
 ######################################################################
 # $Id: Makefile,v 1.6 2002/05/13 23:21:29 jtt Exp $
 #
-# ++Copyright LIBBK++
+# ++Copyright BAKA++
 #
-# Copyright (c) 2001 The Authors.  All rights reserved.
+# Copyright (c) 2001-2010 The Authors. All rights reserved.
 #
 # This source code is licensed to you under the terms of the file
 # LICENSE.TXT in this release for further details.
 #
-# Mail <projectbaka@baka.org> for further information
+# Send e-mail to <projectbaka@baka.org> for further information.
 #
-# --Copyright LIBBK--
+# - -Copyright BAKA- -
 #
 # libbk Makefile
 #

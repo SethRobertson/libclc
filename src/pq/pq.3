@@ -53,8 +53,8 @@ pq_h pq ;
 int *errnop ;
 .SH DESCRIPTION
 .LP
-This library handles priority queues that contain objects. Objects are
-of type
+This library handles priority queues (implemented as a balanced binary
+heap) that contain objects. Objects are of type
 .I pq_obj
 which is a pointer type.
 The object at the head of a priority queue is the
@@ -80,22 +80,22 @@ specify no flags.
 is used to destroy a priority queue.
 .LP
 .B pq_head()
-returns the object at the head of the priority queue.
+returns the object at the head of the priority queue O(1).
 .LP
 .B pq_extract_head()
-extracts and returns the object at the head of the priority queue.
+extracts and returns the object at the head of the priority queue O(logN).
 .LP
 .B pq_insert()
-inserts the given \fIobject\fR in the priority queue.
+inserts the given \fIobject\fR in the priority queue O(logN).
 .LP
 .B pq_delete()
-deletes the given \fIobject\fR from the priority queue.
+deletes the given \fIobject\fR from the priority queue O(logN).
 .LP
 .B pq_iterate()
-prepares the priority queue for iteration.  The iteration is not ordered.
+prepares the priority queue for iteration.  The iteration is not ordered. O(1)
 .LP
 .B pq_nextobj()
-returns the next object.  It is safe to delete this object.
+returns the next object.  It is safe to delete this object. O(1)
 .LP
 .B pq_error_reason()
 returns the textual and numerical (if errno pointer is provided) error

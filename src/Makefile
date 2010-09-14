@@ -29,3 +29,5 @@ include $(GROUPTOP)/$(PKGTOP)/bkmk/Make.include
 -include ./Make.include
 ## END BKSTANDARD MAKEFILE
 ##################################################
+
+install-first:: install-normal

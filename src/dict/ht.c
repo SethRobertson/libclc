@@ -211,6 +211,8 @@ dict_h ht_create(dict_function oo_comp, dict_function ko_comp, int flags, struct
     return( __dict_create_error( id, flags, DICT_ENOMEM ) ) ;
   }
 
+  //memset(hp->table, (char)0, table_size);
+
   /*
    * Determine the bucket size and create an allocator
    */

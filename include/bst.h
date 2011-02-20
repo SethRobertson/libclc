@@ -41,8 +41,10 @@ struct bst_depth
   int depth_max ;
 } ;
 
-void		bst_getdepth		__ARGS( ( dict_h bh, struct bst_depth * ) ) ;
-void		bst_traverse		__ARGS( ( dict_h bh, bst_order_e, void (*)() ) ) ;
+typedef void (*action_h)(dict_obj obj);
+
+void bst_traverse( dict_h handle, bst_order_e order, action_h action );
+void bst_getdepth( dict_h handle, struct bst_depth *dp );
 
 #endif	/* BST_DEBUG */
 

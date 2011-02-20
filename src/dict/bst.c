@@ -11,11 +11,8 @@
 #define NODE_FREE( hp, np )            fsm_free( (hp)->alloc, (char *)(np) )
 
 
-
 PRIVATE tnode_s *previous_node(register header_s *hp, register tnode_s *x);
 PRIVATE tnode_s *next_node(register header_s *hp, register tnode_s *x);
-
-
 
 /*
  * Find the minimum node of the subtree with root 'start'
@@ -1160,12 +1157,7 @@ static void rbvalidate( header_s *hp, tnode_s *np, int flags)
 
 #endif /* BSD_SUPERDEBUG */
 
-
-
-PRIVATE void preorder( hp, np, action )
-     header_s	*hp ;
-     tnode_s		*np ;
-     void		(*action)() ;
+PRIVATE void preorder( header_s *hp, tnode_s *np, action_h action )
 {
   if ( np == NIL( hp ) )
     return ;
@@ -1176,10 +1168,7 @@ PRIVATE void preorder( hp, np, action )
 }
 
 
-PRIVATE void inorder( hp, np, action )
-     header_s		*hp ;
-     tnode_s		*np ;
-     void			(*action)() ;
+PRIVATE void inorder( header_s *hp, tnode_s *np, action_h action )
 {
   if ( np == NIL( hp ) )
     return ;
@@ -1190,10 +1179,7 @@ PRIVATE void inorder( hp, np, action )
 }
 
 
-PRIVATE void postorder( hp, np, action )
-     header_s		*hp ;
-     tnode_s		*np ;
-     void			(*action)() ;
+PRIVATE void postorder( header_s *hp, tnode_s *np, action_h action )
 {
   if ( np == NIL( hp ) )
     return ;
@@ -1204,10 +1190,7 @@ PRIVATE void postorder( hp, np, action )
 }
 
 
-void bst_traverse( handle, order, action )
-     dict_h		handle ;
-     bst_order_e	order ;
-     void			(*action)() ;
+void bst_traverse( dict_h handle, bst_order_e order, action_h action )
 {
   header_s *hp = THP( handle ) ;
 
@@ -1238,10 +1221,8 @@ void bst_traverse( handle, order, action )
 #endif
 #define MAX( a, b )        ( a > b ? a : b )
 
-void get_depth( hp, np, dp )
-     header_s				*hp ;
-     tnode_s           *np ;
-     struct bst_depth	*dp ;
+static void get_depth( header_s *hp, tnode_s *np, struct bst_depth *dp );
+static void get_depth( header_s *hp, tnode_s *np, struct bst_depth *dp )
 {
   struct bst_depth	ldep, rdep ;
 
@@ -1261,9 +1242,7 @@ void get_depth( hp, np, dp )
   }
 }
 
-void bst_getdepth( handle, dp )
-     dict_h				handle ;
-     struct bst_depth	*dp ;
+void bst_getdepth( dict_h handle, struct bst_depth *dp )
 {
   header_s	*hp = THP( handle ) ;
 

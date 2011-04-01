@@ -29,16 +29,16 @@ static const char misc_version[] = VERSION;
  * and clear the old one
  */
 char **argv_copy_and_clear(char **org_argv, int start, int count)
-	                 							/* original argv */
-	           									/* from where to start copy/clear */
-	           									/* how many entries to copy/clear */
+										/* original argv */
+											/* from where to start copy/clear */
+											/* how many entries to copy/clear */
 {
 	char **new_argv ;
 	char *p ;
 	int i ;
 	int j ;
 #ifndef __STDC__
-  	char *malloc() ;
+	char *malloc() ;
 #endif
 
 	new_argv = (char **) malloc( count * sizeof( char * ) ) ;
@@ -93,7 +93,7 @@ char *dirname(char *pathname)
 	char *s = strrchr( pathname, '/' ) ;
 	char *p ;
 #ifndef __STDC__
-  	char *malloc() ;
+	char *malloc() ;
 #endif
 
 	if ( s == NULL )

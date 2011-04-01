@@ -72,7 +72,7 @@ int main(void)
 			exit( 1 ) ;
 		}
 	}
-	
+
 	printf( "Search/delete test\n" ) ;
 	i = 7 ;
 	ip = INTP( ht_search( lh, &i ) ) ;
@@ -90,7 +90,7 @@ int main(void)
 			printf( "%d found\n", nums[ i ] ) ;
 		else
 			printf( "%d not found\n", nums[ i ] ) ;
-	
+
 	iter = ht_iterate( lh , DICT_FROM_START ) ;
 	while (( ip = INTP( ht_nextobj( lh, iter ) ) ))
 		printf( "Object = %d\n", *ip ) ;

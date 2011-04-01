@@ -17,7 +17,7 @@
 #		tester. On Suns, it uses /bin/sh. On DECstations, it uses
 #		/usr/bin/ksh
 #		The decision is made by checking $ARCH
-#	
+#
 
 case "$ARCH" in
 	"")

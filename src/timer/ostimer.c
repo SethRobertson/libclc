@@ -143,7 +143,7 @@ void __ostimer_interrupt(register ostimer_s *otp)
 		if ( tp == TIMER_NULL || TV_GT( tp->t_expiration, current_time ) ||
 																	n_expired == MAX_EXPIRED )
 			break ;
-	
+
 		tp = timer_pq_extract_head( otp->ost_timerq.tq_handle ) ;
 		if ( tp->t_state == TICKING )
 		{
@@ -323,7 +323,7 @@ int __ostimer_add(ostimer_s *otp, register timer_s *tp, struct itimerval *itvp, 
 			invoke_protocol( tp ) ;
 			return( TIMER_OK ) ;
 		}
-	
+
 		/*
 		 * Keep expiring the timer until it exceeds the current time
 		 */

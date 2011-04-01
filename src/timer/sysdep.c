@@ -56,7 +56,7 @@ static struct os_timer os_timers[] =
 #else
 			UNAVAILABLE,	0,						SIGNOSIG,
 #endif
-      	TIMER_VIRTUAL,	sigvtalrm_handler,   get_virtual_time,	{NULL,0},
+	TIMER_VIRTUAL,	sigvtalrm_handler,   get_virtual_time,	{NULL,0},
 #if defined(NSIG) && NSIG > 32
 			{{0,}},
 #else  /* NSIG <= 32 */
@@ -79,7 +79,7 @@ static struct os_timer os_timers[] =
 		},
 
 		{	UNAVAILABLE,	0,						SIGNOSIG,
-      	TIMER_REAL,		NULL,                NULL,	{NULL,0},
+	TIMER_REAL,		NULL,                NULL,	{NULL,0},
 #if defined(NSIG) && NSIG > 32
 			{{0,}},
 #else  /* NSIG <= 32 */

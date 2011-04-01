@@ -191,7 +191,7 @@ PRIVATE int addstring(env_s *ep, char *var_string, int len)
 	p = make_string( 1, var_string ) ;
 	if ( p == NULL )
 		return( ENV_ERR ) ;
-	
+
 	pp = lookup( ep, var_string, len ) ;
 	if ( pp == NULL )
 	{

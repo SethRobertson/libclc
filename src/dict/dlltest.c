@@ -72,7 +72,7 @@ int main(void)
 			exit( 1 ) ;
 		}
 	}
-	
+
 	printf( "Successor test\n" ) ;
 	for ( ip=INTP(dll_minimum( lh )) ; ip ; ip=INTP(dll_successor( lh, ip )) )
 		printf( "%d\n", *ip ) ;
@@ -106,6 +106,6 @@ int main(void)
 			(void) dll_delete( lh, ip ) ;
 		else
 			printf( "%d\n", *ip ) ;
-	
+
 	exit( 0 ) ;
 }

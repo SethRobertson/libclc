@@ -189,11 +189,11 @@ int Sread(int fd, char *addr, int nbytes)
 				if ( total_b_transferred == 0 )
 					return( SIO_ERR ) ;
 				/* FALL THROUGH */
-		
+
 			case 0:
 				return( total_b_transferred ) ;
 		}
-		
+
 		b_transferred = MIN( b_read, nbytes ) ;
 		sio_memcopy( idp->nextb, addr, b_transferred ) ;
 		addr += b_transferred ;
@@ -413,13 +413,13 @@ int Sundo(int fd, int type)
 			}
 			ASSERT( idp->start <= idp->nextb && idp->nextb <= idp->end ) ;
 			break ;
-	
+
 		case SIO_UNDO_CHAR:
 			if ( idp->nextb > idp->start )
 				idp->nextb-- ;
 			ASSERT( idp->start <= idp->nextb && idp->nextb <= idp->end ) ;
 			break ;
-	
+
 		default:
 			retval = SIO_ERR ;
 			break ;

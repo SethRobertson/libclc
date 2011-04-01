@@ -224,7 +224,7 @@ PRIVATE char *conv_fp(register char format, register double num, boolean_e add_d
 	/*
 	 * copy the rest of p, the NUL is NOT copied
 	 */
-	while ( *p ) *s++ = *p++ ;		
+	while ( *p ) *s++ = *p++ ;
 
 	if ( format != 'f' )
 	{
@@ -239,7 +239,7 @@ PRIVATE char *conv_fp(register char format, register double num, boolean_e add_d
 			p = conv_10( (wide_int)decimal_point, FALSE, &exponent_is_negative,
 												&temp[ EXPONENT_LENGTH ], &t_len ) ;
 			*s++ = exponent_is_negative ? '-' : '+' ;
-		
+
 			/*
 			 * Make sure the exponent has at least 2 digits
 			 */
@@ -463,7 +463,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 				}
 				else
 					adjust_width = NO ;
-			
+
 				/*
 				 * Check if a precision was specified
 				 *
@@ -540,7 +540,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 							prefix_char = ' ' ;
 					}
 					break ;
-			
+
 
 				case 'o':
 					if ( is_long )
@@ -556,7 +556,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 						s_len++ ;
 					}
 					break ;
-			
+
 
 				case 'x':
 				case 'X':
@@ -574,7 +574,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 						s_len += 2 ;
 					}
 					break ;
-			
+
 
 				case 's':
 					s = va_arg( ap, char * ) ;
@@ -591,7 +591,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 					}
 					pad_char = ' ' ;
 					break ;
-			
+
 
 				case 'f':
 				case 'e':
@@ -677,7 +677,7 @@ int __sio_converter(register __sio_od_t *odp, int fd, register char *fmt, va_lis
 					}
 					pad_char = ' ' ;
 					break ;
-				
+
 
 				case NUL:
 					/*

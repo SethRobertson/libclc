@@ -144,7 +144,7 @@ trap trap_function 1 2 3 15
 #		its variable is "yes" OR its variable is "" and $all is "yes"
 # We don't test a function iff:
 #		its variable is "no" OR its variable is "" and $all is "no"
-#	
+#
 # Therefore, all functions specified after "all" will NOT be tested.
 #
 run=yes

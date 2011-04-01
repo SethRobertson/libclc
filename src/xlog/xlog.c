@@ -211,11 +211,11 @@ int xlog_control( xlog_h xlog, xlog_cmd_e cmd, ... )
 			xlog_link( xp, va_arg( ap, xlog_s * ) ) ;
 			xp->xl_callback_arg = va_arg( ap, void * ) ;
 			break ;
-	
+
 		case XLOG_CALLBACK:
 			xp->xl_callback = va_arg( ap, voidfunc ) ;
 			break ;
-		
+
 		case XLOG_GETFLAG:
 		case XLOG_SETFLAG:
 			xlog_flags( xp, cmd, ap ) ;
@@ -255,7 +255,7 @@ int xlog_parms( xlog_e type, ... )
 		case XLOG_FILELOG:
 			status = (*__xlog_filelog_ops.parms)( ap ) ;
 			break ;
-	
+
 		default:
 			status = XLOG_ENOERROR ;
 	}

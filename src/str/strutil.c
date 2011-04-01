@@ -37,7 +37,7 @@ char *str_find(register char *str, register char *sstr)
 
 		if ( strc != ssfc )
 			continue ;
-	
+
 		/*
 		 * We don't need to make the end of str a special case since
 		 * the comparison of *sp against *ssp is guaranteed to fail
@@ -82,7 +82,7 @@ char *str_casefind(register char *str, char *sstr)
 			strc = LOWER_CASE( strc ) ;
 		if ( strc != ssfc )
 			continue ;
-	
+
 		for ( sp = str, ssp = sstr ;; sp++, ssp++ )
 		{
 			register int sc = *sp ;				/* string char */

@@ -127,7 +127,7 @@ static mapd_s *mmap_descriptors = static_mapd_array ;
  *
  * Sets fields:
  *		memory_mapped:			 TRUE or FALSE
- *	
+ *
  * Also sets the following fields if memory_mapped is TRUE:
  *    file_offset, file_size, buffer_size
  *
@@ -363,7 +363,7 @@ PRIVATE status_e map_unit(register mapd_s *mdp, int fd, register struct map_unit
 		if ( SIO_MMAP( mup->addr, bytes_to_map,
 			       fd, mdp->file_offset ) == (caddr_t)(-1) )
 			return( FAILURE ) ;			/* XXX: need to do more ? */
-	
+
 		mup->valid_bytes = bytes_to_map ;
 		ASSERT( mup->valid_bytes <= mup->mapped_bytes ) ;
 		mdp->file_offset += bytes_to_map ;
@@ -874,7 +874,7 @@ int Sdone(int fd)
 					idp->nextb = idp->end = NULL ;
 			}
 			break ;
-	
+
 		case __SIO_OUTPUT_STREAM:
 			{
 				register __sio_od_t *odp = ODP( dp ) ;
@@ -885,7 +885,7 @@ int Sdone(int fd)
 				odp->nextb = odp->buf_end = NULL ;
 			}
 			break ;
-	
+
 		default:
 			terminate( "SIO Sdone: bad stream type\n" ) ;
 	}

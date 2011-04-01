@@ -178,7 +178,7 @@ PRIVATE int ftwx_traverse(char *path, int depth)
 			retval = -1 ;
 			break ;
 		}
-	
+
 		retval = ftwx_traverse( filename, depth ) ;
 		free( filename ) ;
 

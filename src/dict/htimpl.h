@@ -111,7 +111,7 @@ struct ht_header
 #ifdef CUR_MIN_PERF_HACK
         unsigned int		cur_min ;
 #endif /* CUR_MIN_PERF_HACK */
-  	unsigned int		obj_cnt ;
+	unsigned int		obj_cnt ;
 } ;
 
 typedef struct ht_header header_s ;
@@ -122,8 +122,8 @@ typedef struct ht_header header_s ;
  */
 struct ht_stats
 {
-  	unsigned int		max_cnt ;
-  	unsigned int		max_chain ;
+	unsigned int		max_cnt ;
+	unsigned int		max_chain ;
 	unsigned int		inserts ;
 	unsigned int		deletes ;
 	unsigned int		clashes ;

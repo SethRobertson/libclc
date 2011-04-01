@@ -32,7 +32,7 @@ timer_h clc_timer_create(enum timer_types type, int flags, int *errnop)
 	if ( type != TIMER_REAL && type != TIMER_VIRTUAL && type != TIMER_PROF )
 			HANDLE_ERROR( flags, TIMER_H_NULL, errp, TIMER_EBADTYPE,
 							"TIMER timer_create: bad timer type\n" ) ;
-		
+
 	tp = TIMER_ALLOC() ;
 	if ( tp == NULL )
 	{
@@ -217,7 +217,7 @@ enum timer_state __timer_invoke(register timer_s *tp)
 				{
 					int unblock_all_intrs = ! ( flags & TIMER_BLOCK_ALL ) ;
 					int unblock_all_but_same_intr = ! ( flags & TIMER_BLOCK_SAME ) ;
-				
+
 					if ( unblock_all_intrs )
 						__ostimer_unblockall() ;
 					else if ( unblock_all_but_same_intr )

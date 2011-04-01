@@ -132,7 +132,7 @@ PRIVATE int syslog_control(xlog_s *xp, xlog_cmd_e cmd, va_list ap)
 		case XLOG_FACILITY:
 			SYSLOG( xp )->sl_facility = va_arg( ap, int ) ;
 			break ;
-	
+
 		case XLOG_PREEXEC:
 			closelog() ;
 			break ;
@@ -141,7 +141,7 @@ PRIVATE int syslog_control(xlog_s *xp, xlog_cmd_e cmd, va_list ap)
 			if ( parms.slp_n_xlogs )
 				openlog( parms.slp_ident, parms.slp_logopts, parms.slp_facility ) ;
 			break ;
-	
+
 		case XLOG_GETFD:
 			return( XLOG_EBADOP ) ;
 		default:
@@ -186,7 +186,7 @@ PRIVATE int syslog_write(xlog_s *xp, char *buf, int len, int flags, va_list ap)
 		char *ep ;
 		char errno_buf[ 100 ] ;
 		unsigned size = sizeof( errno_buf ) ;
-	
+
 		ep = __xlog_explain_errno( errno_buf, &size ) ;
 		syslog( syslog_arg, "%.*s%.*s%.*s%.*s",
 				prefix_len, prefix,

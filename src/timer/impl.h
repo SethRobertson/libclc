@@ -18,7 +18,7 @@
 #include "pq.h"
 #include "timer.h"
 
-enum timer_state { INACTIVE, TICKING, DESTROYED } ; 
+enum timer_state { INACTIVE, TICKING, DESTROYED } ;
 enum action_state { IDLE, PENDING, SCHEDULED, INVOKED } ;
 
 

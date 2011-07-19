@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/types.h>
 
 #ifdef DEBUG
 #include <stdio.h>

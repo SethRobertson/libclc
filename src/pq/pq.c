@@ -8,5 +8,5 @@
 
 UNUSED static const char version[] = VERSION;
 
-int pq_errno ;
+static int pq_errno ;
 

@@ -46,6 +46,7 @@ dict_iter	ht_iterate	 ( dict_h hh, enum dict_direction direction )  ;
 void		ht_iterate_done	 ( dict_h hh, dict_iter )  ;
 dict_obj	ht_nextobj	 ( dict_h hh, dict_iter )  ;
 char *	 	ht_error_reason	 ( dict_h hh, int *errnop )  ;
+unsigned int	ht_object_count	 ( dict_h handle ) ;
 
 #endif	/* __HT_H */
 

@@ -1283,6 +1283,22 @@ char *ht_error_reason(dict_h handle, int *errnop)
 
 
 
+/*
+ * Return number of items in tree
+ *
+ * Note this is a ht-only function, other dict objects do not support it
+ */
+unsigned int ht_object_count(dict_h handle)
+{
+  header_s	*hp		= HHP( handle ) ;
+
+  // Warning: intentionally skipping locking, int read/writes are atomic on all currently interesting platforms
+
+  return(hp->obj_cnt);
+}
+
+
+
 #else  /* SWITCH_HT_TO_DLL */
 
 #include "dll.h"

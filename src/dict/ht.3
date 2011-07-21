@@ -5,7 +5,7 @@
 .\" $Id: ht.3,v 1.5 2003/06/17 05:10:51 seth Exp $
 .TH HT 3X "23 April 1993"
 .SH NAME
-ht_create, ht_destroy, ht_insert, ht_insert_uniq, ht_delete, ht_search, ht_minimum, ht_maximum, ht_successor, ht_predecessor, ht_iterate, ht_nextobj, ht_error_reason - hash table management functions
+ht_create, ht_destroy, ht_insert, ht_insert_uniq, ht_delete, ht_search, ht_minimum, ht_maximum, ht_successor, ht_predecessor, ht_iterate, ht_nextobj, ht_error_reason, ht_object_count - hash table management functions
 .SH SYNOPSIS
 .LP
 .nf
@@ -78,6 +78,10 @@ dict_iter iter ;
 dict_obj ht_nextobj( handle, iter )
 dict_h handle ;
 dict_iter iter ;
+.LP
+.ft B
+unsigned int ht_object_count( handle )
+dict_h handle ;
 .SH DESCRIPTION
 This library supports dictionary functions using hash tables.
 A hash table is an array of linked lists which contain objects with the
@@ -158,6 +162,10 @@ and
 .B ht_predecessor()
 operations can be used to enumerate the objects in a hash table but the
 enumeration order is arbitrary.
+.LP
+.I ht_object_count()
+is a function restricted to ht CLC objects only.  It returns the
+current number of objects stored in the hash table.
 .SH "SEE ALSO"
 dict(3)
 .SH "RETURN VALUES"

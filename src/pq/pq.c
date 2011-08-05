@@ -7,6 +7,3 @@
 #include "clchack.h"
 
 UNUSED static const char version[] = VERSION;
-
-static int pq_errno ;
-

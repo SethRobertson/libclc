@@ -361,7 +361,11 @@ void fsm_destroy(register fsma_h fp)
       }
     }
     assert(cnt < coalesce_size);		// Or fsma ds are really messed up
-    coalesce_size--;
+    if (!--coalesce_size)
+    {
+      free(coalesce);
+      coalesce = NULL;
+    }
   }
 
  bypasscoalescefree:

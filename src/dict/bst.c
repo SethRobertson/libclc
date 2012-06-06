@@ -360,7 +360,7 @@ int bst_delete(dict_h handle, dict_obj object)
 
 #ifdef FAST_ACTIONS
 #ifdef BK_USING_PTHREADS
-  /* See if the interator contains a hint as to where obj might be */
+  /* See if the iterator contains a hint as to where obj might be */
   for (tipcnt=0; tipcnt<hp->tip_cnt; tipcnt++)
   {
     if (hp->tip[tipcnt] && hp->tip[tipcnt]->next && hp->tip[tipcnt]->next != ANCHOR(hp))

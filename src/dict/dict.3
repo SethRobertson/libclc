@@ -156,12 +156,13 @@ argument is formed by ORing one or more of the following constants:
 .TP
 .SB DICT_NOCOALESCE
 This flag turns off the attempt to save memory by coalescing multiple
-memory allocators which require the same memory size.  This is mostly
-done to preserve re-entrancy or for debugging.
+memory allocators which require the same memory size.  This can be done
+to trade memory for speed for threaded programs or for debugging.
 .TP
 .SB DICT_UNIQUE_KEYS
-Objects with equal keys are allowed unless this flag is specified.
-If objects with equal keys are allowed, it is guaranteed that a
+Objects with equal keys are allowed unless this flag is specified.  If
+objects with equal keys are allowed (and the list is ordered), it is
+guaranteed that a
 .B <lib>_search()
 operation will locate one of them, and subsequent
 .B <lib>_successor()
@@ -174,6 +175,24 @@ rejected if the library requires object ordering.
 .SB DICT_ORDERED
 Requests that inserted objects are ordered. This request may be rejected
 if the library does not support object ordering.
+.TP
+.SB DICT_THREADED_SAFE
+Requests that the implementation be thread safe against multiple
+threads accessing the same dictionary object at the same time.
+Implies
+.SB DICT_THREADED_MEMORY.
+.TP
+.SB DICT_THREADED_MEMORY
+Requests that the implementation be thread safe against multiple
+threads access
+.B different
+dictionary objects at the same time.  Note this option is obviated by
+.SB DICT_NOCOALESCE
+since all memory is per-dictionary.  This option is implied by
+.SB DICT_THREADED_SAFE.
+.TP
+.SB DICT_NOFLAGS
+Can be used to specify no flags
 .RE
 .LP
 Some dictionary library implementations support additional flags.
@@ -222,7 +241,7 @@ their names (although it should be noted that the order is really
 defined by the
 .I oo_compare
 function and may not be intuitive).
-If the objects are stored in any order, then the meaning of these
+If the objects are unordered, then the meaning of these
 operations is undefined. However,
 it is guaranteed that by starting
 at the object identified by
@@ -403,11 +422,13 @@ flags were specified.
 The specified order flag is not supported by the particular library
 implementation.
 .SH BUGS
-.B "lib_iterate"
-(and friends)--while they now have a re-entrant interface, they are
-.I still
-not re-entrant, since the iterate context is not dynamically
-allocated.  This means currently you still cannot nest iterations.
+.B "<lib>_iterate"
+(and friends)--while they now have a re-entrant interface, if you do
+not compile with threading enabled, they are
+.I not
+re-entrant, since the iterate context is not dynamically
+allocated.  This means currently you still cannot nest iterations (unless you
+ocompile with threading).
 .SH EXAMPLE
 The following code fragment reads words from standard input and places them
 in a set making sure that the set contains no duplicates. At the

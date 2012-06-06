@@ -70,11 +70,18 @@ as arguments and returns 1 if the first object is
 .I "better"
 than the second and 0 otherwise. When the comparison is between an incoming
 object and an existing one (as opposed to both existing), the first object
-is the one incoming. The only possible value for the \fIflags\fR argument
-is \fBPQ_NOCOALESCE\fR which, if used, will cause the memory allocator to
-NOT attempt to combine multiple memory allocators which generate the same
-sized data to save memory. The value \fBPQ_NOFLAGS\fR can be used to
-specify no flags.
+is the one incoming.
+.LP
+The \fIflags\fR argument is formed or ORing one or more of the following constants:
+.RS
+.TP
+.SB PQ_THREADED_SAFE
+Requests that the implementation be thread safe against multiple
+threads accessing the same dictionary object at the same time.
+.TP
+.SB PQ_NOFLAGS
+Can be used to specify no flags
+.RE
 .LP
 .B pq_destroy()
 is used to destroy a priority queue.
@@ -158,3 +165,10 @@ The object is not in the queue.
 returns the next object
 .SM NULL
 if the queue has been completely iterated.
+.SH BUGS
+.LP
+The iterator is not safe to use in either a threaded or non-threaded
+environment if objects are being deleted (other than the object that
+this one specific iterator is on when no other iterators are in use
+for this pq) or inserted.  Using the iterator when an object is
+inserted/deleted might cause objects to be skipped or selected twice.

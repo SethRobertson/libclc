@@ -94,6 +94,25 @@ supports the following flags:
 .SB DICT_UNIQUE_KEYS
 .TP
 .SB DICT_UNORDERED
+.TP
+.SB DICT_NOCOALESCE
+.TP
+.SB DICT_THREADED_SAFE
+.TP
+.SB DICT_THREADED_MEMORY
+.TP
+.SB DICT_HT_STRICT_HINTS
+which asks for the hints (table entries, bucket entries) provided in
+the create function to be used as specific values instead of as
+inspiration for, in the case of table entries at least, some different
+(typically larger, perhaps much larger) value instead.
+.TP
+.SB DICT_HT_STATS
+which asks the system to keep statistics about the use of the hash
+table, to help determine if the table is appropriately sized and the
+hash algorithm is sufficiently uniform.  The data about the hash table
+usage is printed to standard out on dictionary destruction (so is not
+the most clean interface).
 .RE
 .LP
 The

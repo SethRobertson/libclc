@@ -64,6 +64,16 @@ will cause memory blocks returned to the specified allocator by
 .SB FSM_ZERO_DESTROY
 will cause all memory associated with the allocator to be zeroed
 when the allocator is destroyed.
+.TP
+.SB FSM_NOCOALESCE
+will prevent this allocator from being combined with some other allocator
+which happens to use the same request object size.  This can be useful
+for debugging, or can trade memory for speed (since locking is not required).
+.TP
+.SB FSM_THREADED
+will request that the allocator be thread-safe so that multiple
+threads may access (request or return memory) the same (or coalesced)
+allocators at the same time without problem.
 .LP
 The constant \fBFSM_NOFLAGS\fR can be used to specify no flags.
 .LP

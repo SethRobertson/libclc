@@ -107,6 +107,12 @@ include:
 .SB DICT_UNORDERED
 .TP
 .SB DICT_ORDERED
+.TP
+.SB DICT_NOCOALESCE
+.TP
+.SB DICT_THREADED_SAFE
+.TP
+.SB DICT_THREADED_MEMORY
 .RE
 .LP
 If the flag
@@ -118,7 +124,7 @@ This allows such a list to be used to enforce an LRU policy by
 deleting the most recently found node and inserting it back.
 .LP
 .B dll_append()
-behaves exactly like
+(a dll specific function) behaves exactly like
 .B dll_insert()
 except that it starts all operations from the END instead of the
 begining of the list.

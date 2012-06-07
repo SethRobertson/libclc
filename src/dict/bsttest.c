@@ -9,8 +9,6 @@
 #define NULL 0
 #endif
 
-#define BST_DEBUG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "bst.h"

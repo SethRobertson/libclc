@@ -18,7 +18,7 @@ BK_LARGE_LIB=../libpqueue$(LIBEXT)
 BK_LARGE_LIBSRC=pq.c hpq.c
 BK_MAN=pq.3
 
-LT_LDLIBS=-lfsma
+LT_LDLIBS=-L.. -lfsma
 
 GROUPTOP=../..
 GROUPSUBDIR=src/pq

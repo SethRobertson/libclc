@@ -5,7 +5,7 @@
 .\" $Id: dll.3,v 1.5 2003/06/17 05:10:51 seth Exp $
 .TH DLL 3X "23 April 1993"
 .SH NAME
-dll_create, dll_destroy, dll_insert, dll_insert_uniq, dll_delete, dll_search, dll_minimum, dll_maximum, dll_successor, dll_predecessor, dll_iterate, dll_nextobj, dll_error_reason - double linked list management functions
+dll_create, dll_destroy, dll_insert, dll_insert_uniq, dll_append, dll_append_uniq, dll_delete, dll_search, dll_minimum, dll_maximum, dll_successor, dll_predecessor, dll_iterate, dll_nextobj, dll_error_reason - double linked list management functions
 .SH SYNOPSIS
 .LP
 .nf
@@ -124,8 +124,12 @@ This allows such a list to be used to enforce an LRU policy by
 deleting the most recently found node and inserting it back.
 .LP
 .B dll_append()
-(a dll specific function) behaves exactly like
+and
+.B dll_append_uniq()
+behaves exactly like
 .B dll_insert()
+(or
+.B dll_insert_uniq())
 except that it starts all operations from the END instead of the
 begining of the list.
 .LP

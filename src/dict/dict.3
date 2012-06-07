@@ -35,6 +35,17 @@ dict_obj object ;
 dict_obj *objectp ;
 .LP
 .ft B
+int <lib>_append( handle, object )
+dict_h handle ;
+dict_obj object ;
+.LP
+.ft B
+int <lib>_append_uniq( handle, object, objectp )
+dict_h handle ;
+dict_obj object ;
+dict_obj *objectp ;
+.LP
+.ft B
 dict_obj <lib>_search( handle, key )
 dict_h handle ;
 dict_key key ;
@@ -222,6 +233,17 @@ If the insertion is not successful because there is already an
 object with an equal key value, then
 .I objectp
 will point to that object.
+.LP
+.B <lib>_append()
+and
+.B <lib>_append_uniq()
+for most implementations are identical to
+.B <lib>_insert()
+or
+.B <lib>_insert_uniq().
+However, some implementations (DLLs) will insert values at the end of
+the list (for unordered lists, or at the end of the list of
+equal-keyed objects) instead of the beginning.
 .LP
 .B <lib>_delete()
 deletes an object from a library instance.

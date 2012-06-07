@@ -94,6 +94,22 @@ dict_h handle ;
 int *errnop ;
 .LP
 .ft B
+DICT_NUKE(queue, prefix, pointer, errcode, freecode);
+dict_h handle;
+(dict_prefix) prefix;
+(list_content_type) *pointer;
+(code) errcode;
+(code) freecode;
+.LP
+.ft B
+DICT_NUKE_CONTENTS(queue, prefix, pointer, errcode, freecode);
+dict_h handle;
+(dict_prefix) prefix;
+(list_content_type) *pointer;
+(code) errcode;
+(code) freecode;
+.LP
+.ft B
 .SH DESCRIPTION
 This is a framework for libraries that solve the dictionary problem:
 insertion, location, deletion of objects from a set.
@@ -329,6 +345,38 @@ iteration context.
 returns the textual error message for the most recent error return by
 the dictionary.  If you wish the numerical reason, you may supply a
 integer for copyout.
+.LP
+.B DICT_NUKE_CONTENTS()
+and
+.B DICT_NUKE()
+are macros which provide boilerplate assistance for users attempting to
+delete the contents of a dict_h, or delete the contents of a dict_h and
+destroy the dict_h.  This make heavy use of macro substitution.  A common
+example usage would be:
+.PP
+.nf
+  dict_h configs = dll_create(config_ko, config_oo, DICT_NOFLAGS);
+  char *item = NULL;
+  ...
+  DICT_NUKE(configs, dll, item,
+            LOG_ERROR("Could not delete item we just minimized: %s\n",
+                      dll_error_reason(configs, NULL));
+	      break, free(item));
+.fi
+.PP
+which would, if configs is non-null, remove all of the items in the
+list (of type dll), calling free() on each value on the list.  If the
+extremely unlikely situation occurred where the attempt to delete an
+item from the list failed, an error message would be logged (the most
+likely cause of such a problem would be multiple threads attempting to
+NUKE the same list at the same time, a serious programming flaw
+leading to double-frees, even when the dictionary is
+DICT_THREADED_SAFE, since while the dictionary itself would not be
+corrupted due to locking, the locking does not extend to the objects
+being returned).  After deleting and freeing all elements from the
+list, if
+.B DICT_NUKE()
+was used, the indicated list would be destroyed.
 .SH "RETURN VALUES"
 .LP
 Functions returning handles or objects, return

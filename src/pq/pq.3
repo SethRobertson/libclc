@@ -51,6 +51,18 @@ pq_h pq ;
 char *pq_error_reason( pq, errno )
 pq_h pq ;
 int *errnop ;
+.LP
+.ft B
+PQ_NUKE(queue, pointer, freecode);
+dict_h handle;
+(list_content_type) *pointer;
+(code) freecode;
+.LP
+.ft B
+PQ_NUKE_CONTENTS(queue, pointer, freecode);
+dict_h handle;
+(list_content_type) *pointer;
+(code) freecode;
 .SH DESCRIPTION
 .LP
 This library handles priority queues (implemented as a balanced binary
@@ -107,6 +119,27 @@ returns the next object.  It is safe to delete this object. O(1)
 .B pq_error_reason()
 returns the textual and numerical (if errno pointer is provided) error
 message for the most recent error.
+.LP
+.B PQ_NUKE_CONTENTS()
+and
+.B PQ_NUKE()
+are macros which provide boilerplate assistance for users attempting
+to delete the contents of a pq, or delete the contents of a PQpqnd
+destroy the pq.  This make heavy use of macro substitution.  A common
+example usage would be:
+.PP
+.nf
+  pq_h expire = pq_create(expire_oo, PQ_NOFLAGS);
+  char *item = NULL;
+  ...
+  PQ_NUKE(configs, item, free(item));
+.fi
+.PP
+which would, if expire is non-null, remove all of the items in the
+priority queue, calling free() on each value on the list.  After
+deleting and freeing all elements from the list, if
+.B PQ_NUKE()
+was used, the indicated list would be destroyed.
 .SH "RETURN VALUES"
 .LP
 In the following, values for \fIpq_errno\fR will be stored in the

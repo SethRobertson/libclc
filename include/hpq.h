@@ -76,5 +76,58 @@ char *pq_error_reason		( pq_h handle, int *errnop ) ;
       : (pq_obj) 0 \
      )
 
-#endif /* __HPQ_H */
 
+
+/*
+ * Delete all of the elements in a PQ datastructure
+ * For use only by PQ_NUKE_CONTENTS and PQ_NUKE.
+ *
+ * THREADS: REENTRANT (assuming different dictionaries)
+ *
+ * <TODO>Can we figure out this is a bst and turn off balanced_tree?</TODO>
+ *
+ * <TRICKY>Do not change this macro, you will surely regret it.</TRICKY>
+ */
+#define _PQ_NUKE_WORK_LOOP(Q, ptr, code)			\
+ while (((ptr) = pq_extract_head(Q)))				\
+ {								\
+   code;							\
+ }								\
+
+
+/**
+ * Delete all of the elements in a CLC pq datastructure
+ * User supplies the code to actually free the objects in the pq.
+ * Errcode is unlikely to do anything very useful--just log messages--but is
+ * also not likely to ever execute.
+ *
+ * THREADS: REENTRANT (assuming different pqionaries)
+ *
+ */
+#define PQ_NUKE_CONTENTS(Q, ptr, code)	\
+ do					\
+ {					\
+   if (Q)				\
+     _PQ_NUKE_WORK_LOOP(Q, ptr, code)	\
+ } while (0)
+
+
+/**
+ * Delete a CLC pq datastructure and all of its elements.
+ * User supplies the code to actually free the objects in the pq.
+ * Errcode is unlikely to do anything very useful--just log messages--but is
+ * also not likely to ever execute.
+ *
+ * THREADS: REENTRANT (assuming different Qs)
+ *
+ */
+#define PQ_NUKE(Q, ptr, code)		\
+ do					\
+ {					\
+   if (!(Q)) break;			\
+   _PQ_NUKE_WORK_LOOP(Q, ptr, code);	\
+   pq_destroy(Q);			\
+ } while (0)
+
+
+#endif /* __HPQ_H */
